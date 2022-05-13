@@ -8,10 +8,9 @@ import { getProgram, getProvider } from "./provider";
 
 export async function fetchListings(
   connection: anchor.web3.Connection,
-  wallet: AnchorWallet,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
 ) {
-  const provider = getProvider(connection, wallet);
+  const provider = getProvider(connection);
   const program = getProgram(provider);
   const listings = await program.account.listing.all(filter);
 

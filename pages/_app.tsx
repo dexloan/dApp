@@ -1,3 +1,4 @@
+import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
 import {
   ConnectionProvider,
@@ -14,7 +15,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
-import type { AppProps } from "next/app";
+import { Navbar } from "../components/navbar";
 import "react-toastify/dist/ReactToastify.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "../styles/globals.css";
@@ -49,6 +50,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <ChakraProvider>
+              <Navbar />
               <Component {...pageProps} />
               <ToastContainer />
             </ChakraProvider>

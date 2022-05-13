@@ -1,7 +1,9 @@
-import { Button } from "@chakra-ui/react";
+import { Button, Box, Container } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import Link from "next/link";
 import { useMemo } from "react";
+import Dexloan from "../../public/dexloan.svg";
 
 export function Navbar() {
   const modal = useWalletModal();
@@ -25,8 +27,31 @@ export function Navbar() {
   }, [wallet]);
 
   return (
-    <Button onClick={onConnect}>
-      {wallet.publicKey ? displayAddress : "Connect Wallet"}
-    </Button>
+    <Container maxW="container.xl">
+      <Box
+        as="nav"
+        borderBottomWidth="1px"
+        borderColor="gray.200"
+        display="flex"
+        h="28"
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="space-between"
+        mb="10"
+      >
+        <Box>
+          <Link href="/">
+            <a>
+              <Dexloan width="200px" />
+            </a>
+          </Link>
+        </Box>
+        <Box>
+          <Button onClick={onConnect}>
+            {wallet.publicKey ? displayAddress : "Connect Wallet"}
+          </Button>
+        </Box>
+      </Box>
+    </Container>
   );
 }
