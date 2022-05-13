@@ -45,37 +45,41 @@ const Home: NextPage = () => {
                   uri={item?.metadata.data.uri}
                   imageAlt={item?.metadata.data.name}
                 >
-                  <Box display="flex" alignItems="baseline">
-                    <Badge borderRadius="full" px="2" colorScheme="teal">
-                      {item?.listing.account.basisPoints / 100}%
-                    </Badge>
+                  <Box p="4">
+                    <Box display="flex" alignItems="baseline">
+                      <Badge borderRadius="full" px="2" colorScheme="teal">
+                        {item?.listing.account.basisPoints / 100}%
+                      </Badge>
+                      <Box
+                        color="gray.500"
+                        fontWeight="semibold"
+                        letterSpacing="wide"
+                        fontSize="xs"
+                        textTransform="uppercase"
+                        ml="2"
+                      >
+                        {utils.toMonths(
+                          item?.listing.account.duration?.toNumber()
+                        )}{" "}
+                        months
+                      </Box>
+                    </Box>
                     <Box
-                      color="gray.500"
+                      mt="1"
                       fontWeight="semibold"
-                      letterSpacing="wide"
-                      fontSize="xs"
-                      textTransform="uppercase"
-                      ml="2"
+                      as="h4"
+                      lineHeight="tight"
+                      isTruncated
                     >
-                      {utils.toMonths(
-                        item?.listing.account.duration?.toNumber()
-                      )}{" "}
-                      months
+                      {item?.metadata.data.name}
                     </Box>
                   </Box>
-                  <Box
-                    mt="1"
-                    fontWeight="semibold"
-                    as="h4"
-                    lineHeight="tight"
-                    isTruncated
-                  >
-                    {item?.metadata.data.name}
-                  </Box>
-                  <Box>
-                    {item?.listing.account.amount.toNumber() /
-                      anchor.web3.LAMPORTS_PER_SOL}
-                    &nbsp;◎
+                  <Box p="4" bgColor="blue.50">
+                    <Box fontWeight="bold" as="h3">
+                      {item?.listing.account.amount.toNumber() /
+                        anchor.web3.LAMPORTS_PER_SOL}
+                      &nbsp;◎
+                    </Box>
                   </Box>
                 </Card>
               );

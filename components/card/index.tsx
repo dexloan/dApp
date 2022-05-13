@@ -75,7 +75,7 @@ export function Card({ children, publicKey, uri, imageAlt }: CardProps) {
           </Box>
         </Box>
 
-        <Box p="4">{children}</Box>
+        {children}
       </Box>
     </Link>
   );
