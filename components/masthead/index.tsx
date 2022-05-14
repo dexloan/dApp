@@ -18,7 +18,7 @@ export function Masthead() {
         </Box>{" "}
         against non-fungibles
       </Heading>
-      <Text color="gray.600" size="md" fontWeight="medium" mb="8">
+      <Text size="md" fontWeight="medium" mb="8">
         Unlock the value of your NFTs with free and secure lending.
         <br />
         <Badge colorScheme="green">Liquidity pools coming soon!</Badge>

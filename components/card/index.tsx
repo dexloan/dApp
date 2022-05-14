@@ -28,7 +28,7 @@ export function Card({ children, publicKey, uri, imageAlt }: CardProps) {
     const observer = new IntersectionObserver(callback, {
       root: null,
       rootMargin: "0px",
-      threshold: 0.75,
+      threshold: 0.5,
     });
 
     if (el) observer.observe(el);

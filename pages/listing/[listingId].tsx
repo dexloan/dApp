@@ -1,11 +1,12 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { Button, Divider, Flex, View, Well } from "@adobe/react-spectrum";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { Badge, Button, Heading, Flex, Box, Text } from "@chakra-ui/react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import * as utils from "../../utils";
-import { ListingState } from "../../lib/web3";
+import { ListingState } from "../../common/types";
 import { useListingQuery } from "../../hooks/query";
 import {
   useCancelMutation,
@@ -14,9 +15,6 @@ import {
   useRepaymentMutation,
   useRepossessMutation,
 } from "../../hooks/mutation";
-import { Body, Heading } from "../../components/typography";
-import { LoadingPlaceholder } from "../../components/progress";
-import { Main } from "../../components/layout";
 import {
   CancelDialog,
   CloseAccountDialog,
@@ -24,9 +22,10 @@ import {
   RepayDialog,
   RepossessDialog,
 } from "../../components/dialog";
-import { useWalletConnect } from "../../components/button";
+import { Main, Well } from "../../components/layout";
 import { ExplorerLink } from "../../components/link";
 import { ListingImage } from "../../components/image";
+import { VerifiedCollection } from "../../components/collection";
 
 const Listing: NextPage = () => {
   const router = useRouter();
@@ -142,46 +141,31 @@ const Listing: NextPage = () => {
       case ListingState.Listed:
         return (
           <>
-            <View paddingBottom="size-100">
-              <Body size="M">
-                Lend&nbsp;
-                {listing?.amount
-                  ? listing.amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL
-                  : null}
-                &nbsp;SOL for upto&nbsp;
-                <strong>
-                  {listing?.duration
-                    ? utils.toMonths(listing.duration.toNumber())
-                    : null}
-                  &nbsp;months @&nbsp;
-                </strong>
-                <strong>
-                  {listing?.basisPoints ? listing.basisPoints / 100 : null}%
-                </strong>
-                &nbsp;APY.
-              </Body>
-              <Body>
-                After {utils.toMonths(listing.duration.toNumber())} months the
-                total repayment required will be{" "}
+            <Box p="4" borderRadius="lg" bgColor="blue.50">
+              <Text>
+                After {utils.formatMonths(listing.duration)} the total repayment
+                required will be&nbsp;
                 {utils
                   .totalAmount(
                     listing.amount.toNumber(),
                     Date.now() / 1000 - listing.duration.toNumber(),
                     listing.basisPoints
                   )
-                  .toFixed(2)}{" "}
-                SOL.
-              </Body>
-            </View>
-            <View marginY="size-200">{renderListedButton()}</View>
+                  .toFixed(3)}
+                &nbsp;SOL
+              </Text>
+            </Box>
+            <Box mt="4" mb="4">
+              {renderListedButton()}
+            </Box>
           </>
         );
 
       case ListingState.Active:
         return (
           <>
-            <View paddingBottom="size-100">
-              <Body>
+            <Box pb="4">
+              <Text>
                 {isLender ? "Lending" : "Borrowing"}&nbsp;
                 <strong>
                   {listing.amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL}
@@ -192,10 +176,10 @@ const Listing: NextPage = () => {
                 &nbsp;months&nbsp;@&nbsp;
                 <strong>{listing.basisPoints / 100}%</strong>
                 &nbsp;APY.&nbsp;
-              </Body>
-            </View>
-            <View paddingBottom="size-100">
-              <Body>
+              </Text>
+            </Box>
+            <Box pb="4">
+              <Text>
                 {utils
                   .totalAmount(
                     listing.amount.toNumber(),
@@ -204,41 +188,43 @@ const Listing: NextPage = () => {
                   )
                   .toFixed(4)}{" "}
                 SOL currently owed. Repayment {getRepaymentText()}
-              </Body>
-            </View>
-            <View marginY="size-200">{renderActiveButton()}</View>
+              </Text>
+            </Box>
+            <Box mt="4" mb="4">
+              {renderActiveButton()}
+            </Box>
           </>
         );
 
       case ListingState.Repaid:
         return (
           <>
-            <View marginBottom="size-300">
-              <Body>Listing has ended. The loan was repaid.</Body>
-            </View>
-            <View marginY="size-200">{renderCloseAccountButton()}</View>
+            <Box mb="4">
+              <Text>Listing has ended. The loan was repaid.</Text>
+            </Box>
+            <Box mb="4">{renderCloseAccountButton()}</Box>
           </>
         );
 
       case ListingState.Cancelled:
         return (
           <>
-            <View marginBottom="size-300">
-              <Body>Listing cancelled.</Body>
-            </View>
-            <View marginY="size-200">{renderCloseAccountButton()}</View>
+            <Box mb="4">
+              <Text>Listing cancelled.</Text>
+            </Box>
+            <Box mb="4">{renderCloseAccountButton()}</Box>
           </>
         );
 
       case ListingState.Defaulted:
         return (
           <>
-            <View marginBottom="size-300">
-              <Body>
+            <Box mb="4">
+              <Text>
                 Listing has ended. The NFT was repossessed by the lender.
-              </Body>
-            </View>
-            <View marginY="size-200">{renderCloseAccountButton()}</View>
+              </Text>
+            </Box>
+            <Box marginY="size-200">{renderCloseAccountButton()}</Box>
           </>
         );
 
@@ -248,18 +234,19 @@ const Listing: NextPage = () => {
   }
 
   if (listingQuery.isLoading) {
-    return <LoadingPlaceholder />;
+    // TODO skeleton
+    return null;
   }
 
   if (listingQuery.error instanceof Error) {
     return (
       <Main>
-        <View marginTop="size-400">
+        <Box mt="2">
           <Flex direction="column" alignItems="center">
             <Heading size="M">404 Error</Heading>
-            <Body>{listingQuery.error.message}</Body>
+            <Text>{listingQuery.error.message}</Text>
           </Flex>
-        </View>
+        </Box>
       </Main>
     );
   }
@@ -267,22 +254,50 @@ const Listing: NextPage = () => {
   return (
     <Main>
       <Flex direction="row" wrap="wrap">
-        <Flex flex={1} direction="column" justifyContent="center">
-          <View padding="size-100">
-            <ListingImage uri={metadata?.data.data.uri} />
-          </View>
-        </Flex>
-        <Flex flex={1} direction="column">
-          <View paddingX="size-100" paddingY="size-200">
-            <View>
-              <Heading size="L">{metadata?.data.data.name}</Heading>
-            </View>
-            <View paddingY="size-200">
-              <Divider size="M" />
-            </View>
-            {renderByState()}
-          </View>
-          <View>
+        <Box>
+          <ListingImage uri={metadata?.data.uri} />
+        </Box>
+        <Box pl="8" mt="6">
+          <Badge colorScheme="green" mb="2">
+            Peer-to-peer Listing
+          </Badge>
+          <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
+            {metadata?.data.name}
+          </Heading>
+          <VerifiedCollection symbol={metadata?.data.symbol} />
+
+          {listing && (
+            <Flex direction="row" gap="12" mt="12" mb="12">
+              <Box>
+                <Text size="sm" fontWeight="medium">
+                  Borrowing
+                </Text>
+                <Heading size="md" fontWeight="bold" mb="6">
+                  {utils.formatAmount(listing.amount)}
+                </Heading>
+              </Box>
+              <Box>
+                <Text size="sm" fontWeight="medium">
+                  Duration
+                </Text>
+                <Heading size="md" fontWeight="bold" mb="6">
+                  {utils.formatMonths(listing.duration)}
+                </Heading>
+              </Box>
+              <Box>
+                <Text size="sm" fontWeight="medium">
+                  APY
+                </Text>
+                <Heading size="md" fontWeight="bold" mb="6">
+                  {listing.basisPoints / 100}%
+                </Heading>
+              </Box>
+            </Flex>
+          )}
+
+          {renderByState()}
+
+          <Box>
             {listing?.borrower && (
               <Well>
                 Borrower
@@ -310,8 +325,8 @@ const Listing: NextPage = () => {
                 </ExplorerLink>
               </Well>
             )}
-          </View>
-        </Flex>
+          </Box>
+        </Box>
       </Flex>
     </Main>
   );
@@ -335,19 +350,19 @@ const LoanButton = ({
   const [open, setDialog] = useState(false);
   const mutation = useLoanMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
-  const [handleConnect] = useWalletConnect();
+  const { setVisible } = useWalletModal();
 
   async function onLend() {
     if (anchorWallet) {
       setDialog(true);
     } else {
-      handleConnect(() => setDialog(true));
+      setVisible(true);
     }
   }
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onPress={() => onLend()}>
+      <Button colorScheme="green" w="100%" onClick={onLend}>
         Lend SOL
       </Button>
       <LoanDialog
@@ -378,19 +393,19 @@ const CancelButton = ({ mint, escrow, listing }: CancelButtonProps) => {
   const [dialog, setDialog] = useState(false);
   const mutation = useCancelMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
-  const [handleConnect] = useWalletConnect();
+  const { setVisible } = useWalletModal();
 
   async function onCancel() {
     if (anchorWallet) {
       setDialog(true);
     } else {
-      handleConnect(() => setDialog(true));
+      setVisible(true);
     }
   }
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onPress={() => onCancel()}>
+      <Button variant="cta" minWidth="size-2000" onClick={onCancel}>
         Cancel Listing
       </Button>
       <CancelDialog
@@ -412,13 +427,13 @@ const RepayButton = ({ mint, escrow, listing, lender }: RepayButtonProps) => {
   const [dialog, setDialog] = useState(false);
   const mutation = useRepaymentMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
-  const [handleConnect] = useWalletConnect();
+  const { setVisible } = useWalletModal();
 
   async function onRepay() {
     if (anchorWallet) {
       setDialog(true);
     } else {
-      handleConnect(() => setDialog(true));
+      setVisible(true);
     }
   }
 
@@ -430,7 +445,7 @@ const RepayButton = ({ mint, escrow, listing, lender }: RepayButtonProps) => {
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onPress={() => onRepay()}>
+      <Button variant="cta" minWidth="size-2000" onClick={onRepay}>
         Repay Loan
       </Button>
       <RepayDialog
@@ -464,19 +479,19 @@ const RepossessButton: React.FC<RepossessButtonProps> = ({
   const [dialog, setDialog] = useState(false);
   const mutation = useRepossessMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
-  const [handleConnect] = useWalletConnect();
+  const { setVisible } = useWalletModal();
 
   async function onRepossess() {
     if (anchorWallet) {
       setDialog(true);
     } else {
-      handleConnect(() => setDialog(true));
+      setVisible(true);
     }
   }
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onPress={() => onRepossess()}>
+      <Button variant="cta" minWidth="size-2000" onClick={onRepossess}>
         Repossess NFT
       </Button>
       <RepossessDialog
@@ -506,13 +521,13 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
   const [dialog, setDialog] = useState(false);
   const mutation = useCloseAccountMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
-  const [handleConnect] = useWalletConnect();
+  const { setVisible } = useWalletModal();
 
   async function onClose() {
     if (anchorWallet) {
       setDialog(true);
     } else {
-      handleConnect(() => setDialog(true));
+      setVisible(true);
     }
   }
 
@@ -524,7 +539,7 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onPress={() => onClose()}>
+      <Button variant="cta" minWidth="size-2000" onClick={onClose}>
         Close listing account
       </Button>
       <CloseAccountDialog

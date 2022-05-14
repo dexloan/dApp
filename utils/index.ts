@@ -42,3 +42,11 @@ export function totalAmount(
   const amountSol = amount / anchor.web3.LAMPORTS_PER_SOL;
   return amountSol + interestSol;
 }
+
+export function formatAmount(amount?: anchor.BN) {
+  return amount ? amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL + "◎" : null;
+}
+
+export function formatMonths(duration?: anchor.BN) {
+  return duration ? toMonths(duration.toNumber()) + " months" : null;
+}
