@@ -2,24 +2,16 @@ import type { NextPage } from "next";
 import * as anchor from "@project-serum/anchor";
 import { Badge, Box, Container, Flex, Heading } from "@chakra-ui/react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { useQuery } from "react-query";
 import Head from "next/head";
 
 import * as utils from "../utils";
-import { fetchListings } from "../lib/query";
 import { Card } from "../components/card";
 import { Masthead } from "../components/masthead";
+import { useListingsQuery } from "../hooks/query";
 
 const Home: NextPage = () => {
   const { connection } = useConnection();
-
-  const listingsQuery = useQuery(
-    ["listings"],
-    () => fetchListings(connection, []),
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
+  const listingsQuery = useListingsQuery(connection);
 
   return (
     <>

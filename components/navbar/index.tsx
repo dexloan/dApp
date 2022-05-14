@@ -1,4 +1,4 @@
-import { Button, Box, Container } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, Container } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
@@ -46,6 +46,7 @@ export function Navbar() {
             </a>
           </Link>
         </Box>
+
         <Box>
           <Button onClick={onConnect}>
             {wallet.publicKey ? displayAddress : "Connect Wallet"}
