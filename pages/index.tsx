@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import * as anchor from "@project-serum/anchor";
-import { Badge, Box, Container, Flex } from "@chakra-ui/react";
+import { Badge, Box, Container, Flex, Heading } from "@chakra-ui/react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
 import Head from "next/head";
@@ -31,7 +31,9 @@ const Home: NextPage = () => {
 
       <Container maxW="container.xl">
         <Masthead />
-
+        <Heading as="h2" color="gray.700" size="md" mb="4">
+          Current listings
+        </Heading>
         <Flex flexDirection="row" wrap="wrap" gap="1.25rem" mb="20">
           {listingsQuery.data?.map((item) => {
             if (
