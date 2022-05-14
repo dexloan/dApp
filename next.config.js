@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    optimizeFonts: true,
+    modern: true,
+  },
   reactStrictMode: true,
   webpack(config) {
     config.module.rules.push({

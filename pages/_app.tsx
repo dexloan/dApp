@@ -15,9 +15,12 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
-import { Navbar } from "../components/navbar";
 import "react-toastify/dist/ReactToastify.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
+
+import theme from "../theme";
+import { FontFace } from "../components/font";
+import { Navbar } from "../components/navbar";
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -49,10 +52,11 @@ function MyApp({ Component, pageProps }: AppProps) {
       <ConnectionProvider endpoint={network}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
-            <ChakraProvider>
+            <ChakraProvider theme={theme}>
               <Navbar />
               <Component {...pageProps} />
               <ToastContainer />
+              <FontFace />
             </ChakraProvider>
           </WalletModalProvider>
         </WalletProvider>

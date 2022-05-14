@@ -42,7 +42,7 @@ export function Navbar() {
         <Box>
           <Link href="/">
             <a>
-              <Dexloan width="200px" />
+              <Dexloan width="188px" />
             </a>
           </Link>
         </Box>
