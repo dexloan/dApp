@@ -22,8 +22,9 @@ import {
   RepayDialog,
   RepossessDialog,
 } from "../../components/dialog";
-import { Main, Well } from "../../components/layout";
-import { ExplorerLink } from "../../components/link";
+import { Activity } from "../../components/activity";
+import { Main } from "../../components/layout";
+import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
 
@@ -256,6 +257,7 @@ const Listing: NextPage = () => {
       <Flex direction="row" wrap="wrap">
         <Box>
           <ListingImage uri={metadata?.data.uri} />
+          <ExternalLinks mint={listingQuery.data?.listing.mint} />
         </Box>
         <Box pl="8" mt="6">
           <Badge colorScheme="green" mb="2">
@@ -297,35 +299,7 @@ const Listing: NextPage = () => {
 
           {renderByState()}
 
-          <Box>
-            {listing?.borrower && (
-              <Well>
-                Borrower
-                <br />
-                <ExplorerLink address={listing.borrower}>
-                  {listing.borrower?.toBase58()}
-                </ExplorerLink>
-              </Well>
-            )}
-            {listing?.lender && listing.state !== ListingState.Listed && (
-              <Well>
-                Lender
-                <br />
-                <ExplorerLink address={listing.lender}>
-                  {listing.lender.toBase58()}
-                </ExplorerLink>
-              </Well>
-            )}
-            {listing?.mint && (
-              <Well>
-                Mint
-                <br />
-                <ExplorerLink address={listing.mint}>
-                  {listing.mint.toBase58()}
-                </ExplorerLink>
-              </Well>
-            )}
-          </Box>
+          <Activity mint={listingQuery.data?.listing.mint} />
         </Box>
       </Flex>
     </Main>

@@ -18,6 +18,10 @@ export function getFormattedDueDate(
   return dayjs.unix(startDate + duration).format("MMM D, YYYY");
 }
 
+export function formatBlockTime(blockTime: number) {
+  return dayjs.unix(blockTime).format("MMM D, YYYY");
+}
+
 export function yieldGenerated(
   amount: number,
   startDate: number,
@@ -43,8 +47,12 @@ export function totalAmount(
   return amountSol + interestSol;
 }
 
-export function formatAmount(amount?: anchor.BN) {
-  return amount ? amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL + "◎" : null;
+export function formatAmount(amount?: anchor.BN, precision?: number) {
+  return amount
+    ? (amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL).toPrecision(
+        precision
+      ) + "◎"
+    : null;
 }
 
 export function formatMonths(duration?: anchor.BN) {

@@ -166,3 +166,15 @@ export async function fetchNFTs(
 
   return combinedAccounts.filter(Boolean);
 }
+
+export async function fetchParsedTransactions(
+  connection: anchor.web3.Connection,
+  mint: anchor.web3.PublicKey
+) {
+  const signatures = await connection.getSignaturesForAddress(mint);
+  const parsedTransactions = await connection.getParsedTransactions(
+    signatures.map(({ signature }) => signature)
+  );
+  console.log("parsedTransactions", parsedTransactions);
+  return parsedTransactions;
+}
