@@ -48,11 +48,11 @@ export function totalAmount(
 }
 
 export function formatAmount(amount?: anchor.BN, precision?: number) {
-  return amount
-    ? (amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL).toPrecision(
-        precision
-      ) + "◎"
-    : null;
+  if (!amount) return null;
+
+  const sol = amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL;
+  const rounded = Math.round((sol + Number.EPSILON) * 100) / 100;
+  return rounded.toFixed(2).replace(/0$/, "") + "◎";
 }
 
 export function formatMonths(duration?: anchor.BN) {

@@ -1,4 +1,5 @@
 import * as anchor from "@project-serum/anchor";
+import * as borsh from "@project-serum/borsh";
 import {
   Box,
   Divider,
@@ -6,9 +7,11 @@ import {
   Heading,
   Skeleton,
   Stack,
+  Spinner,
   Text,
 } from "@chakra-ui/react";
 import { useConnection } from "@solana/wallet-adapter-react";
+import bs58 from "bs58";
 import { useQuery } from "react-query";
 import * as utils from "../../utils";
 import { fetchParsedTransactions } from "../../common/query";
@@ -76,10 +79,14 @@ export function Activity({ mint }: ActivityProps) {
       </Heading>
       <Divider mb="2" />
       {activityQuery.isLoading ? (
-        <Stack>
-          <Skeleton h="8" />
-          <Skeleton h="8" />
-        </Stack>
+        <Flex justify="center" pt="8">
+          <Spinner
+            emptyColor="green.100"
+            color="green.500"
+            thickness="4px"
+            size="md"
+          />
+        </Flex>
       ) : (
         activityQuery.data?.map(
           (activity) =>
@@ -125,21 +132,18 @@ function mapTransaction(
     );
 
     if (isListing) {
-      let data: null | string = null;
-
       if ("data" in txn.transaction.message.instructions[0]) {
-        data = txn.transaction.message.instructions[0].data;
-        // TODO decode the listing price
-      }
+        const data = txn.transaction.message.instructions[0].data;
+        const layout = borsh.u64("amount");
+        const decoded = bs58.decode(data);
 
-      return {
-        key: txn.transaction.signatures[0],
-        type: "listing",
-        blockTime: txn.blockTime,
-        lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
-          new anchor.BN(txn.meta.postBalances[0])
-        ),
-      };
+        return {
+          key: txn.transaction.signatures[0],
+          type: "listing",
+          blockTime: txn.blockTime,
+          lamports: layout.decode(Buffer.from(decoded.slice(8, 16))),
+        };
+      }
     }
   }
 

@@ -42,7 +42,12 @@ export function Card({ children, publicKey, uri, imageAlt }: CardProps) {
     <Link href={`/listing/${publicKey.toBase58()}`}>
       <Box
         as="a"
-        w="calc(20% - 1rem)"
+        w={{
+          base: "calc(50% - 0.625rem)",
+          md: "calc(33.333% - 0.833rem)",
+          lg: "calc(25% - 0.937rem)",
+          xl: "calc(20% - 1rem)",
+        }}
         borderWidth="1px"
         borderRadius="lg"
         cursor="pointer"
