@@ -261,12 +261,22 @@ const Listing: NextPage = () => {
 
   return (
     <Container maxW="container.xl">
-      <Flex direction="row" wrap="wrap">
-        <Box flex={0}>
+      <Flex
+        direction={{
+          base: "column",
+          lg: "row",
+        }}
+        align={{
+          base: "center",
+          lg: "flex-start",
+        }}
+        wrap="wrap"
+      >
+        <Box maxW="100%">
           <ListingImage uri={metadata?.data.uri} />
           <ExternalLinks mint={listingQuery.data?.listing.mint} />
         </Box>
-        <Box flex={1} maxW="xl" pl="12" mt="6">
+        <Box flex={1} maxW="xl" pl={{ lg: "12" }} mt="6">
           <Badge colorScheme="green" mb="2">
             Peer-to-peer Listing
           </Badge>
@@ -386,7 +396,7 @@ const CancelButton = ({ mint, escrow, listing }: CancelButtonProps) => {
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onClick={onCancel}>
+      <Button colorScheme="blue" w="100%" onClick={onCancel}>
         Cancel Listing
       </Button>
       <CancelDialog

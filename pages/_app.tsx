@@ -12,6 +12,7 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import Head from "next/head";
 import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
@@ -21,7 +22,6 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 import theme from "../theme";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
-import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const network = "https://ssc-dao.genesysgo.net/";
@@ -53,6 +53,13 @@ function MyApp({ Component, pageProps }: AppProps) {
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <ChakraProvider theme={theme}>
+              <Head>
+                <title>Dexloan | NFT Lending</title>
+                <meta
+                  name="viewport"
+                  content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover"
+                />
+              </Head>
               <Navbar />
               <Component {...pageProps} />
               <ToastContainer />
