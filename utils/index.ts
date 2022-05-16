@@ -17,7 +17,9 @@ export function getFormattedDueDate(
 ): string {
   console.log("startDate", startDate);
   console.log("duration", duration);
-  return dayjs.unix(startDate + duration).format("MMM D, YYYY");
+  const date = dayjs.unix(startDate + duration);
+
+  return date.format("MMM D, YYYY") + " at " + date.format("h:mm A");
 }
 
 export function formatBlockTime(blockTime: number) {
@@ -43,10 +45,12 @@ export function totalAmount(
   amount: number,
   startDate: number,
   basisPoints: number
-): number {
+): string {
   const interestSol = yieldGenerated(amount, startDate, basisPoints);
   const amountSol = amount / anchor.web3.LAMPORTS_PER_SOL;
-  return amountSol + interestSol;
+  const totalSol = amountSol + interestSol;
+  const rounded = Math.round((totalSol + Number.EPSILON) * 100) / 100;
+  return rounded.toFixed(2).replace(/0$/, "") + "◎";
 }
 
 export function formatAmount(amount?: anchor.BN, precision?: number) {

@@ -8,11 +8,15 @@ import {
   Heading,
   Flex,
   Box,
+  Tag,
+  TagLeftIcon,
+  TagLabel,
   Text,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { IoLeaf, IoAlert } from "react-icons/io5";
 import * as utils from "../../utils";
 import { ListingState } from "../../common/types";
 import { useListingQuery } from "../../hooks/query";
@@ -59,36 +63,14 @@ const Listing: NextPage = () => {
     listing &&
     listing.borrower.toBase58() === anchorWallet?.publicKey.toBase58();
 
-  function getRepaymentText() {
-    if (listing) {
-      if (hasExpired) {
-        return (
-          <>
-            is <strong>overdue</strong>.
-          </>
-        );
-      }
-
-      return (
-        <>
-          due by{" "}
-          <strong>
-            {utils.getFormattedDueDate(
-              listing.startDate.toNumber(),
-              listing.duration.toNumber()
-            )}
-          </strong>
-          . Failure to repay the loan by this date may result in repossession of
-          the NFT by the lender.
-        </>
-      );
-    }
-  }
-
   function renderActiveButton() {
     if (listing && pubkey && isBorrower) {
       return (
         <RepayButton
+          amount={listing.amount}
+          basisPoints={listing.basisPoints}
+          duration={listing.duration}
+          startDate={listing.startDate}
           escrow={listing.escrow}
           mint={listing.mint}
           listing={pubkey}
@@ -154,14 +136,12 @@ const Listing: NextPage = () => {
               <Text>
                 After {utils.formatMonths(listing.duration)} the total repayment
                 required will be&nbsp;
-                {utils
-                  .totalAmount(
-                    listing.amount.toNumber(),
-                    Date.now() / 1000 - listing.duration.toNumber(),
-                    listing.basisPoints
-                  )
-                  .toFixed(3)}
-                &nbsp;SOL
+                {utils.totalAmount(
+                  listing.amount.toNumber(),
+                  Date.now() / 1000 - listing.duration.toNumber(),
+                  listing.basisPoints
+                )}
+                .
               </Text>
             </Box>
             <Box mt="4" mb="4">
@@ -174,29 +154,28 @@ const Listing: NextPage = () => {
         return (
           <>
             <Box pb="4">
-              <Text>
-                {isLender ? "Lending" : "Borrowing"}&nbsp;
-                <strong>
-                  {listing.amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL}
-                  &nbsp;SOL
-                </strong>
-                &nbsp;for&nbsp;
-                {utils.toMonths(listing.duration.toNumber())}
-                &nbsp;months&nbsp;@&nbsp;
-                <strong>{listing.basisPoints / 100}%</strong>
-                &nbsp;APY.&nbsp;
-              </Text>
+              <Tag colorScheme="green">
+                <TagLeftIcon boxSize="12px" as={IoLeaf} />
+                <TagLabel>Loan Active</TagLabel>
+              </Tag>
+              {hasExpired && (
+                <Tag colorScheme="red" ml="2">
+                  <TagLeftIcon boxSize="12px" as={IoAlert} />
+                  <TagLabel>Repayment Overdue</TagLabel>
+                </Tag>
+              )}
             </Box>
             <Box pb="4">
               <Text>
-                {utils
-                  .totalAmount(
-                    listing.amount.toNumber(),
+                Repayment {hasExpired ? "was due before " : "due by "}
+                <Text as="span" fontWeight="semibold">
+                  {utils.getFormattedDueDate(
                     listing.startDate.toNumber(),
-                    listing.basisPoints
-                  )
-                  .toFixed(4)}{" "}
-                SOL currently owed. Repayment {getRepaymentText()}
+                    listing.duration.toNumber()
+                  )}
+                </Text>
+                . Failure to repay the loan by this date may result in
+                repossession of the NFT by the lender.
               </Text>
             </Box>
             <Box mt="4" mb="4">
@@ -252,8 +231,10 @@ const Listing: NextPage = () => {
       <Container maxW="container.lg">
         <Box mt="2">
           <Flex direction="column" alignItems="center">
-            <Heading size="M">404 Error</Heading>
-            <Text>{listingQuery.error.message}</Text>
+            <Heading size="xl" fontWeight="black" mt="6" mb="6">
+              404 Error
+            </Heading>
+            <Text fontSize="lg">{listingQuery.error.message}</Text>
           </Flex>
         </Box>
       </Container>
@@ -413,11 +394,22 @@ const CancelButton = ({ mint, escrow, listing }: CancelButtonProps) => {
   );
 };
 
-interface RepayButtonProps extends CancelButtonProps {
+interface RepayButtonProps extends Omit<LoanButtonProps, "borrower"> {
+  startDate: anchor.BN;
   lender: anchor.web3.PublicKey;
+  escrow: anchor.web3.PublicKey;
 }
 
-const RepayButton = ({ mint, escrow, listing, lender }: RepayButtonProps) => {
+const RepayButton = ({
+  amount,
+  basisPoints,
+  duration,
+  startDate,
+  mint,
+  escrow,
+  listing,
+  lender,
+}: RepayButtonProps) => {
   const router = useRouter();
   const [dialog, setDialog] = useState(false);
   const mutation = useRepaymentMutation(() => setDialog(false));
@@ -440,12 +432,16 @@ const RepayButton = ({ mint, escrow, listing, lender }: RepayButtonProps) => {
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onClick={onRepay}>
+      <Button colorScheme="blue" w="100%" onClick={onRepay}>
         Repay Loan
       </Button>
       <RepayDialog
         open={dialog}
         loading={mutation.isLoading}
+        amount={amount}
+        basisPoints={basisPoints}
+        duration={duration}
+        startDate={startDate}
         onRequestClose={() => setDialog(false)}
         onConfirm={() =>
           mutation.mutate({
@@ -486,7 +482,7 @@ const RepossessButton: React.FC<RepossessButtonProps> = ({
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onClick={onRepossess}>
+      <Button colorScheme="red" w="100%" onClick={onRepossess}>
         Repossess NFT
       </Button>
       <RepossessDialog
@@ -534,7 +530,7 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
 
   return (
     <>
-      <Button variant="cta" minWidth="size-2000" onClick={onClose}>
+      <Button minWidth="size-2000" onClick={onClose}>
         Close listing account
       </Button>
       <CloseAccountDialog

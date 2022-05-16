@@ -1,7 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import {
   Badge,
-  Box,
   Button,
   Modal,
   ModalOverlay,
@@ -12,6 +11,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import * as utils from "../../utils";
+import { start } from "repl";
 
 interface MutationDialogProps {
   open: boolean;
@@ -123,14 +123,58 @@ export const CancelDialog: React.FC<
 };
 
 export const RepayDialog: React.FC<
-  Pick<MutationDialogProps, "open" | "loading" | "onConfirm" | "onRequestClose">
-> = ({ open, loading, onConfirm, onRequestClose }) => {
+  LoanDialogProps & { startDate: anchor.BN }
+> = ({
+  open,
+  loading,
+  amount,
+  basisPoints,
+  duration,
+  startDate,
+  onConfirm,
+  onRequestClose,
+}) => {
   return (
     <MutationDialog
       open={open}
       loading={loading}
-      header={"Repay Listing"}
-      content={<Text>Repay listing?</Text>}
+      header={<>Repay Loan</>}
+      content={
+        <>
+          <Text mb="4">
+            <Badge colorScheme="green" fontSize="md" mr="2">
+              {utils.formatAmount(amount)}
+            </Badge>
+            <Badge fontSize="md" mr="2">
+              {basisPoints / 100}% APY
+            </Badge>
+            <Badge colorScheme="blue" fontSize="md">
+              {utils.yieldGenerated(
+                amount?.toNumber(),
+                startDate?.toNumber(),
+                basisPoints
+              )}
+            </Badge>
+          </Text>
+          <Text mb="4">
+            Repay full loan amount of ~
+            <Text as="span" fontWeight="semibold">
+              {utils.totalAmount(
+                amount?.toNumber(),
+                startDate?.toNumber(),
+                basisPoints
+              )}
+            </Text>{" "}
+            to recover your NFT.
+          </Text>
+          <Text fontSize="sm">
+            This loan may be repaid in full at any time. Interest will be
+            calculated on a pro-rata basis. If the borrower fails to repay the
+            loan before the expiry date, you may exercise the right to repossess
+            the NFT.
+          </Text>
+        </>
+      }
       onConfirm={onConfirm}
       onRequestClose={onRequestClose}
     />
@@ -147,8 +191,9 @@ export const RepossessDialog: React.FC<
       header={"Repossess NFT"}
       content={
         <Text>
-          Are you sure you wish to repossess the NFT collateral? By doing so the
-          loan will default and you will not be able to receive for repayment.
+          Are you sure you wish to repossess the NFT? By doing so the loan will
+          default and you will not be able to receive repayment of the
+          outstanding amount.
         </Text>
       }
       onConfirm={onConfirm}
