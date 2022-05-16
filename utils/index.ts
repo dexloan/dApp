@@ -15,6 +15,8 @@ export function getFormattedDueDate(
   startDate: number,
   duration: number
 ): string {
+  console.log("startDate", startDate);
+  console.log("duration", duration);
   return dayjs.unix(startDate + duration).format("MMM D, YYYY");
 }
 

@@ -121,10 +121,11 @@ const Listing: NextPage = () => {
       return (
         <LoanButton
           listing={pubkey}
-          mint={listing.mint}
+          amount={listing.amount}
           borrower={listing.borrower}
-          amount={listing.amount.toNumber()}
+          duration={listing.duration}
           basisPoints={listing.basisPoints}
+          mint={listing.mint}
         />
       );
     }
@@ -324,19 +325,21 @@ const Listing: NextPage = () => {
 };
 
 interface LoanButtonProps {
+  amount: anchor.BN;
+  basisPoints: number;
+  duration: anchor.BN;
   mint: anchor.web3.PublicKey;
   borrower: anchor.web3.PublicKey;
   listing: anchor.web3.PublicKey;
-  amount: number;
-  basisPoints: number;
 }
 
 const LoanButton = ({
+  amount,
+  basisPoints,
+  duration,
   mint,
   borrower,
   listing,
-  amount,
-  basisPoints,
 }: LoanButtonProps) => {
   const [open, setDialog] = useState(false);
   const mutation = useLoanMutation(() => setDialog(false));
@@ -360,6 +363,7 @@ const LoanButton = ({
         open={open}
         loading={mutation.isLoading}
         amount={amount}
+        duration={duration}
         basisPoints={basisPoints}
         onRequestClose={() => setDialog(false)}
         onConfirm={() =>

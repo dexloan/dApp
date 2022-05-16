@@ -1,5 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import {
+  Badge,
+  Box,
   Button,
   Modal,
   ModalOverlay,
@@ -9,6 +11,7 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
+import * as utils from "../../utils";
 
 interface MutationDialogProps {
   open: boolean;
@@ -28,17 +31,22 @@ export function MutationDialog({
   onRequestClose,
 }: MutationDialogProps) {
   return (
-    <Modal isOpen={open} onClose={onRequestClose}>
+    <Modal size="lg" isOpen={open} onClose={onRequestClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{header}</ModalHeader>
-        <ModalBody>{loading ? "loading..." : content}</ModalBody>
+        <ModalHeader color="gray.700">{header}</ModalHeader>
+        <ModalBody>{content}</ModalBody>
         <ModalFooter>
-          <Button isDisabled={loading} onClick={onRequestClose}>
-            Cancel
-          </Button>
-          <Button isDisabled={loading} colorScheme="green" onClick={onConfirm}>
+          <Button
+            mr="2"
+            isLoading={loading}
+            colorScheme="green"
+            onClick={onConfirm}
+          >
             Confirm
+          </Button>
+          <Button variant="ghost" isDisabled={loading} onClick={onRequestClose}>
+            Cancel
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -48,8 +56,9 @@ export function MutationDialog({
 
 interface LoanDialogProps {
   open: boolean;
-  amount: number;
+  amount: anchor.BN;
   basisPoints: number;
+  duration: anchor.BN;
   loading: boolean;
   onConfirm: () => void;
   onRequestClose: () => void;
@@ -59,6 +68,7 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
   open,
   amount,
   basisPoints,
+  duration,
   loading,
   onConfirm,
   onRequestClose,
@@ -67,24 +77,29 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={
-        amount &&
-        basisPoints && (
-          <>
-            Lending&nbsp;
-            <strong>{amount / anchor.web3.LAMPORTS_PER_SOL} SOL</strong>
-            &nbsp;@&nbsp;
-            <strong>{basisPoints / 100}% APY</strong>
-          </>
-        )
-      }
+      header={<>Create Loan</>}
       content={
-        <Text>
-          This loan may be repaid in full at any time. Interest will be
-          calculated on a pro-rata basis. If the borrower fails to repay the
-          loan before the expiry date, you may exercise the right to repossess
-          the NFT.
-        </Text>
+        <>
+          <Text mb="4">
+            <Badge fontSize="md" colorScheme="green">
+              {utils.formatAmount(amount)}
+            </Badge>{" "}
+            <Badge fontSize="md">{basisPoints / 100}% APY</Badge>
+          </Text>
+          <Text mb="4">
+            Loan will expire on{" "}
+            {utils.getFormattedDueDate(
+              Math.floor(Date.now() / 1000),
+              duration?.toNumber()
+            )}
+          </Text>
+          <Text fontSize="sm">
+            This loan may be repaid in full at any time. Interest will be
+            calculated on a pro-rata basis. If the borrower fails to repay the
+            loan before the expiry date, you may exercise the right to repossess
+            the NFT.
+          </Text>
+        </>
       }
       onConfirm={onConfirm}
       onRequestClose={onRequestClose}
