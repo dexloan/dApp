@@ -1,15 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import * as borsh from "@project-serum/borsh";
-import {
-  Box,
-  Divider,
-  Flex,
-  Heading,
-  Skeleton,
-  Stack,
-  Spinner,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Divider, Flex, Heading, Spinner, Text } from "@chakra-ui/react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 import { useQuery } from "react-query";
@@ -22,7 +13,7 @@ interface ActivityProps {
 
 interface Activity {
   key: string;
-  type: "buy" | "listing";
+  type: "sale" | "listing" | "mint";
   blockTime: number | null | undefined;
   lamports: anchor.BN;
 }
@@ -45,39 +36,53 @@ export function Activity({ mint }: ActivityProps) {
     { enabled: Boolean(mint), refetchOnWindowFocus: false }
   );
 
-  function renderActivityDetails(activity: Activity) {
+  function renderRightCol(activity: Activity) {
+    return (
+      <Text fontWeight="bold" fontSize="lg">
+        {utils.formatAmount(activity.lamports, 2)}
+      </Text>
+    );
+  }
+
+  function renderLabel(activity: Activity) {
     switch (activity.type) {
-      case "buy":
-        return (
-          <Text>
-            Sold for{" "}
-            <Text as="span" fontWeight="semibold">
-              {utils.formatAmount(activity.lamports, 2)}
-            </Text>
-          </Text>
-        );
-
+      case "sale":
+        return "Sold";
       case "listing":
-        return (
-          <Text>
-            Listed for{" "}
-            <Text as="span" fontWeight="semibold">
-              {utils.formatAmount(activity.lamports, 2)}
-            </Text>
-          </Text>
-        );
-
-      default:
-        return null;
+        return "Listed on Dexloan";
+      case "mint":
+        return "Minted";
     }
+  }
+
+  function renderLeftCol(activity: Activity) {
+    return (
+      <Box>
+        <Text color="gray.600" fontSize="md" fontWeight="medium">
+          {renderLabel(activity)}
+        </Text>
+        <Text color="gray.500" fontSize="sm" fontWeight="medium">
+          {typeof activity.blockTime === "number" &&
+            utils.formatBlockTime(activity.blockTime)}
+        </Text>
+      </Box>
+    );
+  }
+
+  function renderActivityDetails(activity: Activity) {
+    return (
+      <>
+        {renderLeftCol(activity)}
+        {renderRightCol(activity)}
+      </>
+    );
   }
 
   return (
     <Box pt="6" pb="6">
-      <Heading size="md" mb="6">
+      <Heading color="gray.400" size="sm" mt="8" mb="4">
         Activity
       </Heading>
-      <Divider mb="2" />
       {activityQuery.isLoading ? (
         <Flex justify="center" pt="8">
           <Spinner
@@ -89,20 +94,19 @@ export function Activity({ mint }: ActivityProps) {
         </Flex>
       ) : (
         activityQuery.data?.map(
-          (activity) =>
+          (activity, index, arry) =>
             activity && (
-              <Flex
-                key={activity.key}
-                justifyContent="space-between"
-                pt="4"
-                pb="4"
-              >
-                <Text color="gray.500" fontWeight="medium">
-                  {typeof activity.blockTime === "number" &&
-                    utils.formatBlockTime(activity.blockTime)}
-                </Text>
-                {renderActivityDetails(activity)}
-              </Flex>
+              <>
+                <Flex
+                  key={activity.key}
+                  justifyContent="space-between"
+                  pt="3"
+                  pb="3"
+                >
+                  {renderActivityDetails(activity)}
+                </Flex>
+                {index !== arry?.length - 1 && <Divider mb="1" mt="1" />}
+              </>
             )
         )
       )}
@@ -111,7 +115,9 @@ export function Activity({ mint }: ActivityProps) {
 }
 
 function mapTransaction(
-  txn: anchor.web3.ParsedTransactionWithMeta | null
+  txn: anchor.web3.ParsedTransactionWithMeta | null,
+  index: number,
+  array: (anchor.web3.ParsedTransactionWithMeta | null)[]
 ): Activity | null {
   if (txn?.meta?.logMessages) {
     const isBuyEvent = txn.meta.logMessages.some((log) => log.includes("Buy"));
@@ -119,7 +125,7 @@ function mapTransaction(
     if (isBuyEvent) {
       return {
         key: txn.transaction.signatures[0],
-        type: "buy",
+        type: "sale",
         blockTime: txn.blockTime,
         lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
           new anchor.BN(txn.meta.postBalances[0])
@@ -144,6 +150,20 @@ function mapTransaction(
           lamports: layout.decode(Buffer.from(decoded.slice(8, 16))),
         };
       }
+    }
+
+    if (
+      index === array.length - 1 &&
+      txn.meta.logMessages.some((log) => log.includes("InitializeMint"))
+    ) {
+      return {
+        key: txn.transaction.signatures[0],
+        type: "mint",
+        blockTime: txn.blockTime,
+        lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
+          new anchor.BN(txn.meta.postBalances[0])
+        ),
+      };
     }
   }
 

@@ -9,7 +9,7 @@ export function ListingImage({ uri }: ListingImageProps) {
   const metadataFileQuery = useMetadataFileQuery(uri);
 
   return (
-    <Box w="100%" maxW="lg" borderRadius="lg" overflow="hidden">
+    <Box w="md" maxW="100%" borderRadius="lg" overflow="hidden">
       <Skeleton isLoaded={metadataFileQuery.isFetched}>
         <Image
           height="100%"

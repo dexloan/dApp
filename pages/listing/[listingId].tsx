@@ -1,7 +1,15 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { Badge, Button, Heading, Flex, Box, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  Button,
+  Container,
+  Heading,
+  Flex,
+  Box,
+  Text,
+} from "@chakra-ui/react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -23,7 +31,6 @@ import {
   RepossessDialog,
 } from "../../components/dialog";
 import { Activity } from "../../components/activity";
-import { Main } from "../../components/layout";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
@@ -241,25 +248,25 @@ const Listing: NextPage = () => {
 
   if (listingQuery.error instanceof Error) {
     return (
-      <Main>
+      <Container maxW="container.lg">
         <Box mt="2">
           <Flex direction="column" alignItems="center">
             <Heading size="M">404 Error</Heading>
             <Text>{listingQuery.error.message}</Text>
           </Flex>
         </Box>
-      </Main>
+      </Container>
     );
   }
 
   return (
-    <Main>
+    <Container maxW="container.xl">
       <Flex direction="row" wrap="wrap">
-        <Box>
+        <Box flex={0}>
           <ListingImage uri={metadata?.data.uri} />
           <ExternalLinks mint={listingQuery.data?.listing.mint} />
         </Box>
-        <Box pl="8" mt="6">
+        <Box flex={1} maxW="xl" pl="12" mt="6">
           <Badge colorScheme="green" mb="2">
             Peer-to-peer Listing
           </Badge>
@@ -271,7 +278,7 @@ const Listing: NextPage = () => {
           {listing && (
             <Flex direction="row" gap="12" mt="12" mb="12">
               <Box>
-                <Text size="sm" fontWeight="medium">
+                <Text fontSize="sm" fontWeight="medium" color="gray.500">
                   Borrowing
                 </Text>
                 <Heading size="md" fontWeight="bold" mb="6">
@@ -279,7 +286,7 @@ const Listing: NextPage = () => {
                 </Heading>
               </Box>
               <Box>
-                <Text size="sm" fontWeight="medium">
+                <Text fontSize="sm" fontWeight="medium" color="gray.500">
                   Duration
                 </Text>
                 <Heading size="md" fontWeight="bold" mb="6">
@@ -287,7 +294,7 @@ const Listing: NextPage = () => {
                 </Heading>
               </Box>
               <Box>
-                <Text size="sm" fontWeight="medium">
+                <Text fontSize="sm" fontWeight="medium" color="gray.500">
                   APY
                 </Text>
                 <Heading size="md" fontWeight="bold" mb="6">
@@ -302,7 +309,7 @@ const Listing: NextPage = () => {
           <Activity mint={listingQuery.data?.listing.mint} />
         </Box>
       </Flex>
-    </Main>
+    </Container>
   );
 };
 
