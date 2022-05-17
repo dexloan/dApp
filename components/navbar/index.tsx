@@ -3,6 +3,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
 import { useMemo } from "react";
+import { IoWallet } from "react-icons/io5";
 import Dexloan from "../../public/dexloan.svg";
 
 export function Navbar() {
@@ -48,9 +49,24 @@ export function Navbar() {
         </Box>
 
         <Box>
-          <Button onClick={onConnect}>
-            {wallet.publicKey ? displayAddress : "Connect Wallet"}
-          </Button>
+          <ButtonGroup spacing="0">
+            {wallet.publicKey && (
+              <Link href="/manage">
+                <Button
+                  as="a"
+                  borderRightRadius="0"
+                  borderRightWidth="thin"
+                  borderColor="gray.200"
+                  cursor="pointer"
+                >
+                  <Box as={IoWallet} />
+                </Button>
+              </Link>
+            )}
+            <Button onClick={onConnect} borderLeftRadius="none">
+              {wallet.publicKey ? displayAddress : "Connect Wallet"}
+            </Button>
+          </ButtonGroup>
         </Box>
       </Box>
     </Container>
