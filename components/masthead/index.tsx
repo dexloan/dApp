@@ -23,7 +23,7 @@ export function Masthead() {
       <Text size="md" fontWeight="medium" mb="8">
         Unlock the value of your NFTs with free and secure lending.
         <br />
-        <Badge colorScheme="green">Liquidity pools coming soon!</Badge>
+        <Badge colorScheme="green">Lending pools coming soon!</Badge>
       </Text>
       <Box>
         <Link href="/manage">
