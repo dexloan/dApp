@@ -10,9 +10,10 @@ interface CardProps {
   href?: string;
   uri: string;
   imageAlt: string;
+  onClick?: () => void;
 }
 
-export const Card = ({ children, href, uri, imageAlt }: CardProps) => {
+export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
   const [isVisible, setVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement & HTMLAnchorElement>(null);
 
@@ -41,7 +42,7 @@ export const Card = ({ children, href, uri, imageAlt }: CardProps) => {
 
   const card = (
     <Box
-      as={href ? "a" : undefined}
+      as={href ? "a" : "button"}
       w={{
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
@@ -61,6 +62,7 @@ export const Card = ({ children, href, uri, imageAlt }: CardProps) => {
         boxShadow: "md",
       }}
       transition="box-shadow 0.2s ease"
+      onClick={onClick}
     >
       <Box position="relative" width="100%" pb="100%">
         <Box position="absolute" left="0" top="0" right="0" bottom="0">

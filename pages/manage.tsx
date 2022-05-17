@@ -13,9 +13,9 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import * as utils from "../utils";
-import { ListingState, CollectionMap } from "../common/types";
+import { ListingState, CollectionMap, NFTResult } from "../common/types";
 import {
   useBorrowingsQuery,
   useLoansQuery,
@@ -23,6 +23,7 @@ import {
   useMagicEdenCollectionsQuery,
 } from "../hooks/query";
 import { Card, CardList, ListedCard } from "../components/card";
+import { FormModal, ListingForm } from "../components/form";
 
 const Manage: NextPage = () => {
   const router = useRouter();
@@ -253,6 +254,8 @@ const MyListings = () => {
 const Borrow = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
+  const [selected, setSelected] = useState<NFTResult | null>(null);
+
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
   const collectionMap = useMemo(() => {
@@ -302,6 +305,33 @@ const Borrow = () => {
     return null;
   }
 
+  const renderItem = useCallback((item: NFTResult) => {
+    return (
+      item?.metadata.data.uri &&
+      item?.metadata.data.name && (
+        <Card
+          key={item?.accountInfo.pubkey.toBase58()}
+          uri={item?.metadata.data.uri}
+          imageAlt={item?.metadata.data.name}
+          onClick={() => setSelected(item)}
+        >
+          <Box p="4">
+            <Box
+              mt="1"
+              mb="2"
+              fontWeight="semibold"
+              as="h4"
+              lineHeight="tight"
+              isTruncated
+            >
+              {item?.metadata.data.name}
+            </Box>
+          </Box>
+        </Card>
+      )
+    );
+  }, []);
+
   if (nftQuery.isLoading || collectionsQuery.isLoading) {
     return <LoadingSpinner />;
   }
@@ -317,34 +347,18 @@ const Borrow = () => {
               title={collection.name}
               subtitle={`Floor Price ${getFloorPrice(collectionKeys[index])}`}
             />
-            <CardList>
-              {collection.items.map(
-                (item) =>
-                  item?.metadata.data.uri &&
-                  item?.metadata.data.name && (
-                    <Card
-                      key={item?.accountInfo.pubkey.toBase58()}
-                      uri={item?.metadata.data.uri}
-                      imageAlt={item?.metadata.data.name}
-                    >
-                      <Box p="4">
-                        <Box
-                          mt="1"
-                          mb="2"
-                          fontWeight="semibold"
-                          as="h4"
-                          lineHeight="tight"
-                          isTruncated
-                        >
-                          {item?.metadata.data.name}
-                        </Box>
-                      </Box>
-                    </Card>
-                  )
-              )}
-            </CardList>
+            <CardList>{collection.items.map(renderItem)}</CardList>
           </>
         ))}
+      <FormModal
+        header="Create Listing"
+        isOpen={Boolean(selected)}
+        isLoading={false}
+        onSubmit={() => {}}
+        onRequestClose={() => setSelected(null)}
+      >
+        <ListingForm onSubmit={() => {}} />
+      </FormModal>
     </>
   );
 };
