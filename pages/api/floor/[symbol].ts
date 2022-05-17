@@ -10,7 +10,7 @@ type Data = {
 };
 
 const priceCache = new cache.Cache<string, number>();
-const CACHE_TIME = 5;
+const CACHE_TIME = 30000;
 
 export default async function handler(
   req: NextApiRequest,
@@ -27,7 +27,7 @@ export default async function handler(
     const name = utils.mapSymbolToCollectionName(symbol);
     const stats = await fetchMagicEdenCollectionStats(name);
     priceCache.put(symbol, stats.floorPrice, CACHE_TIME);
-    console.log("STATS: ", JSON.stringify(stats, null, 2));
+
     return res.status(200).json({ floorPrice: stats.floorPrice });
   } catch (error) {
     const errorMessage =

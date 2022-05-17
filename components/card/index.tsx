@@ -1,9 +1,9 @@
 import * as anchor from "@project-serum/anchor";
-import { Badge, Box, Flex, Image, Skeleton } from "@chakra-ui/react";
+import { Badge, Box, Flex, Image, Skeleton, Text } from "@chakra-ui/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import * as utils from "../../utils";
-import { useMetadataFileQuery } from "../../hooks/query";
+import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 
 interface CardProps {
   children: React.ReactNode;
@@ -110,6 +110,7 @@ interface ListedCardProps {
   basisPoints: number;
   duration: anchor.BN;
   name: string;
+  symbol: string;
   uri: string;
   listing: anchor.web3.PublicKey;
 }
@@ -119,9 +120,15 @@ export const ListedCard = ({
   basisPoints,
   duration,
   name,
+  symbol,
   uri,
   listing,
 }: ListedCardProps) => {
+  const floorPriceQuery = useFloorPriceQuery(symbol);
+  const floorPrice = floorPriceQuery.data
+    ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
+    : null;
+
   return (
     <Card href={`/listing/${listing.toBase58()}`} uri={uri} imageAlt={name}>
       <Box p="4">
@@ -152,8 +159,11 @@ export const ListedCard = ({
       </Box>
       <Box p="4" bgColor="blue.50">
         <Box fontWeight="bold" as="h3">
-          {utils.formatAmount(amount)}
+          {utils.formatAmount(amount)}{" "}
         </Box>
+        <Text fontSize="xs" fontWeight="medium">
+          {floorPrice ? `Floor Price ${floorPrice}` : null}
+        </Text>
       </Box>
     </Card>
   );

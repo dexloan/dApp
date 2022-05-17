@@ -39,6 +39,7 @@ const Home: NextPage = () => {
                   duration={item?.listing.account.duration}
                   uri={item?.metadata.data.uri}
                   name={item?.metadata.data.name}
+                  symbol={item?.metadata.data.symbol}
                   listing={item?.listing.publicKey}
                 />
               );

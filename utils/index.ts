@@ -87,6 +87,7 @@ export function formatMonths(duration?: anchor.BN) {
 
 const nameMap = new Map();
 nameMap.set("CHKN", "chicken_tribe");
+nameMap.set("CHKCOP", "chicken_tribe_coops");
 nameMap.set("XAPE", "exiled_degen_ape_academy");
 nameMap.set("BH", "lgtb");
 
@@ -96,6 +97,7 @@ export function mapSymbolToCollectionName(symbol: string) {
 
 const titleMap = new Map();
 titleMap.set("CHKN", "Chicken Tribe");
+titleMap.set("CHKCOP", "Chicken Tribe Coops");
 titleMap.set("XAPE", "Exiled Apes");
 titleMap.set("BH", "Breadheads");
 
