@@ -61,7 +61,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       _hover={{
         boxShadow: "md",
       }}
-      transition="box-shadow 0.2s ease"
+      transition="box-shadow 0.2s ease-in"
       onClick={onClick}
     >
       <Box position="relative" width="100%" pb="100%">

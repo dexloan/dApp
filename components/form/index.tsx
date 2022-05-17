@@ -1,12 +1,15 @@
 import * as anchor from "@project-serum/anchor";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "react-query";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
+import { toast } from "react-toastify";
 import {
-  FormLabel,
-  FormControl,
-  Badge,
   Box,
   Button,
+  Heading,
+  Flex,
+  FormLabel,
+  FormControl,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -20,9 +23,17 @@ import {
   Text,
   Tooltip,
 } from "@chakra-ui/react";
-import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
+import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import {
+  IoAnalytics,
+  IoCalendar,
+  IoPricetag,
+  IoArrowForwardCircle,
+} from "react-icons/io5";
 import { IconType } from "react-icons";
 import * as utils from "../../utils";
+import { NFTResult } from "../../common/types";
+import { createListing } from "../../common/actions";
 
 interface FormFields {
   ltv: number;
@@ -31,15 +42,20 @@ interface FormFields {
 }
 
 interface ListingFormProps {
+  selected: NFTResult | null;
   floorPrice: anchor.BN | null;
-  onSubmit: (data: FormFields) => void;
+  onRequestClose: () => void;
 }
 
-export const ListingForm = ({ floorPrice, onSubmit }: ListingFormProps) => {
+export const ListingModal = ({
+  selected,
+  floorPrice,
+  onRequestClose,
+}: ListingFormProps) => {
   const {
     control,
     handleSubmit,
-    formState: { isValid, isSubmitting },
+    formState: { isValid },
   } = useForm<FormFields>({
     mode: "onChange",
     defaultValues: {
@@ -49,48 +65,131 @@ export const ListingForm = ({ floorPrice, onSubmit }: ListingFormProps) => {
     },
   });
 
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+
+  const queryClient = useQueryClient();
+  const mutation = useMutation(
+    (variables: FormFields) => {
+      if (
+        anchorWallet &&
+        floorPrice &&
+        selected?.accountInfo.data.mint &&
+        selected?.accountInfo.pubkey
+      ) {
+        const listingOptions = {
+          amount: (variables.ltv / 100) * floorPrice?.toNumber(),
+          basisPoints: variables.apy * 100,
+          duration: variables.duration * 24 * 60 * 60,
+        };
+
+        return createListing(
+          connection,
+          anchorWallet,
+          selected.accountInfo.data.mint,
+          selected.accountInfo.pubkey,
+          listingOptions
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onError(err) {
+        console.error("Error: " + err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+      onSuccess() {
+        toast.success("Listing created");
+
+        queryClient.setQueryData<NFTResult[]>(
+          ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
+          (data) => {
+            if (!data) {
+              return [];
+            }
+            return data.filter(
+              (item: NFTResult) =>
+                item?.accountInfo.pubkey !== selected?.accountInfo.pubkey
+            );
+          }
+        );
+
+        onRequestClose();
+      },
+    }
+  );
+
+  function onSubmit() {
+    handleSubmit((data) => {
+      console.log("data: ", data);
+      mutation.mutate(data);
+    })();
+  }
+
   return (
-    <>
-      <ListingForecast control={control} floorPrice={floorPrice} />
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <FormControl isInvalid={!isValid}>
-          <FormField
-            name="ltv"
-            control={control}
-            label="Loan to value"
-            defaultValue={60}
-            min={10}
-            max={100}
-            step={5}
-            icon={IoPricetag}
-            units="%"
-          />
+    <Modal size="3xl" isOpen={Boolean(selected)} onClose={onRequestClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader fontSize="2xl" fontWeight="black">
+          Create Listing
+        </ModalHeader>
+        <ModalBody>
+          <ListingForecast control={control} floorPrice={floorPrice} />
+          <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
+            <form onSubmit={onSubmit}>
+              <FormControl isInvalid={!isValid}>
+                <FormField
+                  name="ltv"
+                  control={control}
+                  label="Loan to value"
+                  defaultValue={60}
+                  min={10}
+                  max={100}
+                  step={5}
+                  icon={IoPricetag}
+                  units="%"
+                />
 
-          <FormField
-            name="apy"
-            control={control}
-            label="APY"
-            defaultValue={50}
-            min={1}
-            max={1000}
-            step={5}
-            icon={IoAnalytics}
-            units="%"
-          />
+                <FormField
+                  name="apy"
+                  control={control}
+                  label="APY"
+                  defaultValue={50}
+                  min={1}
+                  max={1000}
+                  step={5}
+                  icon={IoAnalytics}
+                  units="%"
+                />
 
-          <FormField
-            name="duration"
-            control={control}
-            label="Duration"
-            defaultValue={30}
-            min={1}
-            max={365}
-            icon={IoCalendar}
-            units="days"
-          />
-        </FormControl>
-      </form>
-    </>
+                <FormField
+                  name="duration"
+                  control={control}
+                  label="Duration"
+                  defaultValue={30}
+                  min={1}
+                  max={365}
+                  icon={IoCalendar}
+                  units="days"
+                />
+              </FormControl>
+            </form>
+          </Box>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            colorScheme="green"
+            w="100%"
+            isLoading={mutation.isLoading}
+            onClick={onSubmit}
+          >
+            Confirm
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 };
 
@@ -113,14 +212,61 @@ const ListingForecast = ({ control, floorPrice }: ListingForecastProps) => {
   );
 
   return (
-    <Box pb="8">
-      <Badge fontSize="md" mr="2">
-        Borrowing {utils.formatAmount(amount)}
-      </Badge>
-      <Badge fontSize="md">
-        Interest due on maturity {utils.formatAmount(interest)}
-      </Badge>
-    </Box>
+    <Flex
+      direction="row"
+      gap="4"
+      align="center"
+      justify="space-between"
+      p={{ base: "0", md: "6" }}
+      wrap="wrap"
+    >
+      <Box>
+        <Text fontSize="sm" fontWeight="medium" color="gray.500">
+          Borrowing
+        </Text>
+        <Heading size="md" fontWeight="bold" mb="6" whiteSpace="nowrap">
+          {utils.formatAmount(amount)}
+        </Heading>
+      </Box>
+      <Box
+        size="2rem"
+        as={IoArrowForwardCircle}
+        mb="2"
+        display={{ base: "none", md: "block" }}
+      />
+      <Box>
+        <Text
+          fontSize="sm"
+          fontWeight="medium"
+          color="gray.500"
+          whiteSpace="nowrap"
+        >
+          Duration
+        </Text>
+        <Heading size="md" fontWeight="bold" mb="6" whiteSpace="nowrap">
+          {duration} days
+        </Heading>
+      </Box>
+      <Box
+        size="2rem"
+        as={IoArrowForwardCircle}
+        mb="2"
+        display={{ base: "none", md: "block" }}
+      />
+      <Box>
+        <Text
+          fontSize="sm"
+          fontWeight="medium"
+          color="gray.500"
+          whiteSpace="nowrap"
+        >
+          Interest on maturity
+        </Text>
+        <Heading size="md" fontWeight="bold" mb="6" whiteSpace="nowrap">
+          {utils.formatAmount(interest)}
+        </Heading>
+      </Box>
+    </Flex>
   );
 };
 
@@ -189,50 +335,5 @@ const FormField = ({
         )}
       />
     </Box>
-  );
-};
-
-interface FormModalProps {
-  children: React.ReactNode;
-  header: React.ReactNode;
-  isOpen: boolean;
-  isLoading: boolean;
-  onSubmit: () => void;
-  onRequestClose: () => void;
-}
-
-export const FormModal = ({
-  children,
-  header,
-  isOpen,
-  isLoading,
-  onSubmit,
-  onRequestClose,
-}: FormModalProps) => {
-  return (
-    <Modal size="3xl" isOpen={isOpen} onClose={onRequestClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader color="gray.700">{header}</ModalHeader>
-        <ModalBody>{children}</ModalBody>
-        <ModalFooter>
-          <Button
-            mr="2"
-            isLoading={isLoading}
-            colorScheme="green"
-            onClick={onSubmit}
-          >
-            Confirm
-          </Button>
-          <Button
-            variant="ghost"
-            isDisabled={isLoading}
-            onClick={onRequestClose}
-          >
-            Cancel
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
   );
 };

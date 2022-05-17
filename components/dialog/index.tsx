@@ -34,7 +34,9 @@ export function MutationDialog({
     <Modal size="lg" isOpen={open} onClose={onRequestClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader color="gray.700">{header}</ModalHeader>
+        <ModalHeader fontSize="2xl" fontWeight="black">
+          {header}
+        </ModalHeader>
         <ModalBody>{content}</ModalBody>
         <ModalFooter>
           <Button

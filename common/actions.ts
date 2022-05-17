@@ -54,8 +54,9 @@ export async function createListing(
     discriminator,
   });
 
-  await program.rpc.initListing(listingOptions, {
-    accounts: {
+  await program.methods
+    .initListing(listingOptions)
+    .accounts({
       escrowAccount,
       listingAccount,
       mint,
@@ -64,8 +65,8 @@ export async function createListing(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId,
-    },
-  });
+    })
+    .rpc();
 }
 
 function getDiscriminator(excluded: number) {

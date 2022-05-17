@@ -137,8 +137,8 @@ const Listing: NextPage = () => {
                 After {utils.formatMonths(listing.duration)} the total repayment
                 required will be&nbsp;
                 {utils.totalAmount(
-                  listing.amount.toNumber(),
-                  Date.now() / 1000 - listing.duration.toNumber(),
+                  listing.amount,
+                  new anchor.BN(Date.now() / 1000).sub(listing.duration),
                   listing.basisPoints
                 )}
                 .
@@ -530,7 +530,7 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
 
   return (
     <>
-      <Button minWidth="size-2000" onClick={onClose}>
+      <Button w="100%" onClick={onClose}>
         Close listing account
       </Button>
       <CloseAccountDialog

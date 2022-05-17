@@ -23,7 +23,7 @@ import {
   useMagicEdenCollectionsQuery,
 } from "../hooks/query";
 import { Card, CardList, ListedCard } from "../components/card";
-import { FormModal, ListingForm } from "../components/form";
+import { ListingModal } from "../components/form";
 
 const Manage: NextPage = () => {
   const router = useRouter();
@@ -43,12 +43,11 @@ const Manage: NextPage = () => {
 
   return (
     <Container maxW="container.xl">
-      <Heading mb="6">Manage</Heading>
-      <ButtonGroup mb="6">
+      <ButtonGroup mb="12">
         <NextLink href="/manage">
           <Button
             as="a"
-            colorScheme={router.query.tab === undefined ? "teal" : undefined}
+            colorScheme={router.query.tab === undefined ? "green" : undefined}
             cursor="pointer"
           >
             Borrow
@@ -57,7 +56,7 @@ const Manage: NextPage = () => {
         <NextLink href="/manage?tab=listed">
           <Button
             as="a"
-            colorScheme={router.query.tab === "listed" ? "teal" : undefined}
+            colorScheme={router.query.tab === "listed" ? "green" : undefined}
             cursor="pointer"
           >
             My Listings
@@ -66,7 +65,7 @@ const Manage: NextPage = () => {
         <NextLink href="/manage?tab=loans">
           <Button
             as="a"
-            colorScheme={router.query.tab === "loans" ? "teal" : undefined}
+            colorScheme={router.query.tab === "loans" ? "green" : undefined}
             cursor="pointer"
           >
             My Loans
@@ -86,11 +85,11 @@ const SectionHeader = ({
   subtitle?: string;
 }) => (
   <Box mb="4">
-    <Heading color="gray.400" size="sm">
+    <Heading color="gray.700" fontWeight="bold" fontSize="xl">
       {title}
     </Heading>
     {subtitle && (
-      <Text color="gray.500" fontSize="sm" fontWeight="medium">
+      <Text fontSize="sm" fontWeight="medium">
         {subtitle}
       </Text>
     )}
@@ -99,7 +98,7 @@ const SectionHeader = ({
 
 const LoadingSpinner = () => (
   <Flex pt="12" pb="12" justify="center">
-    <Spinner color="green" size="lg" thickness="4px" />
+    <Spinner color="green" size="md" thickness="4px" />
   </Flex>
 );
 
@@ -353,18 +352,12 @@ const Borrow = () => {
             </>
           );
         })}
-      <FormModal
-        header="Create Listing"
-        isOpen={Boolean(selected)}
-        isLoading={false}
-        onSubmit={() => {}}
+
+      <ListingModal
+        selected={selected}
+        floorPrice={getFloorPrice(selected?.metadata.data.symbol)}
         onRequestClose={() => setSelected(null)}
-      >
-        <ListingForm
-          floorPrice={getFloorPrice(selected?.metadata.data.symbol)}
-          onSubmit={() => {}}
-        />
-      </FormModal>
+      />
     </>
   );
 };
