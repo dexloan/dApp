@@ -5,6 +5,7 @@ import { useQuery } from "react-query";
 
 import { ListingState } from "../common/types";
 import {
+  fetchFloorPrice,
   fetchListing,
   fetchMagicEdenCollectionStats,
   fetchMultipleListings,
@@ -152,16 +153,16 @@ export function useLoansQuery(
   );
 }
 
-export const useMagicEdenCollectionsQuery = () => {
+export const useFloorPriceQuery = (symbol?: string) => {
   return useQuery(
-    ["magic-eden-collection-stats"],
-    () =>
-      Promise.all([
-        fetchMagicEdenCollectionStats("chicken_tribe"),
-        fetchMagicEdenCollectionStats("exiled_degen_ape_academy"),
-        fetchMagicEdenCollectionStats("lgtb"),
-      ]),
+    ["floorPrice", symbol],
+    () => {
+      if (symbol) {
+        return fetchFloorPrice(symbol);
+      }
+    },
     {
+      enabled: symbol !== "undefined",
       staleTime: 1000 * 60 * 60 * 5,
       refetchOnWindowFocus: false,
     }

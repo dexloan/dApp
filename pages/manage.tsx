@@ -15,12 +15,17 @@ import {
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import * as utils from "../utils";
-import { ListingState, CollectionMap, NFTResult } from "../common/types";
+import {
+  ListingState,
+  Collection,
+  CollectionMap,
+  NFTResult,
+} from "../common/types";
 import {
   useBorrowingsQuery,
   useLoansQuery,
   useNFTByOwnerQuery,
-  useMagicEdenCollectionsQuery,
+  useFloorPriceQuery,
 } from "../hooks/query";
 import { Card, CardList, ListedCard } from "../components/card";
 import { ListingModal } from "../components/form";
@@ -81,8 +86,8 @@ const SectionHeader = ({
   title,
   subtitle,
 }: {
-  title: string;
-  subtitle?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
 }) => (
   <Box mb="4">
     <Heading color="gray.700" fontWeight="bold" fontSize="xl">
@@ -268,6 +273,7 @@ const Borrow = () => {
 
         if (!cols[symbol]) {
           cols[symbol] = {
+            symbol,
             name: utils.mapSymbolToCollectionTitle(symbol) as string,
             items: [nft],
           };
@@ -277,87 +283,88 @@ const Borrow = () => {
     }, {} as CollectionMap);
   }, [nftQuery.data]);
 
-  const collectionsQuery = useMagicEdenCollectionsQuery();
-
-  const floorCache = useRef<Record<string, anchor.BN>>({}).current;
-
-  function getFloorPrice(symbol?: string): anchor.BN | null {
-    if (!symbol) return null;
-
-    const collectionName = utils.mapSymbolToCollectionName(symbol);
-
-    if (!floorCache[symbol]) {
-      const floorPrice = collectionsQuery.data?.find(
-        (collection) => collection.symbol === collectionName
-      )?.floorPrice;
-
-      if (floorPrice) {
-        floorCache[symbol] = new anchor.BN(floorPrice);
-      }
-    }
-
-    return floorCache[symbol];
-  }
-
-  const renderItem = useCallback((item: NFTResult) => {
-    return (
-      item?.metadata.data.uri &&
-      item?.metadata.data.name && (
-        <Card
-          key={item?.accountInfo.pubkey.toBase58()}
-          uri={item?.metadata.data.uri}
-          imageAlt={item?.metadata.data.name}
-          onClick={() => setSelected(item)}
-        >
-          <Box p="4">
-            <Box
-              mt="1"
-              mb="2"
-              fontWeight="semibold"
-              as="h4"
-              textAlign="left"
-              isTruncated
-            >
-              {item?.metadata.data.name}
-            </Box>
-          </Box>
-        </Card>
-      )
-    );
-  }, []);
-
-  if (nftQuery.isLoading || collectionsQuery.isLoading) {
+  if (nftQuery.isLoading) {
     return <LoadingSpinner />;
   }
-
-  const collectionKeys = collectionMap ? Object.keys(collectionMap) : [];
 
   return (
     <>
       {collectionMap &&
-        Object.values(collectionMap).map((collection, index) => {
-          const floorPrice = getFloorPrice(collectionKeys[index]);
-
+        Object.values(collectionMap).map((collection) => {
           return (
-            <>
-              <SectionHeader
-                title={collection.name}
-                subtitle={
-                  floorPrice
-                    ? `Floor Price ${utils.formatAmount(floorPrice)}`
-                    : undefined
-                }
-              />
-              <CardList>{collection.items.map(renderItem)}</CardList>
-            </>
+            <Collection
+              key={collection.name}
+              collection={collection}
+              onSelectItem={setSelected}
+            />
           );
         })}
 
       <ListingModal
         selected={selected}
-        floorPrice={getFloorPrice(selected?.metadata.data.symbol)}
         onRequestClose={() => setSelected(null)}
       />
+    </>
+  );
+};
+
+interface CollectionProps {
+  collection: Collection;
+  onSelectItem: (item: NFTResult) => void;
+}
+
+const Collection = ({ collection, onSelectItem }: CollectionProps) => {
+  const floorPriceQuery = useFloorPriceQuery(collection.symbol);
+
+  const renderItem = useCallback(
+    (item: NFTResult) => {
+      return (
+        item?.metadata.data.uri &&
+        item?.metadata.data.name && (
+          <Card
+            key={item?.accountInfo.pubkey.toBase58()}
+            uri={item?.metadata.data.uri}
+            imageAlt={item?.metadata.data.name}
+            onClick={() => onSelectItem(item)}
+          >
+            <Box p="4">
+              <Box
+                mt="1"
+                mb="2"
+                fontWeight="semibold"
+                as="h4"
+                textAlign="left"
+                isTruncated
+              >
+                {item?.metadata.data.name}
+              </Box>
+            </Box>
+          </Card>
+        )
+      );
+    },
+    [onSelectItem]
+  );
+
+  const floorPrice = useMemo(() => {
+    if (floorPriceQuery.data?.floorPrice) {
+      return utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice));
+    }
+  }, [floorPriceQuery.data]);
+
+  return (
+    <>
+      <SectionHeader
+        title={collection.name}
+        subtitle={
+          floorPriceQuery.isLoading ? (
+            <Spinner colorScheme="green" size="xs" thickness="2px" />
+          ) : (
+            `Floor Price ${floorPrice}`
+          )
+        }
+      />
+      <CardList>{collection.items.map(renderItem)}</CardList>
     </>
   );
 };

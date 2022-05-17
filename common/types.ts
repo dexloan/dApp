@@ -19,9 +19,12 @@ export interface NFTResult {
   metadata: Metadata;
 }
 
+export interface Collection {
+  symbol: string;
+  name: string;
+  items: NFTResult[];
+}
+
 export interface CollectionMap {
-  [key: string]: {
-    name: string;
-    items: NFTResult[];
-  };
+  [key: string]: Collection;
 }

@@ -20,6 +20,7 @@ import {
   SliderTrack,
   SliderFilledTrack,
   SliderThumb,
+  Spinner,
   Text,
   Tooltip,
 } from "@chakra-ui/react";
@@ -34,6 +35,7 @@ import { IconType } from "react-icons";
 import * as utils from "../../utils";
 import { NFTResult } from "../../common/types";
 import { createListing } from "../../common/actions";
+import { useFloorPriceQuery } from "../../hooks/query";
 
 interface FormFields {
   ltv: number;
@@ -43,13 +45,11 @@ interface FormFields {
 
 interface ListingFormProps {
   selected: NFTResult | null;
-  floorPrice: anchor.BN | null;
   onRequestClose: () => void;
 }
 
 export const ListingModal = ({
   selected,
-  floorPrice,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -69,16 +69,18 @@ export const ListingModal = ({
   const anchorWallet = useAnchorWallet();
 
   const queryClient = useQueryClient();
+  const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
+
   const mutation = useMutation(
     (variables: FormFields) => {
       if (
         anchorWallet &&
-        floorPrice &&
+        floorPriceQuery.data?.floorPrice &&
         selected?.accountInfo.data.mint &&
         selected?.accountInfo.pubkey
       ) {
         const listingOptions = {
-          amount: (variables.ltv / 100) * floorPrice?.toNumber(),
+          amount: (variables.ltv / 100) * floorPriceQuery.data?.floorPrice,
           basisPoints: variables.apy * 100,
           duration: variables.duration * 24 * 60 * 60,
         };
@@ -136,52 +138,64 @@ export const ListingModal = ({
           Create Listing
         </ModalHeader>
         <ModalBody>
-          <ListingForecast control={control} floorPrice={floorPrice} />
-          <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
-            <form onSubmit={onSubmit}>
-              <FormControl isInvalid={!isValid}>
-                <FormField
-                  name="ltv"
+          {floorPriceQuery.data?.floorPrice === undefined ? (
+            <Spinner colorScheme="green" size="sm" thickness="4px" />
+          ) : (
+            <>
+              {floorPriceQuery.data?.floorPrice && (
+                <ListingForecast
                   control={control}
-                  label="Loan to value"
-                  defaultValue={60}
-                  min={10}
-                  max={100}
-                  step={5}
-                  icon={IoPricetag}
-                  units="%"
+                  floorPrice={floorPriceQuery.data?.floorPrice}
                 />
+              )}
+              <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
+                <form onSubmit={onSubmit}>
+                  <FormControl isInvalid={!isValid}>
+                    <FormField
+                      name="ltv"
+                      control={control}
+                      label="Loan to value"
+                      defaultValue={60}
+                      min={10}
+                      max={100}
+                      step={5}
+                      icon={IoPricetag}
+                      units="%"
+                    />
 
-                <FormField
-                  name="apy"
-                  control={control}
-                  label="APY"
-                  defaultValue={50}
-                  min={1}
-                  max={1000}
-                  step={5}
-                  icon={IoAnalytics}
-                  units="%"
-                />
+                    <FormField
+                      name="apy"
+                      control={control}
+                      label="APY"
+                      defaultValue={50}
+                      min={1}
+                      max={1000}
+                      step={5}
+                      icon={IoAnalytics}
+                      units="%"
+                    />
 
-                <FormField
-                  name="duration"
-                  control={control}
-                  label="Duration"
-                  defaultValue={30}
-                  min={1}
-                  max={365}
-                  icon={IoCalendar}
-                  units="days"
-                />
-              </FormControl>
-            </form>
-          </Box>
+                    <FormField
+                      name="duration"
+                      control={control}
+                      label="Duration"
+                      defaultValue={30}
+                      min={1}
+                      max={365}
+                      icon={IoCalendar}
+                      units="days"
+                    />
+                  </FormControl>
+                </form>
+              </Box>
+            </>
+          )}
         </ModalBody>
         <ModalFooter>
           <Button
             colorScheme="green"
             w="100%"
+            disabled={floorPriceQuery.isLoading}
             isLoading={mutation.isLoading}
             onClick={onSubmit}
           >
@@ -195,15 +209,15 @@ export const ListingModal = ({
 
 interface ListingForecastProps {
   control: Control<FormFields, any>;
-  floorPrice: anchor.BN | null;
+  floorPrice: number;
 }
 
 const ListingForecast = ({ control, floorPrice }: ListingForecastProps) => {
   const { ltv, apy, duration } = useWatch({ control });
 
-  if (!ltv || !apy || !duration || !floorPrice) return null;
+  if (!ltv || !apy || !duration) return null;
 
-  const amount = new anchor.BN((ltv / 100) * floorPrice.toNumber());
+  const amount = new anchor.BN((ltv / 100) * floorPrice);
 
   const interest = utils.calculateInterest(
     amount,

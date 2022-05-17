@@ -186,3 +186,8 @@ export async function fetchMagicEdenCollectionStats(symbol: string) {
 
   return response.json();
 }
+
+export async function fetchFloorPrice(symbol: string) {
+  const response = await fetch(`/api/floor/${symbol}`);
+  return response.json();
+}

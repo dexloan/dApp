@@ -63,7 +63,10 @@ export function Navbar() {
                 </Button>
               </Link>
             )}
-            <Button onClick={onConnect} borderLeftRadius="none">
+            <Button
+              onClick={onConnect}
+              borderLeftRadius={wallet.publicKey ? "none" : undefined}
+            >
               {wallet.publicKey ? displayAddress : "Connect Wallet"}
             </Button>
           </ButtonGroup>
