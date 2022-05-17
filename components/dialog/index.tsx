@@ -149,21 +149,13 @@ export const RepayDialog: React.FC<
               {basisPoints / 100}% APY
             </Badge>
             <Badge colorScheme="blue" fontSize="md">
-              {utils.yieldGenerated(
-                amount?.toNumber(),
-                startDate?.toNumber(),
-                basisPoints
-              )}
+              {utils.yieldGenerated(amount, startDate, basisPoints)}
             </Badge>
           </Text>
           <Text mb="4">
             Repay full loan amount of ~
             <Text as="span" fontWeight="semibold">
-              {utils.totalAmount(
-                amount?.toNumber(),
-                startDate?.toNumber(),
-                basisPoints
-              )}
+              {utils.totalAmount(amount, startDate, basisPoints)}
             </Text>{" "}
             to recover your NFT.
           </Text>

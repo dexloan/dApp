@@ -280,29 +280,24 @@ const Borrow = () => {
 
   const collectionsQuery = useMagicEdenCollectionsQuery();
 
-  const floorCache = useRef<Record<string, string>>({}).current;
+  const floorCache = useRef<Record<string, anchor.BN>>({}).current;
 
-  function getFloorPrice(symbol: string): string | null {
+  function getFloorPrice(symbol?: string): anchor.BN | null {
+    if (!symbol) return null;
+
     const collectionName = utils.mapSymbolToCollectionName(symbol);
 
-    if (floorCache[symbol]) {
-      return floorCache[symbol];
-    }
+    if (!floorCache[symbol]) {
+      const floorPrice = collectionsQuery.data?.find(
+        (collection) => collection.symbol === collectionName
+      )?.floorPrice;
 
-    const floorPrice = collectionsQuery.data?.find(
-      (collection) => collection.name === collectionName
-    )?.floorPrice;
-
-    if (floorPrice) {
-      const formattedFloor = utils.formatAmount(new anchor.BN(floorPrice));
-
-      if (formattedFloor) {
-        floorCache[symbol] = formattedFloor;
-        return formattedFloor;
+      if (floorPrice) {
+        floorCache[symbol] = new anchor.BN(floorPrice);
       }
     }
 
-    return null;
+    return floorCache[symbol];
   }
 
   const renderItem = useCallback((item: NFTResult) => {
@@ -321,7 +316,7 @@ const Borrow = () => {
               mb="2"
               fontWeight="semibold"
               as="h4"
-              lineHeight="tight"
+              textAlign="left"
               isTruncated
             >
               {item?.metadata.data.name}
@@ -341,15 +336,23 @@ const Borrow = () => {
   return (
     <>
       {collectionMap &&
-        Object.values(collectionMap).map((collection, index) => (
-          <>
-            <SectionHeader
-              title={collection.name}
-              subtitle={`Floor Price ${getFloorPrice(collectionKeys[index])}`}
-            />
-            <CardList>{collection.items.map(renderItem)}</CardList>
-          </>
-        ))}
+        Object.values(collectionMap).map((collection, index) => {
+          const floorPrice = getFloorPrice(collectionKeys[index]);
+
+          return (
+            <>
+              <SectionHeader
+                title={collection.name}
+                subtitle={
+                  floorPrice
+                    ? `Floor Price ${utils.formatAmount(floorPrice)}`
+                    : undefined
+                }
+              />
+              <CardList>{collection.items.map(renderItem)}</CardList>
+            </>
+          );
+        })}
       <FormModal
         header="Create Listing"
         isOpen={Boolean(selected)}
@@ -357,7 +360,10 @@ const Borrow = () => {
         onSubmit={() => {}}
         onRequestClose={() => setSelected(null)}
       >
-        <ListingForm onSubmit={() => {}} />
+        <ListingForm
+          floorPrice={getFloorPrice(selected?.metadata.data.symbol)}
+          onSubmit={() => {}}
+        />
       </FormModal>
     </>
   );

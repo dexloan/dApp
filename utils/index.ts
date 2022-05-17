@@ -2,6 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import dayjs from "dayjs";
 
 const SECONDS_PER_YEAR = 31_536_000;
+const LAMPORTS_PER_SOL = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
 
 export function toMonths(seconds: number = 0): number {
   return Math.abs(seconds / 60 / 60 / 24 / 30);
@@ -15,8 +16,6 @@ export function getFormattedDueDate(
   startDate: number,
   duration: number
 ): string {
-  console.log("startDate", startDate);
-  console.log("duration", duration);
   const date = dayjs.unix(startDate + duration);
 
   return date.format("MMM D, YYYY") + " at " + date.format("h:mm A");
@@ -26,39 +25,60 @@ export function formatBlockTime(blockTime: number) {
   return dayjs.unix(blockTime).format("MMM D, YYYY");
 }
 
-export function yieldGenerated(
-  amount: number,
-  startDate: number,
+export function calculateInterest(
+  amount: anchor.BN,
+  duration: anchor.BN,
   basisPoints: number
-): number {
-  const now = Date.now() / 1000;
-  const elapsed = now - startDate;
+) {
   const proRataInterestRate =
-    (basisPoints / 10_000 / SECONDS_PER_YEAR) * elapsed;
-  return Math.max(
-    0,
-    (amount * proRataInterestRate) / anchor.web3.LAMPORTS_PER_SOL
-  );
+    (basisPoints / 10_000 / SECONDS_PER_YEAR) * duration.toNumber();
+  return new anchor.BN(amount.toNumber() * proRataInterestRate);
+}
+
+export function yieldGenerated(
+  amount: anchor.BN,
+  startDate: anchor.BN,
+  basisPoints: number
+): anchor.BN {
+  const now = new anchor.BN(Date.now() / 1000);
+  const elapsed = now.sub(startDate);
+  return calculateInterest(amount, elapsed, basisPoints);
 }
 
 export function totalAmount(
-  amount: number,
-  startDate: number,
+  amount: anchor.BN,
+  startDate: anchor.BN,
   basisPoints: number
 ): string {
   const interestSol = yieldGenerated(amount, startDate, basisPoints);
-  const amountSol = amount / anchor.web3.LAMPORTS_PER_SOL;
-  const totalSol = amountSol + interestSol;
-  const rounded = Math.round((totalSol + Number.EPSILON) * 100) / 100;
-  return rounded.toFixed(2).replace(/0$/, "") + "◎";
+  const amountSol = amount.div(LAMPORTS_PER_SOL);
+  const totalSol = amountSol.add(interestSol);
+  return totalSol.toNumber().toFixed(2).replace(/0$/, "") + "◎";
 }
 
-export function formatAmount(amount?: anchor.BN, precision?: number) {
+const amountCache = new Map<number, string>();
+
+export function formatAmount(amount?: anchor.BN) {
   if (!amount) return null;
+
+  if (amountCache.has(amount.toNumber())) {
+    return amountCache.get(amount.toNumber());
+  }
 
   const sol = amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL;
   const rounded = Math.round((sol + Number.EPSILON) * 100) / 100;
-  return rounded.toFixed(2).replace(/0$/, "") + "◎";
+
+  let formatted;
+
+  if (rounded < 0.001) {
+    formatted = "~0.001◎";
+  } else {
+    formatted = rounded.toFixed(3).replace(/0{1,2}$/, "") + "◎";
+  }
+
+  amountCache.set(amount.toNumber(), formatted);
+
+  return formatted;
 }
 
 export function formatMonths(duration?: anchor.BN) {
@@ -71,7 +91,7 @@ nameMap.set("XAPE", "exiled_degen_ape_academy");
 nameMap.set("BH", "lgtb");
 
 export function mapSymbolToCollectionName(symbol: string) {
-  return titleMap.get(symbol.replace(/\x00/g, ""));
+  return nameMap.get(symbol.replace(/\x00/g, ""));
 }
 
 const titleMap = new Map();

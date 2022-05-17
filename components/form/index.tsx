@@ -1,12 +1,11 @@
+import * as anchor from "@project-serum/anchor";
 import { useState } from "react";
-import { Control, Controller, useForm } from "react-hook-form";
+import { Control, Controller, useForm, useWatch } from "react-hook-form";
 import {
-  FormErrorMessage,
   FormLabel,
   FormControl,
-  Input,
-  Box,
   Badge,
+  Box,
   Button,
   Modal,
   ModalOverlay,
@@ -23,6 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 import { IconType } from "react-icons";
+import * as utils from "../../utils";
 
 interface FormFields {
   ltv: number;
@@ -31,10 +31,11 @@ interface FormFields {
 }
 
 interface ListingFormProps {
+  floorPrice: anchor.BN | null;
   onSubmit: (data: FormFields) => void;
 }
 
-export const ListingForm = ({ onSubmit }: ListingFormProps) => {
+export const ListingForm = ({ floorPrice, onSubmit }: ListingFormProps) => {
   const {
     control,
     handleSubmit,
@@ -50,9 +51,7 @@ export const ListingForm = ({ onSubmit }: ListingFormProps) => {
 
   return (
     <>
-      <Box>
-        <Text></Text>
-      </Box>
+      <ListingForecast control={control} floorPrice={floorPrice} />
       <form onSubmit={handleSubmit(onSubmit)}>
         <FormControl isInvalid={!isValid}>
           <FormField
@@ -64,6 +63,7 @@ export const ListingForm = ({ onSubmit }: ListingFormProps) => {
             max={100}
             step={5}
             icon={IoPricetag}
+            units="%"
           />
 
           <FormField
@@ -71,10 +71,11 @@ export const ListingForm = ({ onSubmit }: ListingFormProps) => {
             control={control}
             label="APY"
             defaultValue={50}
-            min={0}
+            min={1}
             max={1000}
             step={5}
             icon={IoAnalytics}
+            units="%"
           />
 
           <FormField
@@ -85,10 +86,41 @@ export const ListingForm = ({ onSubmit }: ListingFormProps) => {
             min={1}
             max={365}
             icon={IoCalendar}
+            units="days"
           />
         </FormControl>
       </form>
     </>
+  );
+};
+
+interface ListingForecastProps {
+  control: Control<FormFields, any>;
+  floorPrice: anchor.BN | null;
+}
+
+const ListingForecast = ({ control, floorPrice }: ListingForecastProps) => {
+  const { ltv, apy, duration } = useWatch({ control });
+
+  if (!ltv || !apy || !duration || !floorPrice) return null;
+
+  const amount = new anchor.BN((ltv / 100) * floorPrice.toNumber());
+
+  const interest = utils.calculateInterest(
+    amount,
+    new anchor.BN(duration * 24 * 60 * 60),
+    apy * 100
+  );
+
+  return (
+    <Box pb="8">
+      <Badge fontSize="md" mr="2">
+        Borrowing {utils.formatAmount(amount)}
+      </Badge>
+      <Badge fontSize="md">
+        Interest due on maturity {utils.formatAmount(interest)}
+      </Badge>
+    </Box>
   );
 };
 
@@ -101,6 +133,7 @@ interface FormFieldProps {
   max: number;
   step?: number;
   icon: IconType;
+  units: string;
 }
 
 const FormField = ({
@@ -112,6 +145,7 @@ const FormField = ({
   max,
   step,
   icon,
+  units,
 }: FormFieldProps) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -136,19 +170,19 @@ const FormField = ({
             onMouseLeave={() => setShowTooltip(false)}
             onChange={(value) => onChange(value)}
           >
-            <SliderTrack bg="red.100">
-              <SliderFilledTrack bg="tomato" />
+            <SliderTrack bg="green.100">
+              <SliderFilledTrack bg="green" />
             </SliderTrack>
             <Tooltip
               hasArrow
-              bg="teal.500"
+              bg="green.500"
               color="white"
               placement="top"
               isOpen={showTooltip}
-              label={`${value}%`}
+              label={`${value} ${units}`}
             >
               <SliderThumb boxSize={6}>
-                <Box color="tomato" as={icon} />
+                <Box color="green" as={icon} />
               </SliderThumb>
             </Tooltip>
           </Slider>
