@@ -18,3 +18,10 @@ export interface NFTResult {
   };
   metadata: Metadata;
 }
+
+export interface CollectionMap {
+  [key: string]: {
+    name: string;
+    items: NFTResult[];
+  };
+}

@@ -64,3 +64,29 @@ export function formatAmount(amount?: anchor.BN, precision?: number) {
 export function formatMonths(duration?: anchor.BN) {
   return duration ? toMonths(duration.toNumber()) + " months" : null;
 }
+
+const COLLECTION_SYMBOLS = {};
+
+export function mapSymbolToCollectionName(symbol: string) {
+  return {
+    chkn: "chicken_tribe",
+    xape: "exiled_degen_ape_academy",
+    bh: "lgtb",
+  }[symbol.toLowerCase()];
+}
+
+const titleMap = new Map();
+titleMap.set("CHKN", "Chicken Tribe");
+titleMap.set("XAPE", "Exiled Apes");
+titleMap.set("BH", "Breadheads");
+
+export function mapSymbolToCollectionTitle(symbol: string) {
+  const title = titleMap.get(symbol.replace(/\x00/g, ""));
+  console.log(
+    "title ? ",
+    symbol.replace(/\x00/g, "").length,
+    "CHKN".length,
+    symbol.trim().toLowerCase() === "CHKN".toLowerCase()
+  );
+  return title;
+}

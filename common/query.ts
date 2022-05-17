@@ -178,3 +178,11 @@ export async function fetchParsedTransactions(
   console.log("parsedTransactions", parsedTransactions);
   return parsedTransactions;
 }
+
+export async function fetchMagicEdenCollectionStats(symbol: string) {
+  const response = await fetch(
+    `https://api-mainnet.magiceden.dev/v2/collections/${symbol}/stats`
+  );
+
+  return response.json();
+}

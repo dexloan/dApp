@@ -6,6 +6,7 @@ import { useQuery } from "react-query";
 import { ListingState } from "../common/types";
 import {
   fetchListing,
+  fetchMagicEdenCollectionStats,
   fetchMultipleListings,
   fetchNFTs,
 } from "../common/query";
@@ -150,3 +151,19 @@ export function useLoansQuery(
     }
   );
 }
+
+export const useMagicEdenCollectionsQuery = () => {
+  return useQuery(
+    ["magic-eden-collection-stats"],
+    () =>
+      Promise.all([
+        fetchMagicEdenCollectionStats("chicken_tribe"),
+        fetchMagicEdenCollectionStats("exiled_degen_ape_academy"),
+        fetchMagicEdenCollectionStats("lgtb"),
+      ]),
+    {
+      staleTime: 1000 * 60 * 60 * 5,
+      refetchOnWindowFocus: false,
+    }
+  );
+};

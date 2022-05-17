@@ -18,7 +18,7 @@ interface Activity {
   lamports: anchor.BN;
 }
 
-export function Activity({ mint }: ActivityProps) {
+export const Activity = ({ mint }: ActivityProps) => {
   const { connection } = useConnection();
 
   const activityQuery = useQuery(
@@ -112,7 +112,7 @@ export function Activity({ mint }: ActivityProps) {
       )}
     </Box>
   );
-}
+};
 
 function mapTransaction(
   txn: anchor.web3.ParsedTransactionWithMeta | null,
