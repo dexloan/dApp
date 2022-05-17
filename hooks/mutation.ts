@@ -5,10 +5,9 @@ import {
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 
 import { ListingState } from "../common/types";
-import * as web3 from "../common/query";
 import {
   cancelListing,
   closeAccount,

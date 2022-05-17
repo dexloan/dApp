@@ -1,4 +1,6 @@
 import { Badge, Box, Button, Heading, Text } from "@chakra-ui/react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
 
 export function Masthead() {

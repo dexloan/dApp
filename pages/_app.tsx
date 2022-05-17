@@ -15,8 +15,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import Head from "next/head";
 import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from "react-hot-toast";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 import theme from "../theme";
@@ -62,7 +61,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               </Head>
               <Navbar />
               <Component {...pageProps} />
-              <ToastContainer />
+              <Toaster />
               <FontFace />
             </ChakraProvider>
           </WalletModalProvider>

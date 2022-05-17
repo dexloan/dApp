@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import {
   Box,
   Button,
