@@ -128,13 +128,14 @@ const MyLoans = () => {
           (item) =>
             item && (
               <ListedCard
-                key={item?.listing.publicKey.toBase58()}
-                listing={item?.listing.publicKey}
-                amount={item?.listing.account.amount}
-                basisPoints={item?.listing.account.basisPoints}
-                duration={item?.listing.account.duration}
-                uri={item?.metadata.data.uri}
-                name={item?.metadata.data.name}
+                key={item.listing.publicKey.toBase58()}
+                listing={item.listing.publicKey}
+                amount={item.listing.account.amount}
+                basisPoints={item.listing.account.basisPoints}
+                duration={item.listing.account.duration}
+                uri={item.metadata.data.uri}
+                name={item.metadata.data.name}
+                symbol={item.metadata.data.symbol}
               />
             )
         )}
@@ -196,13 +197,14 @@ const MyListings = () => {
               (item) =>
                 item && (
                   <ListedCard
-                    key={item?.listing.publicKey.toBase58()}
-                    listing={item?.listing.publicKey}
-                    amount={item?.listing.account.amount}
-                    basisPoints={item?.listing.account.basisPoints}
-                    duration={item?.listing.account.duration}
-                    uri={item?.metadata.data.uri}
-                    name={item?.metadata.data.name}
+                    key={item.listing.publicKey.toBase58()}
+                    listing={item.listing.publicKey}
+                    amount={item.listing.account.amount}
+                    basisPoints={item.listing.account.basisPoints}
+                    duration={item.listing.account.duration}
+                    uri={item.metadata.data.uri}
+                    name={item.metadata.data.name}
+                    symbol={item.metadata.data.symbol}
                   />
                 )
             )}
@@ -217,13 +219,14 @@ const MyListings = () => {
               (item) =>
                 item && (
                   <ListedCard
-                    key={item?.listing.publicKey.toBase58()}
-                    listing={item?.listing.publicKey}
-                    amount={item?.listing.account.amount}
-                    basisPoints={item?.listing.account.basisPoints}
-                    duration={item?.listing.account.duration}
-                    uri={item?.metadata.data.uri}
-                    name={item?.metadata.data.name}
+                    key={item.listing.publicKey.toBase58()}
+                    listing={item.listing.publicKey}
+                    amount={item.listing.account.amount}
+                    basisPoints={item.listing.account.basisPoints}
+                    duration={item.listing.account.duration}
+                    uri={item.metadata.data.uri}
+                    name={item.metadata.data.name}
+                    symbol={item.metadata.data.symbol}
                   />
                 )
             )}
@@ -238,13 +241,14 @@ const MyListings = () => {
               (item) =>
                 item && (
                   <ListedCard
-                    key={item?.listing.publicKey.toBase58()}
-                    listing={item?.listing.publicKey}
-                    amount={item?.listing.account.amount}
-                    basisPoints={item?.listing.account.basisPoints}
-                    duration={item?.listing.account.duration}
-                    uri={item?.metadata.data.uri}
-                    name={item?.metadata.data.name}
+                    key={item.listing.publicKey.toBase58()}
+                    listing={item.listing.publicKey}
+                    amount={item.listing.account.amount}
+                    basisPoints={item.listing.account.basisPoints}
+                    duration={item.listing.account.duration}
+                    uri={item.metadata.data.uri}
+                    name={item.metadata.data.name}
+                    symbol={item.metadata.data.symbol}
                   />
                 )
             )}

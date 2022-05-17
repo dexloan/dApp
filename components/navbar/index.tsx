@@ -58,6 +58,7 @@ export function Navbar() {
                   borderRightWidth="thin"
                   borderColor="gray.200"
                   cursor="pointer"
+                  px="0.25"
                 >
                   <Box as={IoWallet} />
                 </Button>

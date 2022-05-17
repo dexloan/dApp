@@ -125,7 +125,6 @@ export const ListingModal = ({
 
   function onSubmit() {
     handleSubmit((data) => {
-      console.log("data: ", data);
       mutation.mutate(data);
     })();
   }
