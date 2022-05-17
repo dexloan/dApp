@@ -39,7 +39,7 @@ export const Activity = ({ mint }: ActivityProps) => {
   function renderRightCol(activity: Activity) {
     return (
       <Text fontWeight="bold" fontSize="lg">
-        {utils.formatAmount(activity.lamports, 2)}
+        {utils.formatAmount(activity.lamports)}
       </Text>
     );
   }
