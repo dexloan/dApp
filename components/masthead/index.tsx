@@ -1,9 +1,33 @@
 import { Badge, Box, Button, Heading, Text } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 
 export function Masthead() {
+  const router = useRouter();
+  const wallet = useWallet();
+  const { setVisible } = useWalletModal();
+
+  const redirectRef = useRef(false);
+
+  function handleClick() {
+    if (!wallet.publicKey) {
+      setVisible(true);
+      // Redirect on connect
+      redirectRef.current = true;
+    } else {
+      router.push("/manage");
+    }
+  }
+
+  useEffect(() => {
+    if (wallet.publicKey && redirectRef.current) {
+      redirectRef.current = false;
+      router.push("/manage");
+    }
+  }, [router, wallet.publicKey]);
+
   return (
     <Box pt="8" pb="20">
       <Heading
@@ -21,16 +45,14 @@ export function Masthead() {
         against non-fungibles
       </Heading>
       <Text size="md" fontWeight="medium" mb="8">
-        Unlock the value of your NFTs with free and secure lending.
+        Unlock the value of your NFTs with free and secure lending
         <br />
         <Badge colorScheme="green">Lending pools coming soon!</Badge>
       </Text>
       <Box>
-        <Link href="/manage">
-          <Button as="a" colorScheme="green" cursor="pointer">
-            Get Started Today
-          </Button>
-        </Link>
+        <Button colorScheme="green" cursor="pointer" onClick={handleClick}>
+          Get Started Today
+        </Button>
       </Box>
     </Box>
   );
