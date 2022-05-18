@@ -13,7 +13,7 @@ interface ActivityProps {
 
 interface Activity {
   key: string;
-  type: "sale" | "listing" | "mint";
+  type: "mint" | "sale" | "listing" | "repay" | "loan" | "repossess";
   blockTime: number | null | undefined;
   lamports: anchor.BN;
 }
@@ -27,7 +27,8 @@ export const Activity = ({ mint }: ActivityProps) => {
       if (mint) {
         const parsedTransactions = await fetchParsedTransactions(
           connection,
-          mint
+          mint,
+          20 // limit
         );
 
         return parsedTransactions.map(mapTransaction).filter(Boolean);
@@ -46,12 +47,18 @@ export const Activity = ({ mint }: ActivityProps) => {
 
   function renderLabel(activity: Activity) {
     switch (activity.type) {
+      case "mint":
+        return "Minted";
       case "sale":
         return "Sold";
       case "listing":
         return "Listed on Dexloan";
-      case "mint":
-        return "Minted";
+      case "loan":
+        return "Loan Started";
+      case "repay":
+        return "Repaid Loan";
+      case "repossess":
+        return "NFT Repossessed";
     }
   }
 
@@ -133,11 +140,7 @@ function mapTransaction(
       };
     }
 
-    const isListing = txn.meta.logMessages.some((log) =>
-      log.includes("InitListing")
-    );
-
-    if (isListing) {
+    if (txn.meta.logMessages.some((log) => log.includes("InitListing"))) {
       if ("data" in txn.transaction.message.instructions[0]) {
         const data = txn.transaction.message.instructions[0].data;
         const layout = borsh.u64("amount");
@@ -148,6 +151,45 @@ function mapTransaction(
           type: "listing",
           blockTime: txn.blockTime,
           lamports: layout.decode(Buffer.from(decoded.slice(8, 16))),
+        };
+      }
+    }
+
+    if (txn.meta.logMessages.some((log) => log.includes("MakeLoan"))) {
+      if ("data" in txn.transaction.message.instructions[0]) {
+        return {
+          key: txn.transaction.signatures[0],
+          type: "loan",
+          blockTime: txn.blockTime,
+          lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
+            new anchor.BN(txn.meta.postBalances[0])
+          ),
+        };
+      }
+    }
+
+    if (txn.meta.logMessages.some((log) => log.includes("RepayLoan"))) {
+      if ("data" in txn.transaction.message.instructions[0]) {
+        return {
+          key: txn.transaction.signatures[0],
+          type: "repay",
+          blockTime: txn.blockTime,
+          lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
+            new anchor.BN(txn.meta.postBalances[0])
+          ),
+        };
+      }
+    }
+
+    if (txn.meta.logMessages.some((log) => log.includes("Repossess"))) {
+      if ("data" in txn.transaction.message.instructions[0]) {
+        return {
+          key: txn.transaction.signatures[0],
+          type: "repossess",
+          blockTime: txn.blockTime,
+          lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
+            new anchor.BN(txn.meta.postBalances[0])
+          ),
         };
       }
     }

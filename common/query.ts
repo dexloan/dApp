@@ -169,13 +169,13 @@ export async function fetchNFTs(
 
 export async function fetchParsedTransactions(
   connection: anchor.web3.Connection,
-  mint: anchor.web3.PublicKey
+  mint: anchor.web3.PublicKey,
+  limit: number
 ) {
-  const signatures = await connection.getSignaturesForAddress(mint);
+  const signatures = await connection.getSignaturesForAddress(mint, { limit });
   const parsedTransactions = await connection.getParsedTransactions(
     signatures.map(({ signature }) => signature)
   );
-  console.log("parsedTransactions", parsedTransactions);
   return parsedTransactions;
 }
 
