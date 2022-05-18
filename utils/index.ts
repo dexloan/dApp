@@ -4,8 +4,17 @@ import dayjs from "dayjs";
 const SECONDS_PER_YEAR = 31_536_000;
 const LAMPORTS_PER_SOL = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
 
-export function toMonths(seconds: number = 0): number {
+export function toMonths(seconds: number): number {
   return Math.abs(seconds / 60 / 60 / 24 / 30);
+}
+
+export function toDays(seconds: number): number {
+  return Math.abs(seconds / 60 / 60 / 24);
+}
+
+export function formatDuration(duration: anchor.BN): string {
+  const days = toDays(duration.toNumber());
+  return `${days} ${days === 1 ? "day" : "days"}`;
 }
 
 export function hasExpired(startDate: number, duration: number): boolean {

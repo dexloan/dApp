@@ -32,7 +32,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
     const observer = new IntersectionObserver(callback, {
       root: null,
       rootMargin: "0px",
-      threshold: 0.5,
+      threshold: 0.25,
     });
 
     if (el) observer.observe(el);
@@ -146,7 +146,7 @@ export const ListedCard = ({
             textTransform="uppercase"
             ml="2"
           >
-            {utils.toMonths(duration?.toNumber())} months
+            {utils.formatDuration(duration)}
           </Box>
         </Box>
         <Box
