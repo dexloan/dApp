@@ -1,6 +1,5 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import cache from "memory-cache";
+import Redis from "ioredis";
 import * as utils from "../../../utils";
 import { fetchMagicEdenCollectionStats } from "../../../common/query";
 
@@ -9,32 +8,51 @@ type Data = {
   error?: string;
 };
 
-const priceCache = new cache.Cache<string, number>();
-const CACHE_TIME = 1000 * 60 * 5; // 5 minutes
+const EXPIRY = 60 * 5; // 5 minutes
+const client = new Redis(process.env.REDIS_URL as string);
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
   const symbol = req.query.symbol as string;
-  const floorPrice = priceCache.get(symbol);
+  const floorPrice = await client.get(symbol);
 
   if (floorPrice) {
-    return res.status(200).json({ floorPrice });
+    return res.status(200).json({ floorPrice: parseInt(floorPrice) });
   }
 
   try {
     const name = utils.mapSymbolToCollectionName(symbol);
-    const stats = await fetchMagicEdenCollectionStats(name);
-    console.log("stats", stats);
-    priceCache.put(symbol, stats.floorPrice, CACHE_TIME);
+    const stats = await queuedTimeout(() =>
+      fetchMagicEdenCollectionStats(name)
+    );
+    client.set(symbol, stats.floorPrice, "EX", EXPIRY);
 
     return res.status(200).json({ floorPrice: stats.floorPrice });
   } catch (error) {
-    console.log("error: ", error);
     const errorMessage =
       error instanceof Error ? error.message : "Internal Server Error";
 
     return res.status(500).json({ error: errorMessage });
   }
+}
+
+let queued = 0;
+
+function queuedTimeout(callback: () => Promise<any>): Promise<any> {
+  queued++;
+
+  return new Promise((resolve, reject) => {
+    console.log("queued timeout: ", queued * 100);
+
+    setTimeout(async () => {
+      callback()
+        .then((response) => {
+          queued--;
+          resolve(response);
+        })
+        .catch(reject);
+    }, queued * 100);
+  });
 }
