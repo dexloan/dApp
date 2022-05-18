@@ -7,7 +7,6 @@ import { ListingState } from "../common/types";
 import {
   fetchFloorPrice,
   fetchListing,
-  fetchMagicEdenCollectionStats,
   fetchMultipleListings,
   fetchNFTs,
 } from "../common/query";
