@@ -10,7 +10,12 @@ async function main() {
   await client.sadd("chicken_tribe", ...chicken_tribe);
   await client.sadd("exiled_apes", ...exiled_apes);
   await client.sadd("breadheads", ...breadheads);
-
+  await client.sadd(
+    "whitelist",
+    ...chicken_tribe,
+    ...exiled_apes,
+    ...breadheads
+  );
   console.log("done.");
 }
 

@@ -17,10 +17,13 @@ export async function fetchListing(
   const program = getProgram(provider);
   const listingAccount = await program.account.listing.fetch(listing);
 
-  const whitelist = (await import("../public/whitelist.json")).default;
+  const response = await fetch(
+    `/api/whitelist/${listingAccount.mint.toBase58()}`
+  );
 
-  if (!whitelist.includes(listingAccount.mint.toBase58())) {
-    throw new Error("Mint not whitelisted");
+  if (response.ok === false) {
+    const message = await response.json();
+    throw new Error(message);
   }
 
   const [metadataAddress] = await getMetadataPDA(listingAccount.mint);
