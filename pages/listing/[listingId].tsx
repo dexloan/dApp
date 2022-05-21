@@ -134,14 +134,13 @@ const Listing: NextPage = () => {
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>
-                After {utils.formatMonths(listing.duration)} the total repayment
-                required will be&nbsp;
-                {utils.totalAmount(
+                After {utils.formatDuration(listing.duration)} the total
+                repayment required will be&nbsp;
+                {utils.formatTotalAmount(
                   listing.amount,
-                  new anchor.BN(Date.now() / 1000).sub(listing.duration),
+                  listing.duration,
                   listing.basisPoints
                 )}
-                .
               </Text>
             </Box>
             <Box mt="4" mb="4">
@@ -282,7 +281,7 @@ const Listing: NextPage = () => {
                   Duration
                 </Text>
                 <Heading size="md" fontWeight="bold" mb="6">
-                  {utils.formatMonths(listing.duration)}
+                  {utils.formatDuration(listing.duration)}
                 </Heading>
               </Box>
               <Box>

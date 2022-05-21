@@ -44,6 +44,22 @@ export function calculateInterest(
   return new anchor.BN(amount.toNumber() * proRataInterestRate);
 }
 
+export function calculateTotalAmount(
+  amount: anchor.BN,
+  duration: anchor.BN,
+  basisPoints: number
+) {
+  return amount.add(calculateInterest(amount, duration, basisPoints));
+}
+
+export function formatTotalAmount(
+  amount: anchor.BN,
+  duration: anchor.BN,
+  basisPoints: number
+) {
+  return formatAmount(calculateTotalAmount(amount, duration, basisPoints));
+}
+
 export function yieldGenerated(
   amount: anchor.BN,
   startDate: anchor.BN,
