@@ -1,7 +1,7 @@
-import { Box, Button, ButtonGroup, Container } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, Container, Flex } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useMemo } from "react";
 import { IoWallet } from "react-icons/io5";
 import Dexloan from "../../public/dexloan.svg";
@@ -41,17 +41,23 @@ export function Navbar() {
         mb="10"
       >
         <Box>
-          <Link href="/">
+          <NextLink href="/">
             <a>
               <Dexloan width="168px" />
             </a>
-          </Link>
+          </NextLink>
         </Box>
 
-        <Box>
+        <Flex align="center">
+          <Flex pr="6">
+            <NextLink href="/help">
+              <Button variant="link">Help</Button>
+            </NextLink>
+          </Flex>
+
           <ButtonGroup spacing="0">
             {wallet.publicKey && (
-              <Link href="/manage">
+              <NextLink href="/manage">
                 <Button
                   as="a"
                   borderRightRadius="0"
@@ -62,7 +68,7 @@ export function Navbar() {
                 >
                   <Box as={IoWallet} />
                 </Button>
-              </Link>
+              </NextLink>
             )}
             <Button
               onClick={onConnect}
@@ -71,7 +77,7 @@ export function Navbar() {
               {wallet.publicKey ? displayAddress : "Connect Wallet"}
             </Button>
           </ButtonGroup>
-        </Box>
+        </Flex>
       </Box>
     </Container>
   );
