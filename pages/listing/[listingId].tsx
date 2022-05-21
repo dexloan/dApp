@@ -136,7 +136,7 @@ const Listing: NextPage = () => {
               <Text>
                 After {utils.formatDuration(listing.duration)} the total
                 repayment required will be&nbsp;
-                {utils.formatTotalAmount(
+                {utils.formatAmountOnMaturity(
                   listing.amount,
                   listing.duration,
                   listing.basisPoints
@@ -152,26 +152,23 @@ const Listing: NextPage = () => {
       case ListingState.Active:
         return (
           <>
-            <Box pb="4">
+            <Box display="flex" pb="4">
               <Tag colorScheme="green">
                 <TagLeftIcon boxSize="12px" as={IoLeaf} />
                 <TagLabel>Loan Active</TagLabel>
               </Tag>
-              {hasExpired && (
+              {true && (
                 <Tag colorScheme="red" ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Repayment Overdue</TagLabel>
                 </Tag>
               )}
             </Box>
-            <Box pb="4">
+            <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>
                 Repayment {hasExpired ? "was due before " : "due by "}
                 <Text as="span" fontWeight="semibold">
-                  {utils.getFormattedDueDate(
-                    listing.startDate.toNumber(),
-                    listing.duration.toNumber()
-                  )}
+                  {utils.formatDueDate(listing.startDate, listing.duration)}
                 </Text>
                 . Failure to repay the loan by this date may result in
                 repossession of the NFT by the lender.
@@ -186,7 +183,7 @@ const Listing: NextPage = () => {
       case ListingState.Repaid:
         return (
           <>
-            <Box mb="4">
+            <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>Listing has ended. The loan was repaid.</Text>
             </Box>
             <Box mb="4">{renderCloseAccountButton()}</Box>
@@ -196,7 +193,7 @@ const Listing: NextPage = () => {
       case ListingState.Cancelled:
         return (
           <>
-            <Box mb="4">
+            <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>Listing cancelled.</Text>
             </Box>
             <Box mb="4">{renderCloseAccountButton()}</Box>

@@ -90,9 +90,9 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
           </Text>
           <Text mb="4">
             Loan will expire on{" "}
-            {utils.getFormattedDueDate(
-              Math.floor(Date.now() / 1000),
-              duration?.toNumber()
+            {utils.formatDueDate(
+              new anchor.BN(Math.floor(Date.now() / 1000)),
+              duration
             )}
           </Text>
           <Text fontSize="sm">
@@ -151,13 +151,13 @@ export const RepayDialog: React.FC<
               {basisPoints / 100}% APY
             </Badge>
             <Badge colorScheme="blue" fontSize="md">
-              {utils.yieldGenerated(amount, startDate, basisPoints)}
+              {utils.formatInterestDue(amount, startDate, basisPoints)}
             </Badge>
           </Text>
           <Text mb="4">
-            Repay full loan amount of ~
+            Repay full loan amount of{" "}
             <Text as="span" fontWeight="semibold">
-              {utils.totalAmount(amount, startDate, basisPoints)}
+              {utils.formatTotalDue(amount, startDate, basisPoints)}
             </Text>{" "}
             to recover your NFT.
           </Text>

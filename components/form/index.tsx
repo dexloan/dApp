@@ -218,7 +218,7 @@ const ListingForecast = ({ control, floorPrice }: ListingForecastProps) => {
 
   const amount = new anchor.BN((ltv / 100) * floorPrice);
 
-  const interest = utils.calculateInterest(
+  const interest = utils.calculateInterestOnMaturity(
     amount,
     new anchor.BN(duration * 24 * 60 * 60),
     apy * 100

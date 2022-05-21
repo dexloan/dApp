@@ -21,12 +21,8 @@ export function hasExpired(startDate: number, duration: number): boolean {
   return Date.now() / 1000 > startDate + duration;
 }
 
-export function getFormattedDueDate(
-  startDate: number,
-  duration: number
-): string {
-  const date = dayjs.unix(startDate + duration);
-
+export function formatDueDate(startDate: anchor.BN, duration: anchor.BN) {
+  const date = dayjs.unix(startDate.add(duration).toNumber());
   return date.format("MMM D, YYYY") + " at " + date.format("h:mm A");
 }
 
@@ -34,30 +30,65 @@ export function formatBlockTime(blockTime: number) {
   return dayjs.unix(blockTime).format("MMM D, YYYY");
 }
 
-export function calculateInterest(
-  amount: anchor.BN,
-  duration: anchor.BN,
-  basisPoints: number
+export function calculateProRataInterestRate(
+  basisPoints: number,
+  duration: anchor.BN
 ) {
-  const proRataInterestRate =
-    (basisPoints / 10_000 / SECONDS_PER_YEAR) * duration.toNumber();
-  return new anchor.BN(amount.toNumber() * proRataInterestRate);
+  return (basisPoints / 10_000 / SECONDS_PER_YEAR) * duration.toNumber();
 }
 
-export function calculateTotalAmount(
+export function calculateInterestDue(
   amount: anchor.BN,
-  duration: anchor.BN,
+  startDate: anchor.BN,
   basisPoints: number
-) {
-  return amount.add(calculateInterest(amount, duration, basisPoints));
+): anchor.BN {
+  const now = new anchor.BN(Date.now() / 1000);
+  const elapsed = now.sub(startDate);
+  const interestRate = calculateProRataInterestRate(basisPoints, elapsed);
+  return new anchor.BN(amount.toNumber() * interestRate);
 }
 
-export function formatTotalAmount(
+export function formatInterestDue(
+  amount: anchor.BN,
+  startDate: anchor.BN,
+  basisPoints: number
+): string {
+  return formatAmount(calculateInterestDue(amount, startDate, basisPoints));
+}
+
+export function formatTotalDue(
+  amount: anchor.BN,
+  startDate: anchor.BN,
+  basisPoints: number
+): string {
+  return formatAmount(
+    amount.add(calculateInterestDue(amount, startDate, basisPoints))
+  );
+}
+
+export function calculateInterestOnMaturity(
   amount: anchor.BN,
   duration: anchor.BN,
   basisPoints: number
 ) {
-  return formatAmount(calculateTotalAmount(amount, duration, basisPoints));
+  const interestRate = calculateProRataInterestRate(basisPoints, duration);
+  return new anchor.BN(amount.toNumber() * interestRate);
+}
+
+export function calculateAmountOnMaturity(
+  amount: anchor.BN,
+  duration: anchor.BN,
+  basisPoints: number
+): anchor.BN {
+  return amount.add(calculateInterestOnMaturity(amount, duration, basisPoints));
+}
+
+export function formatAmountOnMaturity(
+  amount: anchor.BN,
+  duration: anchor.BN,
+  basisPoints: number
+): string {
+  return formatAmount(calculateAmountOnMaturity(amount, duration, basisPoints));
 }
 
 export function yieldGenerated(
@@ -67,7 +98,7 @@ export function yieldGenerated(
 ): anchor.BN {
   const now = new anchor.BN(Date.now() / 1000);
   const elapsed = now.sub(startDate);
-  return calculateInterest(amount, elapsed, basisPoints);
+  return calculateInterestOnMaturity(amount, elapsed, basisPoints);
 }
 
 export function totalAmount(
@@ -83,21 +114,19 @@ export function totalAmount(
 
 const amountCache = new Map<number, string>();
 
-export function formatAmount(amount?: anchor.BN) {
-  if (!amount) return null;
+export function formatAmount(amount?: anchor.BN): string {
+  if (!amount) return "";
 
   if (amountCache.has(amount.toNumber())) {
-    return amountCache.get(amount.toNumber());
+    return amountCache.get(amount.toNumber()) as string;
   }
 
   const sol = amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL;
   const rounded = Math.round((sol + Number.EPSILON) * 100) / 100;
 
-  let formatted;
+  let formatted = "~0.001◎";
 
-  if (rounded < 0.001) {
-    formatted = "~0.001◎";
-  } else {
+  if (rounded > 0.001) {
     formatted = rounded.toFixed(3).replace(/0{1,2}$/, "") + "◎";
   }
 
