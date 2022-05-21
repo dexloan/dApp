@@ -20,7 +20,7 @@ const Home: NextPage = () => {
 
       <Container maxW="container.xl">
         <Masthead />
-        <Heading as="h2" color="gray.700" size="md" mb="4">
+        <Heading id="#listings" as="h2" color="gray.700" size="md" mb="4">
           Current listings
         </Heading>
         <CardList>

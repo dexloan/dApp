@@ -9,6 +9,7 @@ import {
   Container,
   Flex,
   Heading,
+  Link,
   Spinner,
   Text,
 } from "@chakra-ui/react";
@@ -36,12 +37,13 @@ const Manage: NextPage = () => {
   const router = useRouter();
 
   function renderContent() {
+    console.log("renderContent...");
     switch (router.query.tab) {
       case "listed":
-        return <MyListings />;
+        return <Listings />;
 
       case "loans":
-        return <MyLoans />;
+        return <Loans />;
 
       default:
         return <Borrow />;
@@ -66,7 +68,7 @@ const Manage: NextPage = () => {
             colorScheme={router.query.tab === "listed" ? "green" : undefined}
             cursor="pointer"
           >
-            My Listings
+            Listings
           </Button>
         </NextLink>
         <NextLink href="/manage?tab=loans">
@@ -75,7 +77,7 @@ const Manage: NextPage = () => {
             colorScheme={router.query.tab === "loans" ? "green" : undefined}
             cursor="pointer"
           >
-            My Loans
+            Loans
           </Button>
         </NextLink>
       </ButtonGroup>
@@ -109,7 +111,7 @@ const LoadingSpinner = () => (
   </Flex>
 );
 
-const MyLoans = () => {
+const Loans = () => {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
   const loansQuery = useLoansQuery(connection, anchorWallet);
@@ -124,29 +126,44 @@ const MyLoans = () => {
 
   return (
     <>
-      <SectionHeader title="Active Loans" />
-      <CardList>
-        {activeLoans?.map(
-          (item) =>
-            item && (
-              <ListedCard
-                key={item.listing.publicKey.toBase58()}
-                listing={item.listing.publicKey}
-                amount={item.listing.account.amount}
-                basisPoints={item.listing.account.basisPoints}
-                duration={item.listing.account.duration}
-                uri={item.metadata.data.uri}
-                name={item.metadata.data.name}
-                symbol={item.metadata.data.symbol}
-              />
-            )
-        )}
-      </CardList>
+      <SectionHeader title="My Active Loans" />
+      {activeLoans?.length ? (
+        <CardList>
+          {activeLoans?.map(
+            (item) =>
+              item && (
+                <ListedCard
+                  key={item.listing.publicKey.toBase58()}
+                  listing={item.listing.publicKey}
+                  amount={item.listing.account.amount}
+                  basisPoints={item.listing.account.basisPoints}
+                  duration={item.listing.account.duration}
+                  uri={item.metadata.data.uri}
+                  name={item.metadata.data.name}
+                  symbol={item.metadata.data.symbol}
+                />
+              )
+          )}
+        </CardList>
+      ) : (
+        <Box>
+          <Text>
+            You are not currently lending anything on Dexloan. Why not check out
+            our{" "}
+            <NextLink href="/#listings" scroll={false}>
+              <Link color="green.600" fontWeight="semibold">
+                current listings
+              </Link>
+            </NextLink>{" "}
+            to start lending?
+          </Text>
+        </Box>
+      )}
     </>
   );
 };
 
-const MyListings = () => {
+const Listings = () => {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
   const borrowingsQuery = useBorrowingsQuery(connection, anchorWallet);
@@ -189,7 +206,7 @@ const MyListings = () => {
       {activeBorrowings && activeBorrowings?.length > 0 && (
         <>
           <SectionHeader
-            title="Your Active Listings"
+            title="My Active Listings"
             subtitle={`Borrowing ${
               totalBorrowings && utils.formatAmount(totalBorrowings)
             }`}
@@ -215,7 +232,7 @@ const MyListings = () => {
       )}
       {completedBorrowings && completedBorrowings.length > 0 && (
         <>
-          <SectionHeader title="Completed Listings" />
+          <SectionHeader title="My Completed Listings" />
           <CardList>
             {completedBorrowings?.map(
               (item) =>
@@ -237,7 +254,7 @@ const MyListings = () => {
       )}
       {listedBorrowings && listedBorrowings.length > 0 && (
         <>
-          <SectionHeader title="Your Listed NFTs" />
+          <SectionHeader title="My Listed NFTs" />
           <CardList>
             {listedBorrowings?.map(
               (item) =>
@@ -294,21 +311,28 @@ const Borrow = () => {
     });
   }, [nftQuery.data]);
 
-  if (nftQuery.isLoading) {
+  if (!nftQuery.isFetched) {
     return <LoadingSpinner />;
   }
 
   return (
     <>
-      {collections.map((collection) => {
-        return (
-          <Collection
-            key={collection.name}
-            collection={collection}
-            onSelectItem={setSelected}
-          />
-        );
-      })}
+      <SectionHeader title="My Items" />
+      {collections?.length ? (
+        collections.map((collection) => {
+          return (
+            <Collection
+              key={collection.name}
+              collection={collection}
+              onSelectItem={setSelected}
+            />
+          );
+        })
+      ) : (
+        <Box>
+          <Text>You do not currently hold any NFTs approved for lending.</Text>
+        </Box>
+      )}
 
       <ListingModal
         selected={selected}
