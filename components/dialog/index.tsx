@@ -144,13 +144,13 @@ export const RepayDialog: React.FC<
       content={
         <>
           <Text mb="4">
-            <Badge colorScheme="green" fontSize="md" mr="2">
+            <Badge colorScheme="green" borderRadius="md" fontSize="md" mr="2">
               {utils.formatAmount(amount)}
             </Badge>
-            <Badge fontSize="md" mr="2">
+            <Badge borderRadius="md" fontSize="md" mr="2">
               {basisPoints / 100}% APY
             </Badge>
-            <Badge colorScheme="blue" fontSize="md">
+            <Badge colorScheme="blue" borderRadius="md" fontSize="md">
               {utils.formatInterestDue(amount, startDate, basisPoints)}
             </Badge>
           </Text>

@@ -28,7 +28,9 @@ import {
   useFloorPriceQuery,
 } from "../hooks/query";
 import { Card, CardList, ListedCard } from "../components/card";
+import { VerifiedCollection } from "../components/collection";
 import { ListingModal } from "../components/form";
+import { EllipsisProgress } from "../components/progress";
 
 const Manage: NextPage = () => {
   const router = useRouter();
@@ -90,7 +92,7 @@ const SectionHeader = ({
   subtitle?: React.ReactNode;
 }) => (
   <Box mb="4">
-    <Heading color="gray.700" fontWeight="bold" fontSize="xl">
+    <Heading color="gray.600" fontWeight="black" fontSize="xl">
       {title}
     </Heading>
     {subtitle && (
@@ -263,7 +265,6 @@ const Borrow = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
-
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
   const collections = useMemo(() => {
@@ -331,15 +332,14 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
         item?.metadata.data.uri &&
         item?.metadata.data.name && (
           <Card
-            key={item?.accountInfo.pubkey.toBase58()}
+            key={item?.tokenAccount.pubkey.toBase58()}
             uri={item?.metadata.data.uri}
             imageAlt={item?.metadata.data.name}
             onClick={() => onSelectItem(item)}
           >
-            <Box p="4">
+            <Box p="4" pb="6">
               <Box
                 mt="1"
-                mb="2"
                 fontWeight="semibold"
                 as="h4"
                 textAlign="left"
@@ -347,6 +347,10 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
               >
                 {item?.metadata.data.name}
               </Box>
+              <VerifiedCollection
+                size="xs"
+                symbol={item?.metadata.data.symbol}
+              />
             </Box>
           </Card>
         )
@@ -365,13 +369,7 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
     <>
       <SectionHeader
         title={collection.name}
-        subtitle={
-          floorPriceQuery.isLoading ? (
-            <Spinner colorScheme="green" size="xs" thickness="2px" />
-          ) : (
-            `Floor Price ${floorPrice}`
-          )
-        }
+        subtitle={<>Floor Price {floorPrice ?? <EllipsisProgress />}</>}
       />
       <CardList>{collection.items.map(renderItem)}</CardList>
     </>

@@ -125,6 +125,8 @@ export async function fetchNFTs(
         data: decodedInfo,
       };
     })
+  ).then((accounts) =>
+    accounts.filter((account) => account.data.amount === BigInt("1"))
   );
 
   const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {
@@ -134,12 +136,12 @@ export async function fetchNFTs(
     }),
   }).then((response) => response.json());
 
-  const filteredMints = tokenAccounts.filter((account) =>
+  const filteredTokenAccounts = tokenAccounts.filter((account) =>
     whitelist.mints.includes(account.data.mint.toBase58())
   );
 
   const metadataAddresses = await Promise.all(
-    filteredMints.map((account) =>
+    filteredTokenAccounts.map((account) =>
       getMetadataPDA(account.data.mint).then(([address]) => address)
     )
   );
@@ -151,10 +153,9 @@ export async function fetchNFTs(
   const combinedAccounts = rawMetadataAccounts.map((metadataAccount, index) => {
     if (metadataAccount) {
       try {
-        const accountInfo = tokenAccounts[index];
+        const tokenAccount = filteredTokenAccounts[index];
 
-        // @ts-ignore
-        if (accountInfo.data.amount === 0n) {
+        if (tokenAccount.data.amount === BigInt("0")) {
           return null;
         }
 
@@ -162,7 +163,7 @@ export async function fetchNFTs(
 
         return {
           metadata,
-          accountInfo,
+          tokenAccount,
         };
       } catch (err) {
         console.error(err);

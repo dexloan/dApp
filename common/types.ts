@@ -12,7 +12,7 @@ export enum ListingState {
 }
 
 export interface NFTResult {
-  accountInfo: {
+  tokenAccount: {
     pubkey: anchor.web3.PublicKey;
     data: splToken.RawAccount;
   };

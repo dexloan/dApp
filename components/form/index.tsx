@@ -76,8 +76,8 @@ export const ListingModal = ({
       if (
         anchorWallet &&
         floorPriceQuery.data?.floorPrice &&
-        selected?.accountInfo.data.mint &&
-        selected?.accountInfo.pubkey
+        selected?.tokenAccount.data.mint &&
+        selected?.tokenAccount.pubkey
       ) {
         const listingOptions = {
           amount: (variables.ltv / 100) * floorPriceQuery.data?.floorPrice,
@@ -88,8 +88,8 @@ export const ListingModal = ({
         return createListing(
           connection,
           anchorWallet,
-          selected.accountInfo.data.mint,
-          selected.accountInfo.pubkey,
+          selected.tokenAccount.data.mint,
+          selected.tokenAccount.pubkey,
           listingOptions
         );
       }
@@ -113,7 +113,7 @@ export const ListingModal = ({
             }
             return data.filter(
               (item: NFTResult) =>
-                item?.accountInfo.pubkey !== selected?.accountInfo.pubkey
+                item?.tokenAccount.pubkey !== selected?.tokenAccount.pubkey
             );
           }
         );

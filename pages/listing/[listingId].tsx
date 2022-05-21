@@ -157,7 +157,7 @@ const Listing: NextPage = () => {
                 <TagLeftIcon boxSize="12px" as={IoLeaf} />
                 <TagLabel>Loan Active</TagLabel>
               </Tag>
-              {true && (
+              {hasExpired && (
                 <Tag colorScheme="red" ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Repayment Overdue</TagLabel>
@@ -186,7 +186,9 @@ const Listing: NextPage = () => {
             <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>Listing has ended. The loan was repaid.</Text>
             </Box>
-            <Box mb="4">{renderCloseAccountButton()}</Box>
+            <Box mt="4" mb="4">
+              {renderCloseAccountButton()}
+            </Box>
           </>
         );
 
@@ -196,7 +198,6 @@ const Listing: NextPage = () => {
             <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>Listing cancelled.</Text>
             </Box>
-            <Box mb="4">{renderCloseAccountButton()}</Box>
           </>
         );
 
@@ -238,7 +239,7 @@ const Listing: NextPage = () => {
   }
 
   return (
-    <Container maxW="container.xl">
+    <Container maxW={{ md: "container.md", lg: "container.xl" }}>
       <Flex
         direction={{
           base: "column",
@@ -250,18 +251,20 @@ const Listing: NextPage = () => {
         }}
         wrap="wrap"
       >
-        <Box maxW="100%">
+        <Box w={{ base: "100%", lg: "auto" }} maxW={{ base: "xl", lg: "100%" }}>
           <ListingImage uri={metadata?.data.uri} />
           <ExternalLinks mint={listingQuery.data?.listing.mint} />
         </Box>
-        <Box flex={1} maxW="xl" pl={{ lg: "12" }} mt="6">
+        <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
           <Badge colorScheme="green" mb="2">
             Peer-to-peer Listing
           </Badge>
           <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
             {metadata?.data.name}
           </Heading>
-          <VerifiedCollection symbol={metadata?.data.symbol} />
+          <Box mb="8">
+            <VerifiedCollection symbol={metadata?.data.symbol} />
+          </Box>
 
           {listing && (
             <Flex direction="row" gap="12" mt="12" mb="12">
