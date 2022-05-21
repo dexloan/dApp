@@ -218,7 +218,7 @@ export const useLoanMutation = (onSuccess: () => void) => {
     },
     {
       onSuccess(_, variables) {
-        toast.success("Listing created");
+        toast.success("Loan created");
 
         queryClient.setQueryData(getListingsQueryKey(), (data: any) => {
           if (data) {
@@ -232,6 +232,22 @@ export const useLoanMutation = (onSuccess: () => void) => {
 
         queryClient.invalidateQueries(
           getLoansQueryKey(anchorWallet?.publicKey)
+        );
+
+        queryClient.setQueryData(
+          getListingQueryKey(variables.listing),
+          (data: any) => {
+            if (data) {
+              return {
+                ...data,
+                listing: {
+                  ...data.listing,
+                  state: ListingState.Active,
+                  startDate: Date.now() / 1000,
+                },
+              };
+            }
+          }
         );
 
         onSuccess();

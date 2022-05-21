@@ -17,13 +17,20 @@ export function formatDuration(duration: anchor.BN): string {
   return `${days} ${days === 1 ? "day" : "days"}`;
 }
 
-export function hasExpired(startDate: number, duration: number): boolean {
-  return Date.now() / 1000 > startDate + duration;
+export function hasExpired(startDate: anchor.BN, duration: anchor.BN): boolean {
+  return Date.now() / 1000 > startDate.add(duration).toNumber();
 }
 
-export function formatDueDate(startDate: anchor.BN, duration: anchor.BN) {
+export function formatDueDate(
+  startDate: anchor.BN,
+  duration: anchor.BN,
+  showTime: boolean = true
+) {
   const date = dayjs.unix(startDate.add(duration).toNumber());
-  return date.format("MMM D, YYYY") + " at " + date.format("h:mm A");
+  return (
+    date.format("MMM D, YYYY") +
+    (showTime ? ` at ${date.format("h:mm A")}` : "")
+  );
 }
 
 export function formatBlockTime(blockTime: number) {

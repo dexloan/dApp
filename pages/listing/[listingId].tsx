@@ -54,8 +54,7 @@ const Listing: NextPage = () => {
   const metadata = listingQuery.data?.metadata;
 
   const hasExpired =
-    listing &&
-    utils.hasExpired(listing.startDate.toNumber(), listing.duration.toNumber());
+    listing && utils.hasExpired(listing.startDate, listing.duration);
 
   const isLender =
     listing && listing.lender.toBase58() === anchorWallet?.publicKey.toBase58();
@@ -134,13 +133,20 @@ const Listing: NextPage = () => {
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>
-                After {utils.formatDuration(listing.duration)} the total
-                repayment required will be&nbsp;
-                {utils.formatAmountOnMaturity(
-                  listing.amount,
+                Total amount due on{" "}
+                {utils.formatDueDate(
+                  new anchor.BN(Date.now() / 1000),
                   listing.duration,
-                  listing.basisPoints
-                )}
+                  false
+                )}{" "}
+                will be&nbsp;
+                <Text as="span" fontWeight="semibold">
+                  {utils.formatAmountOnMaturity(
+                    listing.amount,
+                    listing.duration,
+                    listing.basisPoints
+                  )}
+                </Text>
               </Text>
             </Box>
             <Box mt="4" mb="4">
@@ -185,9 +191,6 @@ const Listing: NextPage = () => {
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>Listing has ended. The loan was repaid.</Text>
-            </Box>
-            <Box mt="4" mb="4">
-              {renderCloseAccountButton()}
             </Box>
           </>
         );

@@ -148,8 +148,7 @@ const Loans = () => {
       ) : (
         <Box>
           <Text>
-            You are not currently lending anything on Dexloan. Why not check out
-            our{" "}
+            Why not check out our{" "}
             <NextLink href="/#listings" scroll={false}>
               <Link color="green.600" fontWeight="semibold">
                 current listings
@@ -317,7 +316,6 @@ const Borrow = () => {
 
   return (
     <>
-      <SectionHeader title="My Items" />
       {collections?.length ? (
         collections.map((collection) => {
           return (
@@ -330,6 +328,7 @@ const Borrow = () => {
         })
       ) : (
         <Box>
+          <SectionHeader title="My Items" />
           <Text>You do not currently hold any NFTs approved for lending.</Text>
         </Box>
       )}
