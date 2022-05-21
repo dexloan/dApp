@@ -37,11 +37,21 @@ export const Activity = ({ mint }: ActivityProps) => {
   );
 
   function renderRightCol(activity: Activity) {
-    return (
-      <Text fontWeight="bold" fontSize="lg">
-        {utils.formatAmount(activity.lamports)}
-      </Text>
-    );
+    switch (activity.type) {
+      case "repossess":
+        return (
+          <Text fontWeight="bold" fontSize="lg">
+            -
+          </Text>
+        );
+
+      default:
+        return (
+          <Text fontWeight="bold" fontSize="lg">
+            {utils.formatAmount(activity.lamports)}
+          </Text>
+        );
+    }
   }
 
   function renderLabel(activity: Activity) {
@@ -57,7 +67,7 @@ export const Activity = ({ mint }: ActivityProps) => {
       case "repay":
         return "Repaid Loan";
       case "repossess":
-        return "NFT Repossessed";
+        return "Repossessed";
     }
   }
 

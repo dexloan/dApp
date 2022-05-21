@@ -207,7 +207,7 @@ const Listing: NextPage = () => {
       case ListingState.Defaulted:
         return (
           <>
-            <Box mb="4">
+            <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
               <Text>
                 Listing has ended. The NFT was repossessed by the lender.
               </Text>

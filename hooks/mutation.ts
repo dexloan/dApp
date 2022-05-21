@@ -92,17 +92,25 @@ interface RepaymentMutationProps extends RepossessMutationProps {
 
 export const useRepaymentMutation = (onSuccess: () => void) => {
   const { connection } = useConnection();
+  const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, RepaymentMutationProps>(
-    ({ mint, escrow, listing, lender }) => {
+    async ({ mint, escrow, listing, lender }) => {
       if (anchorWallet) {
+        const borrowerTokenAccount = await getOrCreateTokenAccount(
+          connection,
+          wallet,
+          mint
+        );
+
         return repayLoan(
           connection,
           anchorWallet,
           mint,
           lender,
+          borrowerTokenAccount,
           listing,
           escrow
         );
@@ -144,13 +152,27 @@ interface CancelMutationProps extends RepossessMutationProps {}
 
 export const useCancelMutation = (onSuccess: () => void) => {
   const { connection } = useConnection();
+  const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, CancelMutationProps>(
-    ({ mint, escrow, listing }) => {
+    async ({ mint, escrow, listing }) => {
       if (anchorWallet) {
-        return cancelListing(connection, anchorWallet, mint, listing, escrow);
+        const borrowerTokenAccount = await getOrCreateTokenAccount(
+          connection,
+          wallet,
+          mint
+        );
+
+        return cancelListing(
+          connection,
+          anchorWallet,
+          mint,
+          listing,
+          borrowerTokenAccount,
+          escrow
+        );
       }
       throw new Error("Not ready");
     },
@@ -243,7 +265,7 @@ export const useLoanMutation = (onSuccess: () => void) => {
                 listing: {
                   ...data.listing,
                   state: ListingState.Active,
-                  startDate: Date.now() / 1000,
+                  startDate: new anchor.BN(Date.now() / 1000),
                 },
               };
             }

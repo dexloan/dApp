@@ -9,7 +9,7 @@ export function toMonths(seconds: number): number {
 }
 
 export function toDays(seconds: number): number {
-  return Math.abs(seconds / 60 / 60 / 24);
+  return Math.round(seconds / 60 / 60 / 24);
 }
 
 export function formatDuration(duration: anchor.BN): string {

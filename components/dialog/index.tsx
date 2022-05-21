@@ -185,9 +185,8 @@ export const RepossessDialog: React.FC<
       header={"Repossess NFT"}
       content={
         <Text>
-          Are you sure you wish to repossess the NFT? By doing so the loan will
-          default and you will not be able to receive repayment of the
-          outstanding amount.
+          Are you sure you wish to repossess the NFT? By doing so you will not
+          be able to receive repayment of the outstanding amount.
         </Text>
       }
       onConfirm={onConfirm}

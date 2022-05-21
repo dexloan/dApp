@@ -14,7 +14,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import * as utils from "../utils";
 import {
   ListingState,
@@ -37,7 +37,6 @@ const Manage: NextPage = () => {
   const router = useRouter();
 
   function renderContent() {
-    console.log("renderContent...");
     switch (router.query.tab) {
       case "listed":
         return <Listings />;
@@ -116,8 +115,23 @@ const Loans = () => {
   const anchorWallet = useAnchorWallet();
   const loansQuery = useLoansQuery(connection, anchorWallet);
 
-  const activeLoans = loansQuery.data?.filter(
-    (l) => l?.listing.account.state === ListingState.Active
+  const activeLoans = useMemo(
+    () =>
+      loansQuery.data?.filter(
+        (l) => l?.listing.account.state === ListingState.Active
+      ),
+    [loansQuery.data]
+  );
+
+  const totalLending = useMemo(
+    () =>
+      activeLoans?.reduce((total, item) => {
+        if (item) {
+          return total.add(item.listing.account.amount);
+        }
+        return total;
+      }, new anchor.BN(0)),
+    [activeLoans]
   );
 
   if (loansQuery.isLoading) {
@@ -126,7 +140,14 @@ const Loans = () => {
 
   return (
     <>
-      <SectionHeader title="My Active Loans" />
+      <SectionHeader
+        title="My Active Loans"
+        subtitle={
+          activeLoans?.length
+            ? `Lending ${utils.formatAmount(totalLending)}`
+            : null
+        }
+      />
       {activeLoans?.length ? (
         <CardList>
           {activeLoans?.map(
@@ -202,32 +223,36 @@ const Listings = () => {
 
   return (
     <Box>
-      {activeBorrowings && activeBorrowings?.length > 0 && (
-        <>
-          <SectionHeader
-            title="My Active Listings"
-            subtitle={`Borrowing ${
-              totalBorrowings && utils.formatAmount(totalBorrowings)
-            }`}
-          />
-          <CardList>
-            {activeBorrowings?.map(
-              (item) =>
-                item && (
-                  <ListedCard
-                    key={item.listing.publicKey.toBase58()}
-                    listing={item.listing.publicKey}
-                    amount={item.listing.account.amount}
-                    basisPoints={item.listing.account.basisPoints}
-                    duration={item.listing.account.duration}
-                    uri={item.metadata.data.uri}
-                    name={item.metadata.data.name}
-                    symbol={item.metadata.data.symbol}
-                  />
-                )
-            )}
-          </CardList>
-        </>
+      <SectionHeader
+        title="My Active Listings"
+        subtitle={
+          activeBorrowings?.length
+            ? `Borrowing ${
+                totalBorrowings && utils.formatAmount(totalBorrowings)
+              }`
+            : null
+        }
+      />
+      {activeBorrowings && activeBorrowings?.length > 0 ? (
+        <CardList>
+          {activeBorrowings?.map(
+            (item) =>
+              item && (
+                <ListedCard
+                  key={item.listing.publicKey.toBase58()}
+                  listing={item.listing.publicKey}
+                  amount={item.listing.account.amount}
+                  basisPoints={item.listing.account.basisPoints}
+                  duration={item.listing.account.duration}
+                  uri={item.metadata.data.uri}
+                  name={item.metadata.data.name}
+                  symbol={item.metadata.data.symbol}
+                />
+              )
+          )}
+        </CardList>
+      ) : (
+        <Text>You do not currently have any active listings.</Text>
       )}
       {completedBorrowings && completedBorrowings.length > 0 && (
         <>
