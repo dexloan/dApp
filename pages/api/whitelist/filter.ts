@@ -11,8 +11,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<FilteredMintsResponse>
 ) {
-  const mints = req.body.mints as string[];
-  const members = await client.smismember("whitelist", ...mints);
+  const mints = JSON.parse(req.body).mints as string[];
+  const members = await client.smismember("whitelist", mints);
   const whitelisted = mints.filter((_, i) => members[i] === 1);
 
   return res.status(200).json({ mints: whitelisted });

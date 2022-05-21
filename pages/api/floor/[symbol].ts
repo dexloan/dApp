@@ -44,8 +44,6 @@ function queuedTimeout(callback: () => Promise<any>): Promise<any> {
   queued++;
 
   return new Promise((resolve, reject) => {
-    console.log("queued timeout: ", queued * 100);
-
     setTimeout(async () => {
       callback()
         .then((response) => {

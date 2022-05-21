@@ -8,7 +8,6 @@ export function Masthead() {
   const router = useRouter();
   const wallet = useWallet();
   const { setVisible } = useWalletModal();
-  console.log("wallet: ", wallet);
   const redirectRef = useRef(false);
 
   function handleClick() {

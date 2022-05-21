@@ -266,8 +266,8 @@ const Borrow = () => {
 
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
-  const collectionMap = useMemo(() => {
-    return nftQuery.data?.reduce((cols, nft) => {
+  const collections = useMemo(() => {
+    const collectionMap = nftQuery.data?.reduce((cols, nft) => {
       if (nft) {
         const symbol = nft.metadata.data.symbol;
 
@@ -285,6 +285,12 @@ const Borrow = () => {
       }
       return cols;
     }, {} as CollectionMap);
+
+    return Object.values(collectionMap ?? {}).sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
   }, [nftQuery.data]);
 
   if (nftQuery.isLoading) {
@@ -293,16 +299,15 @@ const Borrow = () => {
 
   return (
     <>
-      {collectionMap &&
-        Object.values(collectionMap).map((collection) => {
-          return (
-            <Collection
-              key={collection.name}
-              collection={collection}
-              onSelectItem={setSelected}
-            />
-          );
-        })}
+      {collections.map((collection) => {
+        return (
+          <Collection
+            key={collection.name}
+            collection={collection}
+            onSelectItem={setSelected}
+          />
+        );
+      })}
 
       <ListingModal
         selected={selected}

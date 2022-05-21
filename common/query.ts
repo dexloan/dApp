@@ -110,8 +110,6 @@ export async function fetchNFTs(
   connection: anchor.web3.Connection,
   publicKey: anchor.web3.PublicKey
 ) {
-  const whitelist = (await import("../public/whitelist.json")).default;
-
   const rawTokenAccounts = await connection.getTokenAccountsByOwner(publicKey, {
     programId: splToken.TOKEN_PROGRAM_ID,
   });
@@ -127,14 +125,21 @@ export async function fetchNFTs(
         data: decodedInfo,
       };
     })
-  ).then((accounts) =>
-    accounts.filter((account) =>
-      whitelist.includes(account.data.mint.toBase58())
-    )
+  );
+
+  const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {
+    method: "POST",
+    body: JSON.stringify({
+      mints: tokenAccounts.map((account) => account.data.mint.toBase58()),
+    }),
+  }).then((response) => response.json());
+
+  const filteredMints = tokenAccounts.filter((account) =>
+    whitelist.mints.includes(account.data.mint.toBase58())
   );
 
   const metadataAddresses = await Promise.all(
-    tokenAccounts.map((account) =>
+    filteredMints.map((account) =>
       getMetadataPDA(account.data.mint).then(([address]) => address)
     )
   );
