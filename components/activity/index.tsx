@@ -30,7 +30,6 @@ export const Activity = ({ mint }: ActivityProps) => {
           mint,
           20 // limit
         );
-        console.log(parsedTransactions);
         return parsedTransactions.map(mapTransaction).filter(Boolean);
       }
     },
