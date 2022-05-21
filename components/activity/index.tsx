@@ -30,7 +30,7 @@ export const Activity = ({ mint }: ActivityProps) => {
           mint,
           20 // limit
         );
-
+        console.log(parsedTransactions);
         return parsedTransactions.map(mapTransaction).filter(Boolean);
       }
     },
@@ -103,17 +103,12 @@ export const Activity = ({ mint }: ActivityProps) => {
         activityQuery.data?.map(
           (activity, index, arry) =>
             activity && (
-              <>
-                <Flex
-                  key={activity.key}
-                  justifyContent="space-between"
-                  pt="3"
-                  pb="3"
-                >
+              <Box key={activity.key}>
+                <Flex justifyContent="space-between" pt="3" pb="3">
                   {renderActivityDetails(activity)}
                 </Flex>
                 {index !== arry?.length - 1 && <Divider mb="1" mt="1" />}
-              </>
+              </Box>
             )
         )
       )}
@@ -126,6 +121,8 @@ function mapTransaction(
   index: number,
   array: (anchor.web3.ParsedTransactionWithMeta | null)[]
 ): Activity | null {
+  if (txn?.meta?.err) return null;
+
   if (txn?.meta?.logMessages) {
     const isBuyEvent = txn.meta.logMessages.some((log) => log.includes("Buy"));
 
