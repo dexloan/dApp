@@ -32,6 +32,7 @@ export async function createListing(
     basisPoints: number;
   }
 ) {
+  const listingOptions = new ListingOptions(options);
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
@@ -41,10 +42,6 @@ export async function createListing(
     [Buffer.from("escrow"), mint.toBuffer()],
     LISTINGS_PROGRAM_ID
   );
-
-  const listingOptions = new ListingOptions({
-    ...options,
-  });
 
   await program.methods
     .initListing(listingOptions)
@@ -59,12 +56,6 @@ export async function createListing(
       systemProgram: anchor.web3.SystemProgram.programId,
     })
     .rpc();
-}
-
-function getDiscriminator(excluded: number) {
-  let n = Math.floor(Math.random() * 255);
-  if (n >= excluded) n++;
-  return n;
 }
 
 export async function findListingAddress(

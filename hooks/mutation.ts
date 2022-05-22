@@ -110,8 +110,8 @@ export const useRepaymentMutation = (onSuccess: () => void) => {
           anchorWallet,
           mint,
           lender,
-          borrowerTokenAccount,
           listing,
+          borrowerTokenAccount,
           escrow
         );
       }
