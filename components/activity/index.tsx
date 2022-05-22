@@ -63,7 +63,7 @@ export const Activity = ({ mint }: ActivityProps) => {
       case "listing":
         return "Listed on Dexloan";
       case "loan":
-        return "Loan Started";
+        return "Loan Issued";
       case "repay":
         return "Repaid Loan";
       case "repossess":

@@ -221,44 +221,40 @@ const Listings = () => {
     return <LoadingSpinner />;
   }
 
+  if (
+    !activeBorrowings?.length &&
+    !listedBorrowings?.length &&
+    !completedBorrowings?.length
+  ) {
+    return (
+      <>
+        <SectionHeader
+          title="My Active Listings"
+          subtitle={
+            activeBorrowings?.length && totalBorrowings
+              ? `Borrowing ${utils.formatAmount(totalBorrowings)}`
+              : null
+          }
+        />
+        <Text mb="6">You do not currently have any active listings.</Text>
+      </>
+    );
+  }
+
   return (
     <Box>
-      <SectionHeader
-        title="My Active Listings"
-        subtitle={
-          activeBorrowings?.length
-            ? `Borrowing ${
-                totalBorrowings && utils.formatAmount(totalBorrowings)
-              }`
-            : null
-        }
-      />
-      {activeBorrowings && activeBorrowings?.length > 0 ? (
-        <CardList>
-          {activeBorrowings?.map(
-            (item) =>
-              item && (
-                <ListedCard
-                  key={item.listing.publicKey.toBase58()}
-                  listing={item.listing.publicKey}
-                  amount={item.listing.account.amount}
-                  basisPoints={item.listing.account.basisPoints}
-                  duration={item.listing.account.duration}
-                  uri={item.metadata.data.uri}
-                  name={item.metadata.data.name}
-                  symbol={item.metadata.data.symbol}
-                />
-              )
-          )}
-        </CardList>
-      ) : (
-        <Text>You do not currently have any active listings.</Text>
-      )}
-      {completedBorrowings && completedBorrowings.length > 0 && (
+      {activeBorrowings && activeBorrowings.length > 0 && (
         <>
-          <SectionHeader title="My Completed Listings" />
+          <SectionHeader
+            title="My Active Listings"
+            subtitle={
+              activeBorrowings?.length && totalBorrowings
+                ? `Borrowing ${utils.formatAmount(totalBorrowings)}`
+                : null
+            }
+          />
           <CardList>
-            {completedBorrowings?.map(
+            {activeBorrowings?.map(
               (item) =>
                 item && (
                   <ListedCard
@@ -276,11 +272,35 @@ const Listings = () => {
           </CardList>
         </>
       )}
+
       {listedBorrowings && listedBorrowings.length > 0 && (
         <>
           <SectionHeader title="My Listed NFTs" />
           <CardList>
             {listedBorrowings?.map(
+              (item) =>
+                item && (
+                  <ListedCard
+                    key={item.listing.publicKey.toBase58()}
+                    listing={item.listing.publicKey}
+                    amount={item.listing.account.amount}
+                    basisPoints={item.listing.account.basisPoints}
+                    duration={item.listing.account.duration}
+                    uri={item.metadata.data.uri}
+                    name={item.metadata.data.name}
+                    symbol={item.metadata.data.symbol}
+                  />
+                )
+            )}
+          </CardList>
+        </>
+      )}
+
+      {completedBorrowings && completedBorrowings.length > 0 && (
+        <>
+          <SectionHeader title="My Completed Listings" />
+          <CardList>
+            {completedBorrowings?.map(
               (item) =>
                 item && (
                   <ListedCard
@@ -345,7 +365,7 @@ const Borrow = () => {
         collections.map((collection) => {
           return (
             <Collection
-              key={collection.name}
+              key={collection.symbol}
               collection={collection}
               onSelectItem={setSelected}
             />
