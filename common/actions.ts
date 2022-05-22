@@ -3,23 +3,21 @@ import * as splToken from "@solana/spl-token";
 import { AnchorWallet, WalletContextState } from "@solana/wallet-adapter-react";
 
 import { getProgram, getProvider } from "./provider";
+import { LISTINGS_PROGRAM_ID } from "./constants";
 
 class ListingOptions {
   public amount: anchor.BN;
   public duration: anchor.BN;
   public basisPoints: number;
-  public discriminator: number;
 
   constructor(options: {
     amount: number;
     duration: number;
     basisPoints: number;
-    discriminator: number;
   }) {
     this.amount = new anchor.BN(options.amount);
     this.duration = new anchor.BN(options.duration);
     this.basisPoints = options.basisPoints;
-    this.discriminator = options.discriminator;
   }
 }
 
@@ -37,21 +35,15 @@ export async function createListing(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const [listingAccount, discriminator] = await findListingAddress(
-    connection,
-    mint,
-    wallet.publicKey,
-    program.programId
-  );
+  const listingAccount = await findListingAddress(mint, wallet.publicKey);
 
   const [escrowAccount] = await anchor.web3.PublicKey.findProgramAddress(
     [Buffer.from("escrow"), mint.toBuffer()],
-    program.programId
+    LISTINGS_PROGRAM_ID
   );
 
   const listingOptions = new ListingOptions({
     ...options,
-    discriminator,
   });
 
   await program.methods
@@ -76,37 +68,15 @@ function getDiscriminator(excluded: number) {
 }
 
 export async function findListingAddress(
-  connection: anchor.web3.Connection,
   mint: anchor.web3.PublicKey,
-  borrower: anchor.web3.PublicKey,
-  programId: anchor.web3.PublicKey,
-  excluded: number = 256
-): Promise<[anchor.web3.PublicKey, number]> {
-  const discriminator = getDiscriminator(excluded);
-
+  borrower: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
   const [listingAccount] = await anchor.web3.PublicKey.findProgramAddress(
-    [
-      Buffer.from("listing"),
-      mint.toBuffer(),
-      borrower.toBuffer(),
-      new anchor.BN(discriminator).toArrayLike(Buffer),
-    ],
-    programId
+    [Buffer.from("listing"), mint.toBuffer(), borrower.toBuffer()],
+    LISTINGS_PROGRAM_ID
   );
 
-  const account = await connection.getAccountInfo(listingAccount);
-
-  if (account === null) {
-    return [listingAccount, discriminator];
-  }
-
-  return findListingAddress(
-    connection,
-    mint,
-    borrower,
-    programId,
-    discriminator
-  );
+  return listingAccount;
 }
 
 export async function createLoan(

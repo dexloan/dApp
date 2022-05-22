@@ -5,7 +5,6 @@ import { useQuery } from "react-query";
 
 import { ListingState } from "../common/types";
 import {
-  fetchFloorPrice,
   fetchListing,
   fetchMultipleListings,
   fetchNFTs,
@@ -155,9 +154,10 @@ export function useLoansQuery(
 export const useFloorPriceQuery = (symbol?: string) => {
   return useQuery(
     ["floorPrice", symbol],
-    () => {
+    async () => {
       if (symbol) {
-        return fetchFloorPrice(symbol);
+        const response = await fetch(`/api/floor/${symbol}`);
+        return response.json();
       }
     },
     {

@@ -187,16 +187,3 @@ export async function fetchParsedTransactions(
   );
   return parsedTransactions;
 }
-
-export async function fetchMagicEdenCollectionStats(symbol: string) {
-  const response = await fetch(
-    `https://api-mainnet.magiceden.dev/v2/collections/${symbol}/stats`
-  );
-
-  return response.json();
-}
-
-export async function fetchFloorPrice(symbol: string) {
-  const response = await fetch(`/api/floor/${symbol}`);
-  return response.json();
-}

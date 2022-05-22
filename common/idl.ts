@@ -305,10 +305,6 @@ export type DexloanListings = {
           {
             name: "escrowBump";
             type: "u8";
-          },
-          {
-            name: "discriminator";
-            type: "u8";
           }
         ];
       };
@@ -331,10 +327,6 @@ export type DexloanListings = {
           {
             name: "basisPoints";
             type: "u32";
-          },
-          {
-            name: "discriminator";
-            type: "u8";
           }
         ];
       };
@@ -361,20 +353,18 @@ export type DexloanListings = {
           }
         ];
       };
+    }
+  ];
+  errors: [
+    {
+      code: 6000;
+      name: "NotOverdue";
+      msg: "This loan is not overdue";
     },
     {
-      name: "ErrorCode";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "NotOverdue";
-          },
-          {
-            name: "InvalidState";
-          }
-        ];
-      };
+      code: 6001;
+      name: "InvalidState";
+      msg: "Invalid state";
     }
   ];
 };
@@ -687,10 +677,6 @@ export const IDL: DexloanListings = {
             name: "escrowBump",
             type: "u8",
           },
-          {
-            name: "discriminator",
-            type: "u8",
-          },
         ],
       },
     },
@@ -712,10 +698,6 @@ export const IDL: DexloanListings = {
           {
             name: "basisPoints",
             type: "u32",
-          },
-          {
-            name: "discriminator",
-            type: "u8",
           },
         ],
       },
@@ -743,19 +725,17 @@ export const IDL: DexloanListings = {
         ],
       },
     },
+  ],
+  errors: [
     {
-      name: "ErrorCode",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "NotOverdue",
-          },
-          {
-            name: "InvalidState",
-          },
-        ],
-      },
+      code: 6000,
+      name: "NotOverdue",
+      msg: "This loan is not overdue",
+    },
+    {
+      code: 6001,
+      name: "InvalidState",
+      msg: "Invalid state",
     },
   ],
 };

@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Redis from "ioredis";
 import * as utils from "../../../utils";
-import { fetchMagicEdenCollectionStats } from "../../../common/query";
 
 type Data = {
   floorPrice?: number;
@@ -53,4 +52,12 @@ function queuedTimeout(callback: () => Promise<any>): Promise<any> {
         .catch(reject);
     }, queued * 100);
   });
+}
+
+async function fetchMagicEdenCollectionStats(symbol: string) {
+  const response = await fetch(
+    `https://api-mainnet.magiceden.dev/v2/collections/${symbol}/stats`
+  );
+
+  return response.json();
 }

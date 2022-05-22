@@ -1,16 +1,12 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import IDL from "../idl.json";
-import { DexloanListings } from "../dexloan";
-
-export const PROGRAM_ID = new anchor.web3.PublicKey(
-  "H6FCxCy2KCPJwCoUb9eQCSv41WZBKQaYfB6x5oFajzfj"
-);
+import { DexloanListings, IDL } from "./idl";
+import { LISTINGS_PROGRAM_ID } from "./constants";
 
 export function getProgram(
   provider: anchor.AnchorProvider
 ): anchor.Program<DexloanListings> {
-  return new anchor.Program(IDL as any, PROGRAM_ID, provider);
+  return new anchor.Program(IDL as any, LISTINGS_PROGRAM_ID, provider);
 }
 
 export function getProvider(
