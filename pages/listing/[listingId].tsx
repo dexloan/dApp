@@ -159,17 +159,17 @@ const ListingHead = ({ initialData }: ListingProps) => {
             new anchor.BN(initialData.listingResult.listing.amount)
           )}
         />
-        <meta property="twitter:label2" content="Duration" />
+        <meta property="twitter:label2" content="APY" />
         <meta
           property="twitter:data2"
+          content={initialData.listingResult.listing.basisPoints / 100 + "%"}
+        />
+        <meta property="twitter:label3" content="Duration" />
+        <meta
+          property="twitter:data3"
           content={utils.formatDuration(
             new anchor.BN(initialData.listingResult.listing.duration)
           )}
-        />
-        <meta property="twitter:label3" content="APY" />
-        <meta
-          property="twitter:data3"
-          content={initialData.listingResult.listing.basisPoints / 100 + "%"}
         />
       </Head>
     );
