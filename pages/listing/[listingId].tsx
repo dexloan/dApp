@@ -51,10 +51,10 @@ interface ListingProps {
       metadata: any;
     };
     jsonMetadata: any;
-  };
+  } | null;
   meta: {
     description: string;
-  };
+  } | null;
 }
 
 const ListingPage: NextPage<ListingProps> = (props) => {
@@ -67,86 +67,103 @@ const ListingPage: NextPage<ListingProps> = (props) => {
 };
 
 ListingPage.getInitialProps = async (ctx) => {
-  const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-  const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
-  const listingResult = await fetchListing(connection, pubkey);
-  const jsonMetadata = await fetch(listingResult.metadata.data.uri).then(
-    (response) => {
-      return response.json().then((data) => data);
-    }
-  );
+  try {
+    const connection = new anchor.web3.Connection(RPC_ENDPOINT);
+    const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
+    const listingResult = await fetchListing(connection, pubkey);
+    const jsonMetadata = await fetch(listingResult.metadata.data.uri).then(
+      (response) => {
+        return response.json().then((data) => data);
+      }
+    );
 
-  const description = `Borrowring ${utils.formatAmount(
-    listingResult.listing.amount
-  )} over ${utils.formatDuration(listingResult.listing.duration)}`;
+    const description = `Borrowring ${utils.formatAmount(
+      listingResult.listing.amount
+    )} over ${utils.formatDuration(listingResult.listing.duration)}`;
 
-  return {
-    initialData: {
-      listingResult: {
-        publicKey: listingResult.publicKey.toBase58(),
-        listing: {
-          ...listingResult.listing,
-          amount: listingResult.listing.amount.toNumber(),
-          borrower: listingResult.listing.borrower.toBase58(),
-          lender: listingResult.listing.lender.toBase58(),
-          duration: listingResult.listing.duration.toNumber(),
-          startDate: listingResult.listing.startDate.toNumber(),
-          escrow: listingResult.listing.escrow.toBase58(),
-          mint: listingResult.listing.mint.toBase58(),
+    return {
+      initialData: {
+        listingResult: {
+          publicKey: listingResult.publicKey.toBase58(),
+          listing: {
+            ...listingResult.listing,
+            amount: listingResult.listing.amount.toNumber(),
+            borrower: listingResult.listing.borrower.toBase58(),
+            lender: listingResult.listing.lender.toBase58(),
+            duration: listingResult.listing.duration.toNumber(),
+            startDate: listingResult.listing.startDate.toNumber(),
+            escrow: listingResult.listing.escrow.toBase58(),
+            mint: listingResult.listing.mint.toBase58(),
+          },
+          metadata: listingResult.metadata.pretty(),
         },
-        metadata: listingResult.metadata.pretty(),
+        jsonMetadata,
       },
-      jsonMetadata,
-    },
-    meta: {
-      description,
-    },
-  };
+      meta: {
+        description,
+      },
+    };
+  } catch (err) {
+    return {
+      initialData: null,
+      meta: null,
+    };
+  }
 };
 
 const ListingHead = ({ initialData, meta }: ListingProps) => {
-  return (
-    <Head>
-      <title>{initialData.listingResult.metadata.data.name}</title>
-      <meta name="description" content={meta.description} key="description" />
-      <meta name="author" content="Dexloan" />
-      <link rel="icon" type="image/png" href="/logo.png" />
+  if (initialData && meta) {
+    return (
+      <Head>
+        <title>{initialData.listingResult.metadata.data.name}</title>
+        <meta name="description" content={meta.description} key="description" />
+        <meta name="author" content="Dexloan" />
+        <link rel="icon" type="image/png" href="/logo.png" />
 
-      <meta
-        property="og:title"
-        content={initialData.listingResult.metadata.data.name}
-      />
-      <meta property="og:type" content="website" />
-      <meta property="og:description" content={meta.description} />
-      <meta property="og:url" content="https://dexloan.io" key="t_url" />
-      <meta property="og:image" content={initialData.jsonMetadata.image} />
+        <meta property="og:title" content={initialData.jsonMetadata.name} />
+        <meta property="og:type" content="website" />
+        <meta property="og:description" content={meta.description} />
+        <meta
+          property="og:url"
+          content={`https://dexloan.io/listing/${initialData.listingResult.publicKey}`}
+        />
+        <meta property="og:image" content={initialData.jsonMetadata.image} />
 
-      <meta
-        property="twitter:title"
-        content={initialData.listingResult.metadata.data.name}
-      />
-      <meta property="twitter:description" content={meta.description} />
-      <meta property="twitter:url" content="https://dexloan.io" />
-      <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:image" content={initialData.jsonMetadata.image} />
-      <meta
-        property="twitter:image:alt"
-        content={initialData.listingResult.metadata.data.name}
-      />
-      <meta property="twitter:label1" content="Amount" />
-      <meta
-        property="twitter:data1"
-        content={utils.formatAmount(
-          new anchor.BN(initialData.listingResult.listing.amount)
-        )}
-      />
-      <meta property="twitter:label2" content="APY" />
-      <meta
-        property="twitter:data2"
-        content={initialData.listingResult.listing.basisPoints / 100 + "%"}
-      />
-    </Head>
-  );
+        <meta
+          property="twitter:title"
+          content={initialData.jsonMetadata.name}
+        />
+        <meta property="twitter:description" content={meta.description} />
+        <meta
+          property="twitter:url"
+          content={`https://dexloan.io/listing/${initialData.listingResult.publicKey}`}
+        />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta
+          property="twitter:image"
+          content={initialData.jsonMetadata.image}
+        />
+        <meta
+          property="twitter:image:alt"
+          content={initialData.jsonMetadata.name}
+        />
+        <meta property="twitter:label1" content="Amount" />
+        <meta
+          property="twitter:data1"
+          content={utils.formatAmount(
+            new anchor.BN(initialData.listingResult.listing.amount)
+          )}
+        />
+        <meta property="twitter:label2" content="APY" />
+        <meta
+          property="twitter:data2"
+          content={initialData.listingResult.listing.basisPoints / 100 + "%"}
+        />
+      </Head>
+    );
+  }
+
+  return null;
 };
 
 const ListingLayout = () => {

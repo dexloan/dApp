@@ -154,7 +154,7 @@ nameMap.set("BH", "lgtb");
 nameMap.set("JB", "jelly_beasts");
 
 export function mapSymbolToCollectionName(symbol: string) {
-  return nameMap.get(symbol.replace(/\x00/g, ""));
+  return nameMap.get(trimNullChars(symbol));
 }
 
 const titleMap = new Map();
@@ -166,4 +166,8 @@ titleMap.set("JB", "Jelly Beasts");
 
 export function mapSymbolToCollectionTitle(symbol: string) {
   return titleMap.get(symbol.replace(/\x00/g, ""));
+}
+
+export function trimNullChars(str: string) {
+  return str.replace(/\x00/g, "");
 }
