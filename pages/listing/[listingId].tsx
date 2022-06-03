@@ -135,10 +135,7 @@ const ListingHead = ({ initialData }: ListingProps) => {
           property="twitter:title"
           content={initialData.jsonMetadata.name}
         />
-        <meta
-          property="twitter:description"
-          content="Unlock the value of your NFTs with free and secure lending"
-        />
+        <meta property="twitter:description" content={description} />
         <meta
           property="twitter:url"
           content={`https://dexloan.io/listing/${initialData.listingResult.publicKey}`}
