@@ -14,11 +14,15 @@ import {
   Text,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { IoLeaf, IoAlert } from "react-icons/io5";
+
 import * as utils from "../../utils";
+import { RPC_ENDPOINT } from "../../common/constants";
 import { ListingState } from "../../common/types";
+import { fetchListing } from "../../common/query";
 import { useListingQuery } from "../../hooks/query";
 import {
   useCancelMutation,
@@ -39,7 +43,99 @@ import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
 
-const Listing: NextPage = () => {
+interface ListingProps {
+  initialData: {
+    listingResult: {
+      publicKey: any;
+      listing: any;
+      metadata: any;
+    };
+    jsonMetadata: any;
+  };
+  meta: {
+    description: string;
+  };
+}
+
+const ListingPage: NextPage<ListingProps> = (props) => {
+  return (
+    <>
+      <ListingHead {...props} />
+      <ListingLayout />
+    </>
+  );
+};
+
+ListingPage.getInitialProps = async (ctx) => {
+  const connection = new anchor.web3.Connection(RPC_ENDPOINT);
+  const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
+  const listingResult = await fetchListing(connection, pubkey);
+  const jsonMetadata = await fetch(listingResult.metadata.data.uri).then(
+    (response) => {
+      return response.json().then((data) => data);
+    }
+  );
+
+  const description = `Borrowring ${utils.formatAmount(
+    listingResult.listing.amount
+  )} over ${utils.formatDuration(listingResult.listing.duration)}`;
+
+  return {
+    initialData: {
+      listingResult: {
+        publicKey: listingResult.publicKey.toBase58(),
+        listing: {
+          ...listingResult.listing,
+          amount: listingResult.listing.amount.toNumber(),
+          borrower: listingResult.listing.borrower.toBase58(),
+          lender: listingResult.listing.lender.toBase58(),
+          duration: listingResult.listing.duration.toNumber(),
+          startDate: listingResult.listing.startDate.toNumber(),
+          escrow: listingResult.listing.escrow.toBase58(),
+          mint: listingResult.listing.mint.toBase58(),
+        },
+        metadata: listingResult.metadata.pretty(),
+      },
+      jsonMetadata,
+    },
+    meta: {
+      description,
+    },
+  };
+};
+
+const ListingHead = ({ initialData, meta }: ListingProps) => {
+  return (
+    <Head>
+      <title>{initialData.listingResult.metadata.data.name}</title>
+      <meta name="description" content={meta.description} key="description" />
+
+      <meta
+        property="og:title"
+        content={initialData.listingResult.metadata.data.name}
+      />
+      <meta property="og:type" content="website" />
+      <meta property="og:description" content={meta.description} />
+      <meta property="og:url" content="https://dexloan.io" key="t_url" />
+      <meta property="og:image" content={initialData.jsonMetadata.image} />
+
+      <meta
+        property="twitter:title"
+        content={initialData.listingResult.metadata.data.name}
+      />
+      <meta property="twitter:description" content={meta.description} />
+      <meta property="twitter:url" content="https://dexloan.io" />
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:image" content={initialData.jsonMetadata.image} />
+      <meta
+        property="twitter:image:alt"
+        content={initialData.listingResult.metadata.data.name}
+      />
+    </Head>
+  );
+};
+
+const ListingLayout = () => {
   const router = useRouter();
   const { listingId } = router.query;
   const { connection } = useConnection();
@@ -54,7 +150,7 @@ const Listing: NextPage = () => {
   const metadata = listingQuery.data?.metadata;
 
   const hasExpired =
-    listing && utils.hasExpired(listing.startDate, listing.duration);
+    listing?.startDate && utils.hasExpired(listing.startDate, listing.duration);
 
   const isLender =
     listing && listing.lender.toBase58() === anchorWallet?.publicKey.toBase58();
@@ -549,4 +645,4 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
   );
 };
 
-export default Listing;
+export default ListingPage;

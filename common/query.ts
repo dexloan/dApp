@@ -6,19 +6,21 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import bs58 from "bs58";
 
-import { ListingState } from "./types";
+import { ListingResult, ListingState } from "./types";
 import { getProgram, getProvider } from "./provider";
 
 export async function fetchListing(
   connection: anchor.web3.Connection,
   listing: anchor.web3.PublicKey
-) {
+): Promise<ListingResult> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const listingAccount = await program.account.listing.fetch(listing);
 
   const response = await fetch(
-    `/api/whitelist/${listingAccount.mint.toBase58()}`
+    `http://${
+      process.env.NEXT_PUBLIC_HOST
+    }/api/whitelist/${listingAccount.mint.toBase58()}`
   );
 
   if (response.ok === false) {
@@ -37,6 +39,7 @@ export async function fetchListing(
 
   return {
     metadata,
+    publicKey: listing,
     listing: listingAccount,
   };
 }
@@ -44,7 +47,7 @@ export async function fetchListing(
 export async function fetchMultipleListings(
   connection: anchor.web3.Connection,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
-) {
+): Promise<ListingResult[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const listings = await program.account.listing.all(filter);
@@ -72,7 +75,8 @@ export async function fetchMultipleListings(
 
         return {
           metadata,
-          listing,
+          publicKey: listing.publicKey,
+          listing: listing.account,
         };
       } catch (err) {
         console.error(err);
@@ -82,7 +86,7 @@ export async function fetchMultipleListings(
     return null;
   });
 
-  return combinedAccounts.filter(Boolean);
+  return combinedAccounts.filter(Boolean) as ListingResult[];
 }
 
 function getMetadataPDA(mint: anchor.web3.PublicKey) {

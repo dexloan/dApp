@@ -15,16 +15,16 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import Head from "next/head";
 import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 import { Toaster } from "react-hot-toast";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 import theme from "../theme";
+import { RPC_ENDPOINT } from "../common/constants";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const network = "https://ssc-dao.genesysgo.net/";
-
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
@@ -48,7 +48,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ConnectionProvider endpoint={network}>
+      <ConnectionProvider endpoint={RPC_ENDPOINT}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <ChakraProvider theme={theme}>
@@ -67,6 +67,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           </WalletModalProvider>
         </WalletProvider>
       </ConnectionProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }
