@@ -18,7 +18,7 @@ export async function fetchListing(
   const listingAccount = await program.account.listing.fetch(listing);
 
   const response = await fetch(
-    `http://${
+    `${
       process.env.NEXT_PUBLIC_HOST
     }/api/whitelist/${listingAccount.mint.toBase58()}`
   );
