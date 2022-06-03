@@ -17,10 +17,11 @@ export async function fetchListing(
   const program = getProgram(provider);
   const listingAccount = await program.account.listing.fetch(listing);
 
+  const origin =
+    typeof window === "undefined" ? process.env.NEXT_PUBLIC_HOST : "";
+
   const response = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_HOST
-    }/api/whitelist/${listingAccount.mint.toBase58()}`
+    `${origin}/api/whitelist/${listingAccount.mint.toBase58()}`
   );
 
   if (response.ok === false) {
