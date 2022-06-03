@@ -115,6 +115,12 @@ const ListingHead = ({ initialData }: ListingProps) => {
         <title>{initialData.listingResult.metadata.data.name}</title>
         <meta name="description" content={description} />
         <meta name="author" content="Dexloan" />
+        <link
+          rel="shortcut icon"
+          type="image/x-icon"
+          href="/favicon.ico"
+        ></link>
+        <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
 
         <meta property="og:title" content={initialData.jsonMetadata.name} />
         <meta property="og:type" content="website" />
