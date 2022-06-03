@@ -1,6 +1,8 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
+import { DexloanListings, IDL } from "./idl";
 
 export enum ListingState {
   Initialized = 0,
@@ -27,4 +29,11 @@ export interface Collection {
 
 export interface CollectionMap {
   [key: string]: Collection;
+}
+
+export type Listing = TypeDef<typeof IDL["accounts"][0], DexloanListings>;
+export interface ListingResult {
+  publicKey: anchor.web3.PublicKey;
+  listing: Listing;
+  metadata: Metadata;
 }

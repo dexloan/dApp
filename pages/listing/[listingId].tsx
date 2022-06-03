@@ -14,12 +14,16 @@ import {
   Text,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { IoLeaf, IoAlert } from "react-icons/io5";
+
 import * as utils from "../../utils";
+import { RPC_ENDPOINT } from "../../common/constants";
 import { ListingState } from "../../common/types";
-import { useListingQuery } from "../../hooks/query";
+import { fetchListing } from "../../common/query";
+import { useFloorPriceQuery, useListingQuery } from "../../hooks/query";
 import {
   useCancelMutation,
   useCloseAccountMutation,
@@ -38,8 +42,140 @@ import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
+import { EllipsisProgress } from "../../components/progress";
 
-const Listing: NextPage = () => {
+interface ListingProps {
+  initialData: {
+    listingResult: {
+      publicKey: any;
+      listing: any;
+      metadata: any;
+    };
+    jsonMetadata: any;
+  } | null;
+}
+
+const ListingPage: NextPage<ListingProps> = (props) => {
+  return (
+    <>
+      <ListingHead {...props} />
+      <ListingLayout />
+    </>
+  );
+};
+
+ListingPage.getInitialProps = async (ctx) => {
+  try {
+    const connection = new anchor.web3.Connection(RPC_ENDPOINT);
+    const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
+    const listingResult = await fetchListing(connection, pubkey);
+    const jsonMetadata = await fetch(listingResult.metadata.data.uri).then(
+      (response) => {
+        return response.json().then((data) => data);
+      }
+    );
+
+    return {
+      initialData: {
+        listingResult: {
+          publicKey: listingResult.publicKey.toBase58(),
+          listing: {
+            ...listingResult.listing,
+            amount: listingResult.listing.amount.toNumber(),
+            borrower: listingResult.listing.borrower.toBase58(),
+            lender: listingResult.listing.lender.toBase58(),
+            duration: listingResult.listing.duration.toNumber(),
+            startDate: listingResult.listing.startDate.toNumber(),
+            escrow: listingResult.listing.escrow.toBase58(),
+            mint: listingResult.listing.mint.toBase58(),
+          },
+          metadata: listingResult.metadata.pretty(),
+        },
+        jsonMetadata,
+      },
+    };
+  } catch (err) {
+    return {
+      initialData: null,
+      meta: null,
+    };
+  }
+};
+
+const ListingHead = ({ initialData }: ListingProps) => {
+  if (initialData) {
+    const description = `Borrowring ${utils.formatAmount(
+      new anchor.BN(initialData.listingResult.listing.amount)
+    )} over ${utils.formatDuration(
+      new anchor.BN(initialData.listingResult.listing.duration)
+    )}`;
+
+    return (
+      <Head>
+        <title>{initialData.listingResult.metadata.data.name}</title>
+        <meta name="description" content={description} />
+        <meta name="author" content="Dexloan" />
+        <link
+          rel="shortcut icon"
+          type="image/x-icon"
+          href="/favicon.ico"
+        ></link>
+        <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
+
+        <meta property="og:title" content={initialData.jsonMetadata.name} />
+        <meta property="og:type" content="website" />
+        <meta property="og:description" content={description} />
+        <meta
+          property="og:url"
+          content={`https://dexloan.io/listing/${initialData.listingResult.publicKey}`}
+        />
+        <meta property="og:image" content={initialData.jsonMetadata.image} />
+
+        <meta
+          property="twitter:title"
+          content={initialData.jsonMetadata.name}
+        />
+        <meta property="twitter:description" content={description} />
+        <meta
+          property="twitter:url"
+          content={`https://dexloan.io/listing/${initialData.listingResult.publicKey}`}
+        />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta
+          property="twitter:image"
+          content={initialData.jsonMetadata.image}
+        />
+        <meta
+          property="twitter:image:alt"
+          content={initialData.jsonMetadata.name}
+        />
+        <meta property="twitter:label1" content="Amount" />
+        <meta
+          property="twitter:data1"
+          content={utils.formatAmount(
+            new anchor.BN(initialData.listingResult.listing.amount)
+          )}
+        />
+        <meta property="twitter:label2" content="APY" />
+        <meta
+          property="twitter:data2"
+          content={initialData.listingResult.listing.basisPoints / 100 + "%"}
+        />
+        <meta property="twitter:label3" content="Duration" />
+        <meta
+          property="twitter:data3"
+          content={utils.formatDuration(
+            new anchor.BN(initialData.listingResult.listing.duration)
+          )}
+        />
+      </Head>
+    );
+  }
+
+  return null;
+};
+
+const ListingLayout = () => {
   const router = useRouter();
   const { listingId } = router.query;
   const { connection } = useConnection();
@@ -50,11 +186,14 @@ const Listing: NextPage = () => {
     : undefined;
   const listingQuery = useListingQuery(connection, pubkey);
 
+  const symbol = listingQuery.data?.metadata?.data.symbol;
+  const floorPriceQuery = useFloorPriceQuery(symbol);
+
   const listing = listingQuery.data?.listing;
   const metadata = listingQuery.data?.metadata;
 
   const hasExpired =
-    listing && utils.hasExpired(listing.startDate, listing.duration);
+    listing?.startDate && utils.hasExpired(listing.startDate, listing.duration);
 
   const isLender =
     listing && listing.lender.toBase58() === anchorWallet?.publicKey.toBase58();
@@ -122,6 +261,17 @@ const Listing: NextPage = () => {
     }
 
     return null;
+  }
+
+  function renderLTV() {
+    if (listing?.amount && floorPriceQuery.data?.floorPrice) {
+      const percentage = Number(
+        (listing.amount.toNumber() / floorPriceQuery.data.floorPrice) * 100
+      ).toFixed(2);
+      return percentage + "%";
+    }
+
+    return <EllipsisProgress />;
   }
 
   function renderByState() {
@@ -270,32 +420,44 @@ const Listing: NextPage = () => {
           </Box>
 
           {listing && (
-            <Flex direction="row" gap="12" mt="12" mb="12">
-              <Box>
-                <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                  Borrowing
-                </Text>
-                <Heading size="md" fontWeight="bold" mb="6">
-                  {utils.formatAmount(listing.amount)}
-                </Heading>
-              </Box>
-              <Box>
-                <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                  Duration
-                </Text>
-                <Heading size="md" fontWeight="bold" mb="6">
-                  {utils.formatDuration(listing.duration)}
-                </Heading>
-              </Box>
-              <Box>
-                <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                  APY
-                </Text>
-                <Heading size="md" fontWeight="bold" mb="6">
-                  {listing.basisPoints / 100}%
-                </Heading>
-              </Box>
-            </Flex>
+            <>
+              <Flex direction="row" gap="12" mt="12">
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Borrowing
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {utils.formatAmount(listing.amount)}
+                  </Heading>
+                </Box>
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Duration
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {utils.formatDuration(listing.duration)}
+                  </Heading>
+                </Box>
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    APY
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {listing.basisPoints / 100}%
+                  </Heading>
+                </Box>
+              </Flex>
+              <Flex direction="row" gap="12" mb="12">
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Loan to Floor Value
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {renderLTV()}
+                  </Heading>
+                </Box>
+              </Flex>
+            </>
           )}
 
           {renderByState()}
@@ -549,4 +711,4 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
   );
 };
 
-export default Listing;
+export default ListingPage;

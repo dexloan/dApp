@@ -7,7 +7,7 @@ import * as anchor from "@project-serum/anchor";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
-import { ListingState } from "../common/types";
+import { ListingResult, ListingState } from "../common/types";
 import {
   cancelListing,
   closeAccount,
@@ -67,13 +67,12 @@ export const useRepossessMutation = (onSuccess: () => void) => {
 
         queryClient.setQueryData(
           getLoansQueryKey(anchorWallet?.publicKey),
-          (loans: any[] | undefined) => {
+          (loans: ListingResult[] | undefined) => {
             if (!loans) return [];
 
             return loans.filter(
               (loans) =>
-                loans.listing.publicKey.toBase58() !==
-                variables.listing.toBase58()
+                loans.publicKey.toBase58() !== variables.listing.toBase58()
             );
           }
         );
@@ -129,13 +128,12 @@ export const useRepaymentMutation = (onSuccess: () => void) => {
 
         queryClient.setQueryData(
           getBorrowingsQueryKey(anchorWallet?.publicKey),
-          (borrowings: any[] | undefined) => {
+          (borrowings: ListingResult[] | undefined) => {
             if (!borrowings) return [];
 
             return borrowings.filter(
               (borrowing) =>
-                borrowing.listing.publicKey.toBase58() !==
-                variables.listing.toBase58()
+                borrowing.publicKey.toBase58() !== variables.listing.toBase58()
             );
           }
         );
@@ -188,26 +186,24 @@ export const useCancelMutation = (onSuccess: () => void) => {
 
         queryClient.setQueryData(
           getListingsQueryKey(),
-          (listings: any[] | undefined) => {
+          (listings: ListingResult[] | undefined) => {
             if (!listings) return [];
 
             return listings.filter(
               (item) =>
-                item.listing.publicKey.toBase58() !==
-                variables.listing.toBase58()
+                item.publicKey.toBase58() !== variables.listing.toBase58()
             );
           }
         );
 
         queryClient.setQueryData(
           getBorrowingsQueryKey(anchorWallet?.publicKey),
-          (listings: any[] | undefined) => {
+          (listings: ListingResult[] | undefined) => {
             if (!listings) return [];
 
             return listings.filter(
               (item) =>
-                item.listing.publicKey.toBase58() !==
-                variables.listing.toBase58()
+                item.publicKey.toBase58() !== variables.listing.toBase58()
             );
           }
         );
@@ -242,23 +238,25 @@ export const useLoanMutation = (onSuccess: () => void) => {
       onSuccess(_, variables) {
         toast.success("Loan created");
 
-        queryClient.setQueryData(getListingsQueryKey(), (data: any) => {
-          if (data) {
-            return data?.filter(
-              (item: any) =>
-                item.listing.publicKey.toBase58() !==
-                variables.listing.toBase58()
-            );
+        queryClient.setQueryData<ListingResult[] | undefined>(
+          getListingsQueryKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) =>
+                  item.publicKey.toBase58() !== variables.listing.toBase58()
+              );
+            }
           }
-        });
+        );
 
         queryClient.invalidateQueries(
           getLoansQueryKey(anchorWallet?.publicKey)
         );
 
-        queryClient.setQueryData(
+        queryClient.setQueryData<ListingResult | undefined>(
           getListingQueryKey(variables.listing),
-          (data: any) => {
+          (data) => {
             if (data) {
               return {
                 ...data,
@@ -304,28 +302,29 @@ export const useCloseAccountMutation = (onSuccess: () => void) => {
       onSuccess(_, variables) {
         toast.success("Listing account closed");
 
-        queryClient.setQueryData(
+        queryClient.setQueryData<ListingResult[] | undefined>(
           getBorrowingsQueryKey(anchorWallet?.publicKey),
-          (data: any) => {
+          (data) => {
             if (data) {
               return data?.filter(
-                (item: any) =>
-                  item.listing.publicKey.toBase58() !==
-                  variables.listing.toBase58()
+                (item) =>
+                  item.publicKey.toBase58() !== variables.listing.toBase58()
               );
             }
           }
         );
 
-        queryClient.setQueryData(getListingsQueryKey(), (data: any) => {
-          if (data) {
-            return data?.filter(
-              (item: any) =>
-                item.listing.publicKey.toBase58() !==
-                variables.listing.toBase58()
-            );
+        queryClient.setQueryData<ListingResult[] | undefined>(
+          getListingsQueryKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) =>
+                  item.publicKey.toBase58() !== variables.listing.toBase58()
+              );
+            }
           }
-        });
+        );
 
         onSuccess();
       },
@@ -344,15 +343,18 @@ function setListingState(
   listing: anchor.web3.PublicKey,
   state: ListingState
 ) {
-  queryClient.setQueryData(getListingQueryKey(listing), (data: any) => {
-    if (data) {
-      return {
-        ...data,
-        listing: {
-          ...data.listing,
-          state,
-        },
-      };
+  queryClient.setQueryData<ListingResult | undefined>(
+    getListingQueryKey(listing),
+    (data) => {
+      if (data) {
+        return {
+          ...data,
+          listing: {
+            ...data.listing,
+            state,
+          },
+        };
+      }
     }
-  });
+  );
 }

@@ -31,7 +31,15 @@ export function MutationDialog({
   onRequestClose,
 }: MutationDialogProps) {
   return (
-    <Modal size="lg" isOpen={open} onClose={onRequestClose}>
+    <Modal
+      size="lg"
+      isOpen={open}
+      onClose={() => {
+        if (!loading) {
+          onRequestClose();
+        }
+      }}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="2xl" fontWeight="black">
