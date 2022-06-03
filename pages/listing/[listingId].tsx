@@ -109,6 +109,8 @@ const ListingHead = ({ initialData, meta }: ListingProps) => {
     <Head>
       <title>{initialData.listingResult.metadata.data.name}</title>
       <meta name="description" content={meta.description} key="description" />
+      <meta name="author" content="Dexloan" />
+      <link rel="icon" type="image/png" href="/logo.png" />
 
       <meta
         property="og:title"
@@ -130,6 +132,18 @@ const ListingHead = ({ initialData, meta }: ListingProps) => {
       <meta
         property="twitter:image:alt"
         content={initialData.listingResult.metadata.data.name}
+      />
+      <meta property="twitter:label1" content="Amount" />
+      <meta
+        property="twitter:data1"
+        content={utils.formatAmount(
+          new anchor.BN(initialData.listingResult.listing.amount)
+        )}
+      />
+      <meta property="twitter:label2" content="APY" />
+      <meta
+        property="twitter:data2"
+        content={initialData.listingResult.listing.basisPoints / 100 + "%"}
       />
     </Head>
   );
