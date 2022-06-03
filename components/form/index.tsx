@@ -130,7 +130,15 @@ export const ListingModal = ({
   }
 
   return (
-    <Modal size="3xl" isOpen={Boolean(selected)} onClose={onRequestClose}>
+    <Modal
+      size="3xl"
+      isOpen={Boolean(selected)}
+      onClose={() => {
+        if (!mutation.isLoading) {
+          onRequestClose();
+        }
+      }}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="2xl" fontWeight="black">
@@ -167,7 +175,7 @@ export const ListingModal = ({
                       control={control}
                       label="APY"
                       defaultValue={50}
-                      min={1}
+                      min={5}
                       max={1000}
                       step={5}
                       icon={IoAnalytics}
