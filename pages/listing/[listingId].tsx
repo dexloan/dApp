@@ -52,9 +52,6 @@ interface ListingProps {
     };
     jsonMetadata: any;
   } | null;
-  meta: {
-    description: string;
-  } | null;
 }
 
 const ListingPage: NextPage<ListingProps> = (props) => {
@@ -77,10 +74,6 @@ ListingPage.getInitialProps = async (ctx) => {
       }
     );
 
-    const description = `Borrowring ${utils.formatAmount(
-      listingResult.listing.amount
-    )} over ${utils.formatDuration(listingResult.listing.duration)}`;
-
     return {
       initialData: {
         listingResult: {
@@ -99,9 +92,6 @@ ListingPage.getInitialProps = async (ctx) => {
         },
         jsonMetadata,
       },
-      meta: {
-        description,
-      },
     };
   } catch (err) {
     return {
@@ -111,12 +101,19 @@ ListingPage.getInitialProps = async (ctx) => {
   }
 };
 
-const ListingHead = ({ initialData, meta }: ListingProps) => {
-  if (initialData && meta) {
+const ListingHead = ({ initialData }: ListingProps) => {
+  if (initialData) {
     return (
       <Head>
         <title>{initialData.listingResult.metadata.data.name}</title>
-        <meta name="description" content={meta.description} key="description" />
+        <meta
+          name="description"
+          content={`Borrowring ${utils.formatAmount(
+            new anchor.BN(initialData.listingResult.listing.amount)
+          )} over ${utils.formatDuration(
+            new anchor.BN(initialData.listingResult.listing.duration)
+          )}`}
+        />
         <meta name="author" content="Dexloan" />
         <link rel="icon" type="image/png" href="/logo.png" />
 
@@ -133,7 +130,10 @@ const ListingHead = ({ initialData, meta }: ListingProps) => {
           property="twitter:title"
           content={initialData.jsonMetadata.name}
         />
-        <meta property="twitter:description" content={meta.description} />
+        <meta
+          property="twitter:description"
+          content="Unlock the value of your NFTs with free and secure lending"
+        />
         <meta
           property="twitter:url"
           content={`https://dexloan.io/listing/${initialData.listingResult.publicKey}`}
@@ -154,9 +154,16 @@ const ListingHead = ({ initialData, meta }: ListingProps) => {
             new anchor.BN(initialData.listingResult.listing.amount)
           )}
         />
-        <meta property="twitter:label2" content="APY" />
+        <meta property="twitter:label2" content="Duration" />
         <meta
           property="twitter:data2"
+          content={utils.formatDuration(
+            new anchor.BN(initialData.listingResult.listing.duration)
+          )}
+        />
+        <meta property="twitter:label3" content="APY" />
+        <meta
+          property="twitter:data3"
           content={initialData.listingResult.listing.basisPoints / 100 + "%"}
         />
       </Head>
