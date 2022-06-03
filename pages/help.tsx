@@ -73,6 +73,24 @@ const FAQS = [
     ),
   },
   {
+    question: "How much does it cost?",
+    answer: (
+      <>
+        <Text mb="2">
+          Dexloan charges no fees on its peer-to-peer lending protocol. When
+          creating a listing you may need to pay a very small amount of rent for
+          listing account creation but this amount should be returned to you
+          once the loan has completed.
+        </Text>
+        <Text>
+          Our long term goal is to change the way people borrow by enabling
+          communities to lend to one another. In light of that objective, we
+          will likely introduce protocol fees at some point in the near future.
+        </Text>
+      </>
+    ),
+  },
+  {
     question: "How do I lend?",
     answer: (
       <>
