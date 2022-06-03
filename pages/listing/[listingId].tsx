@@ -103,23 +103,22 @@ ListingPage.getInitialProps = async (ctx) => {
 
 const ListingHead = ({ initialData }: ListingProps) => {
   if (initialData) {
+    const description = `Borrowring ${utils.formatAmount(
+      new anchor.BN(initialData.listingResult.listing.amount)
+    )} over ${utils.formatDuration(
+      new anchor.BN(initialData.listingResult.listing.duration)
+    )}`;
+
     return (
       <Head>
         <title>{initialData.listingResult.metadata.data.name}</title>
-        <meta
-          name="description"
-          content={`Borrowring ${utils.formatAmount(
-            new anchor.BN(initialData.listingResult.listing.amount)
-          )} over ${utils.formatDuration(
-            new anchor.BN(initialData.listingResult.listing.duration)
-          )}`}
-        />
+        <meta name="description" content={description} />
         <meta name="author" content="Dexloan" />
         <link rel="icon" type="image/png" href="/logo.png" />
 
         <meta property="og:title" content={initialData.jsonMetadata.name} />
         <meta property="og:type" content="website" />
-        <meta property="og:description" content={meta.description} />
+        <meta property="og:description" content={description} />
         <meta
           property="og:url"
           content={`https://dexloan.io/listing/${initialData.listingResult.publicKey}`}
