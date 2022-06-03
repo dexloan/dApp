@@ -23,7 +23,7 @@ import * as utils from "../../utils";
 import { RPC_ENDPOINT } from "../../common/constants";
 import { ListingState } from "../../common/types";
 import { fetchListing } from "../../common/query";
-import { useListingQuery } from "../../hooks/query";
+import { useFloorPriceQuery, useListingQuery } from "../../hooks/query";
 import {
   useCancelMutation,
   useCloseAccountMutation,
@@ -42,6 +42,7 @@ import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
+import { EllipsisProgress } from "../../components/progress";
 
 interface ListingProps {
   initialData: {
@@ -183,6 +184,9 @@ const ListingLayout = () => {
     : undefined;
   const listingQuery = useListingQuery(connection, pubkey);
 
+  const symbol = listingQuery.data?.metadata?.data.symbol;
+  const floorPriceQuery = useFloorPriceQuery(symbol);
+
   const listing = listingQuery.data?.listing;
   const metadata = listingQuery.data?.metadata;
 
@@ -255,6 +259,17 @@ const ListingLayout = () => {
     }
 
     return null;
+  }
+
+  function renderLTV() {
+    if (listing?.amount && floorPriceQuery.data?.floorPrice) {
+      const percentage = Number(
+        (listing.amount.toNumber() / floorPriceQuery.data.floorPrice) * 100
+      ).toFixed(2);
+      return percentage + "%";
+    }
+
+    return <EllipsisProgress />;
   }
 
   function renderByState() {
@@ -403,32 +418,44 @@ const ListingLayout = () => {
           </Box>
 
           {listing && (
-            <Flex direction="row" gap="12" mt="12" mb="12">
-              <Box>
-                <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                  Borrowing
-                </Text>
-                <Heading size="md" fontWeight="bold" mb="6">
-                  {utils.formatAmount(listing.amount)}
-                </Heading>
-              </Box>
-              <Box>
-                <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                  Duration
-                </Text>
-                <Heading size="md" fontWeight="bold" mb="6">
-                  {utils.formatDuration(listing.duration)}
-                </Heading>
-              </Box>
-              <Box>
-                <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                  APY
-                </Text>
-                <Heading size="md" fontWeight="bold" mb="6">
-                  {listing.basisPoints / 100}%
-                </Heading>
-              </Box>
-            </Flex>
+            <>
+              <Flex direction="row" gap="12" mt="12">
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Borrowing
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {utils.formatAmount(listing.amount)}
+                  </Heading>
+                </Box>
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Duration
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {utils.formatDuration(listing.duration)}
+                  </Heading>
+                </Box>
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    APY
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {listing.basisPoints / 100}%
+                  </Heading>
+                </Box>
+              </Flex>
+              <Flex direction="row" gap="12" mb="12">
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Loan to Floor Value
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {renderLTV()}
+                  </Heading>
+                </Box>
+              </Flex>
+            </>
           )}
 
           {renderByState()}
