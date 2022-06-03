@@ -117,9 +117,7 @@ const Loans = () => {
 
   const activeLoans = useMemo(
     () =>
-      loansQuery.data?.filter(
-        (l) => l?.listing.account.state === ListingState.Active
-      ),
+      loansQuery.data?.filter((l) => l?.listing.state === ListingState.Active),
     [loansQuery.data]
   );
 
@@ -127,7 +125,7 @@ const Loans = () => {
     () =>
       activeLoans?.reduce((total, item) => {
         if (item) {
-          return total.add(item.listing.account.amount);
+          return total.add(item.listing.amount);
         }
         return total;
       }, new anchor.BN(0)),
@@ -154,11 +152,11 @@ const Loans = () => {
             (item) =>
               item && (
                 <ListedCard
-                  key={item.listing.publicKey.toBase58()}
-                  listing={item.listing.publicKey}
-                  amount={item.listing.account.amount}
-                  basisPoints={item.listing.account.basisPoints}
-                  duration={item.listing.account.duration}
+                  key={item.publicKey.toBase58()}
+                  listing={item.publicKey}
+                  amount={item.listing.amount}
+                  basisPoints={item.listing.basisPoints}
+                  duration={item.listing.duration}
                   uri={item.metadata.data.uri}
                   name={item.metadata.data.name}
                   symbol={item.metadata.data.symbol}
@@ -191,16 +189,16 @@ const Listings = () => {
   const [activeBorrowings, listedBorrowings, completedBorrowings] = useMemo(
     () => [
       borrowingsQuery.data?.filter(
-        (b) => b?.listing.account.state === ListingState.Active
+        (b) => b?.listing.state === ListingState.Active
       ),
       borrowingsQuery.data?.filter(
-        (b) => b?.listing.account.state === ListingState.Listed
+        (b) => b?.listing.state === ListingState.Listed
       ),
       borrowingsQuery.data?.filter(
         (b) =>
-          b?.listing.account.state === ListingState.Defaulted ||
-          b?.listing.account.state === ListingState.Cancelled ||
-          b?.listing.account.state === ListingState.Repaid
+          b?.listing.state === ListingState.Defaulted ||
+          b?.listing.state === ListingState.Cancelled ||
+          b?.listing.state === ListingState.Repaid
       ),
     ],
     [borrowingsQuery.data]
@@ -210,7 +208,7 @@ const Listings = () => {
     () =>
       activeBorrowings?.reduce((total, item) => {
         if (item) {
-          return total.add(item.listing.account.amount);
+          return total.add(item.listing.amount);
         }
         return total;
       }, new anchor.BN(0)),
@@ -258,11 +256,11 @@ const Listings = () => {
               (item) =>
                 item && (
                   <ListedCard
-                    key={item.listing.publicKey.toBase58()}
-                    listing={item.listing.publicKey}
-                    amount={item.listing.account.amount}
-                    basisPoints={item.listing.account.basisPoints}
-                    duration={item.listing.account.duration}
+                    key={item.publicKey.toBase58()}
+                    listing={item.publicKey}
+                    amount={item.listing.amount}
+                    basisPoints={item.listing.basisPoints}
+                    duration={item.listing.duration}
                     uri={item.metadata.data.uri}
                     name={item.metadata.data.name}
                     symbol={item.metadata.data.symbol}
@@ -281,11 +279,11 @@ const Listings = () => {
               (item) =>
                 item && (
                   <ListedCard
-                    key={item.listing.publicKey.toBase58()}
-                    listing={item.listing.publicKey}
-                    amount={item.listing.account.amount}
-                    basisPoints={item.listing.account.basisPoints}
-                    duration={item.listing.account.duration}
+                    key={item.publicKey.toBase58()}
+                    listing={item.publicKey}
+                    amount={item.listing.amount}
+                    basisPoints={item.listing.basisPoints}
+                    duration={item.listing.duration}
                     uri={item.metadata.data.uri}
                     name={item.metadata.data.name}
                     symbol={item.metadata.data.symbol}
@@ -304,11 +302,11 @@ const Listings = () => {
               (item) =>
                 item && (
                   <ListedCard
-                    key={item.listing.publicKey.toBase58()}
-                    listing={item.listing.publicKey}
-                    amount={item.listing.account.amount}
-                    basisPoints={item.listing.account.basisPoints}
-                    duration={item.listing.account.duration}
+                    key={item.publicKey.toBase58()}
+                    listing={item.publicKey}
+                    amount={item.listing.amount}
+                    basisPoints={item.listing.basisPoints}
+                    duration={item.listing.duration}
                     uri={item.metadata.data.uri}
                     name={item.metadata.data.name}
                     symbol={item.metadata.data.symbol}
