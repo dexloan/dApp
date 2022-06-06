@@ -65,41 +65,45 @@ const ListingPage: NextPage<ListingProps> = (props) => {
 };
 
 ListingPage.getInitialProps = async (ctx) => {
-  try {
-    const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-    const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
-    const listingResult = await fetchListing(connection, pubkey);
-    const jsonMetadata = await fetch(listingResult.metadata.data.uri).then(
-      (response) => {
-        return response.json().then((data) => data);
-      }
-    );
+  if (typeof window === "undefined") {
+    try {
+      const connection = new anchor.web3.Connection(RPC_ENDPOINT);
+      const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
+      const listingResult = await fetchListing(connection, pubkey);
+      const jsonMetadata = await fetch(listingResult.metadata.data.uri).then(
+        (response) => {
+          return response.json().then((data) => data);
+        }
+      );
 
-    return {
-      initialData: {
-        listingResult: {
-          publicKey: listingResult.publicKey.toBase58(),
-          listing: {
-            ...listingResult.listing,
-            amount: listingResult.listing.amount.toNumber(),
-            borrower: listingResult.listing.borrower.toBase58(),
-            lender: listingResult.listing.lender.toBase58(),
-            duration: listingResult.listing.duration.toNumber(),
-            startDate: listingResult.listing.startDate.toNumber(),
-            escrow: listingResult.listing.escrow.toBase58(),
-            mint: listingResult.listing.mint.toBase58(),
+      return {
+        initialData: {
+          listingResult: {
+            publicKey: listingResult.publicKey.toBase58(),
+            listing: {
+              ...listingResult.listing,
+              amount: listingResult.listing.amount.toNumber(),
+              borrower: listingResult.listing.borrower.toBase58(),
+              lender: listingResult.listing.lender.toBase58(),
+              duration: listingResult.listing.duration.toNumber(),
+              startDate: listingResult.listing.startDate.toNumber(),
+              escrow: listingResult.listing.escrow.toBase58(),
+              mint: listingResult.listing.mint.toBase58(),
+            },
+            metadata: listingResult.metadata.pretty(),
           },
-          metadata: listingResult.metadata.pretty(),
+          jsonMetadata,
         },
-        jsonMetadata,
-      },
-    };
-  } catch (err) {
-    return {
-      initialData: null,
-      meta: null,
-    };
+      };
+    } catch (err) {
+      console.log(err);
+    }
   }
+
+  return {
+    initialData: null,
+    meta: null,
+  };
 };
 
 const ListingHead = ({ initialData }: ListingProps) => {
