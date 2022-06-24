@@ -1,9 +1,9 @@
 export type DexloanListings = {
-  version: "0.1.0";
+  version: "1.0.0";
   name: "dexloan_listings";
   instructions: [
     {
-      name: "initListing";
+      name: "initLoan";
       accounts: [
         {
           name: "borrower";
@@ -11,12 +11,12 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "borrowerDepositTokenAccount";
+          name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "listingAccount";
+          name: "loanAccount";
           isMut: true;
           isSigner: false;
         },
@@ -48,15 +48,21 @@ export type DexloanListings = {
       ];
       args: [
         {
-          name: "options";
-          type: {
-            defined: "ListingOptions";
-          };
+          name: "amount";
+          type: "u64";
+        },
+        {
+          name: "basisPoints";
+          type: "u32";
+        },
+        {
+          name: "duration";
+          type: "u64";
         }
       ];
     },
     {
-      name: "cancelListing";
+      name: "closeLoan";
       accounts: [
         {
           name: "borrower";
@@ -64,12 +70,12 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "borrowerDepositTokenAccount";
+          name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "listingAccount";
+          name: "loanAccount";
           isMut: true;
           isSigner: false;
         },
@@ -110,7 +116,17 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "listingAccount";
+          name: "loanAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "escrowAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -146,7 +162,7 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "borrowerDepositTokenAccount";
+          name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -161,7 +177,7 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "listingAccount";
+          name: "loanAccount";
           isMut: true;
           isSigner: false;
         },
@@ -207,7 +223,7 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "listingAccount";
+          name: "loanAccount";
           isMut: true;
           isSigner: false;
         },
@@ -240,7 +256,265 @@ export type DexloanListings = {
       args: [];
     },
     {
-      name: "closeAccount";
+      name: "initCallOption";
+      accounts: [
+        {
+          name: "seller";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "callOptionAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "escrowAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        },
+        {
+          name: "strikePrice";
+          type: "u64";
+        },
+        {
+          name: "expiry";
+          type: "i64";
+        }
+      ];
+    },
+    {
+      name: "buyCallOption";
+      accounts: [
+        {
+          name: "seller";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "buyer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "callOptionAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "escrowAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "exerciseCallOption";
+      accounts: [
+        {
+          name: "seller";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "buyer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "callOptionAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "escrowAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "buyerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "closeCallOption";
+      accounts: [
+        {
+          name: "seller";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "callOptionAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "escrowAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "cancelListing";
+      accounts: [
+        {
+          name: "borrower";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "borrowerDepositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "listingAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "escrowAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "closeListing";
       accounts: [
         {
           name: "borrower";
@@ -248,7 +522,7 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "listingAccount";
+          name: "loanAccount";
           isMut: true;
           isSigner: false;
         }
@@ -257,6 +531,56 @@ export type DexloanListings = {
     }
   ];
   accounts: [
+    {
+      name: "callOption";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "state";
+            type: {
+              defined: "CallOptionState";
+            };
+          },
+          {
+            name: "amount";
+            type: "u64";
+          },
+          {
+            name: "seller";
+            type: "publicKey";
+          },
+          {
+            name: "buyer";
+            type: "publicKey";
+          },
+          {
+            name: "expiry";
+            type: "i64";
+          },
+          {
+            name: "strikePrice";
+            type: "u64";
+          },
+          {
+            name: "escrow";
+            type: "publicKey";
+          },
+          {
+            name: "mint";
+            type: "publicKey";
+          },
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "escrowBump";
+            type: "u8";
+          }
+        ];
+      };
+    },
     {
       name: "listing";
       type: {
@@ -308,25 +632,76 @@ export type DexloanListings = {
           }
         ];
       };
-    }
-  ];
-  types: [
+    },
     {
-      name: "ListingOptions";
+      name: "loan";
       type: {
         kind: "struct";
         fields: [
           {
+            name: "state";
+            type: {
+              defined: "LoanState";
+            };
+          },
+          {
             name: "amount";
             type: "u64";
+          },
+          {
+            name: "borrower";
+            type: "publicKey";
+          },
+          {
+            name: "lender";
+            type: "publicKey";
+          },
+          {
+            name: "basisPoints";
+            type: "u32";
           },
           {
             name: "duration";
             type: "u64";
           },
           {
-            name: "basisPoints";
-            type: "u32";
+            name: "startDate";
+            type: "i64";
+          },
+          {
+            name: "escrow";
+            type: "publicKey";
+          },
+          {
+            name: "mint";
+            type: "publicKey";
+          },
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "escrowBump";
+            type: "u8";
+          }
+        ];
+      };
+    }
+  ];
+  types: [
+    {
+      name: "CallOptionState";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Listed";
+          },
+          {
+            name: "Active";
+          },
+          {
+            name: "Exercised";
           }
         ];
       };
@@ -343,10 +718,21 @@ export type DexloanListings = {
             name: "Active";
           },
           {
-            name: "Repaid";
+            name: "Defaulted";
+          }
+        ];
+      };
+    },
+    {
+      name: "LoanState";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Listed";
           },
           {
-            name: "Cancelled";
+            name: "Active";
           },
           {
             name: "Defaulted";
@@ -363,18 +749,38 @@ export type DexloanListings = {
     },
     {
       code: 6001;
+      name: "InvalidExpiry";
+      msg: "Invalid expiry";
+    },
+    {
+      code: 6002;
       name: "InvalidState";
       msg: "Invalid state";
+    },
+    {
+      code: 6003;
+      name: "InvalidListingType";
+      msg: "Invalid listing type";
+    },
+    {
+      code: 6004;
+      name: "OptionExpired";
+      msg: "Option expired";
+    },
+    {
+      code: 6005;
+      name: "OptionNotExpired";
+      msg: "Option not expired";
     }
   ];
 };
 
 export const IDL: DexloanListings = {
-  version: "0.1.0",
+  version: "1.0.0",
   name: "dexloan_listings",
   instructions: [
     {
-      name: "initListing",
+      name: "initLoan",
       accounts: [
         {
           name: "borrower",
@@ -382,12 +788,12 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "borrowerDepositTokenAccount",
+          name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "listingAccount",
+          name: "loanAccount",
           isMut: true,
           isSigner: false,
         },
@@ -419,15 +825,21 @@ export const IDL: DexloanListings = {
       ],
       args: [
         {
-          name: "options",
-          type: {
-            defined: "ListingOptions",
-          },
+          name: "amount",
+          type: "u64",
+        },
+        {
+          name: "basisPoints",
+          type: "u32",
+        },
+        {
+          name: "duration",
+          type: "u64",
         },
       ],
     },
     {
-      name: "cancelListing",
+      name: "closeLoan",
       accounts: [
         {
           name: "borrower",
@@ -435,12 +847,12 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "borrowerDepositTokenAccount",
+          name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "listingAccount",
+          name: "loanAccount",
           isMut: true,
           isSigner: false,
         },
@@ -481,7 +893,17 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "listingAccount",
+          name: "loanAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "escrowAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -517,7 +939,7 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "borrowerDepositTokenAccount",
+          name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -532,7 +954,7 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "listingAccount",
+          name: "loanAccount",
           isMut: true,
           isSigner: false,
         },
@@ -578,7 +1000,7 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "listingAccount",
+          name: "loanAccount",
           isMut: true,
           isSigner: false,
         },
@@ -611,7 +1033,265 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
-      name: "closeAccount",
+      name: "initCallOption",
+      accounts: [
+        {
+          name: "seller",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "callOptionAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "escrowAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+        {
+          name: "strikePrice",
+          type: "u64",
+        },
+        {
+          name: "expiry",
+          type: "i64",
+        },
+      ],
+    },
+    {
+      name: "buyCallOption",
+      accounts: [
+        {
+          name: "seller",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "buyer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "callOptionAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "escrowAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "exerciseCallOption",
+      accounts: [
+        {
+          name: "seller",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "buyer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "callOptionAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "escrowAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "buyerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "closeCallOption",
+      accounts: [
+        {
+          name: "seller",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "callOptionAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "escrowAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "cancelListing",
+      accounts: [
+        {
+          name: "borrower",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "borrowerDepositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "listingAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "escrowAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "closeListing",
       accounts: [
         {
           name: "borrower",
@@ -619,7 +1299,7 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "listingAccount",
+          name: "loanAccount",
           isMut: true,
           isSigner: false,
         },
@@ -628,6 +1308,56 @@ export const IDL: DexloanListings = {
     },
   ],
   accounts: [
+    {
+      name: "callOption",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "state",
+            type: {
+              defined: "CallOptionState",
+            },
+          },
+          {
+            name: "amount",
+            type: "u64",
+          },
+          {
+            name: "seller",
+            type: "publicKey",
+          },
+          {
+            name: "buyer",
+            type: "publicKey",
+          },
+          {
+            name: "expiry",
+            type: "i64",
+          },
+          {
+            name: "strikePrice",
+            type: "u64",
+          },
+          {
+            name: "escrow",
+            type: "publicKey",
+          },
+          {
+            name: "mint",
+            type: "publicKey",
+          },
+          {
+            name: "bump",
+            type: "u8",
+          },
+          {
+            name: "escrowBump",
+            type: "u8",
+          },
+        ],
+      },
+    },
     {
       name: "listing",
       type: {
@@ -680,24 +1410,75 @@ export const IDL: DexloanListings = {
         ],
       },
     },
-  ],
-  types: [
     {
-      name: "ListingOptions",
+      name: "loan",
       type: {
         kind: "struct",
         fields: [
           {
+            name: "state",
+            type: {
+              defined: "LoanState",
+            },
+          },
+          {
             name: "amount",
             type: "u64",
+          },
+          {
+            name: "borrower",
+            type: "publicKey",
+          },
+          {
+            name: "lender",
+            type: "publicKey",
+          },
+          {
+            name: "basisPoints",
+            type: "u32",
           },
           {
             name: "duration",
             type: "u64",
           },
           {
-            name: "basisPoints",
-            type: "u32",
+            name: "startDate",
+            type: "i64",
+          },
+          {
+            name: "escrow",
+            type: "publicKey",
+          },
+          {
+            name: "mint",
+            type: "publicKey",
+          },
+          {
+            name: "bump",
+            type: "u8",
+          },
+          {
+            name: "escrowBump",
+            type: "u8",
+          },
+        ],
+      },
+    },
+  ],
+  types: [
+    {
+      name: "CallOptionState",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Listed",
+          },
+          {
+            name: "Active",
+          },
+          {
+            name: "Exercised",
           },
         ],
       },
@@ -714,10 +1495,21 @@ export const IDL: DexloanListings = {
             name: "Active",
           },
           {
-            name: "Repaid",
+            name: "Defaulted",
+          },
+        ],
+      },
+    },
+    {
+      name: "LoanState",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Listed",
           },
           {
-            name: "Cancelled",
+            name: "Active",
           },
           {
             name: "Defaulted",
@@ -734,8 +1526,28 @@ export const IDL: DexloanListings = {
     },
     {
       code: 6001,
+      name: "InvalidExpiry",
+      msg: "Invalid expiry",
+    },
+    {
+      code: 6002,
       name: "InvalidState",
       msg: "Invalid state",
+    },
+    {
+      code: 6003,
+      name: "InvalidListingType",
+      msg: "Invalid listing type",
+    },
+    {
+      code: 6004,
+      name: "OptionExpired",
+      msg: "Option expired",
+    },
+    {
+      code: 6005,
+      name: "OptionNotExpired",
+      msg: "Option not expired",
     },
   ],
 };

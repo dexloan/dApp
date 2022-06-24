@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
-import { Badge, Box, Flex, Image, Skeleton, Text } from "@chakra-ui/react";
+import { Badge, Box, Flex, Skeleton, Text } from "@chakra-ui/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import * as utils from "../../utils";
@@ -19,28 +20,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
   const containerRef = useRef<HTMLDivElement & HTMLAnchorElement>(null);
 
   const metadataQuery = useMetadataFileQuery(uri);
-
-  useEffect(() => {
-    function callback([entry]: IntersectionObserverEntry[]) {
-      if (entry.isIntersecting) {
-        setVisible(true);
-      }
-    }
-
-    const el = containerRef.current;
-    const observer = new IntersectionObserver(callback, {
-      root: null,
-      rootMargin: "0px",
-      threshold: 0.25,
-    });
-
-    if (el) observer.observe(el);
-
-    return () => {
-      if (el) observer.unobserve(el);
-    };
-  }, []);
-
+  console.log("metadataQuery.data?.image: ", metadataQuery.data?.image);
   const card = (
     <Box
       as={href ? "a" : "button"}
@@ -72,13 +52,16 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
             width="100%"
             isLoaded={metadataQuery.data?.image && isVisible}
           >
-            <Image
-              width="100%"
-              height="100%"
-              objectFit="cover"
-              src={metadataQuery.data?.image}
-              alt={imageAlt}
-            />
+            {metadataQuery.data?.image && (
+              <Image
+                quality={100}
+                layout="fill"
+                objectFit="cover"
+                src={metadataQuery.data?.image}
+                alt={imageAlt}
+                onLoad={() => setVisible(true)}
+              />
+            )}
           </Skeleton>
         </Box>
       </Box>

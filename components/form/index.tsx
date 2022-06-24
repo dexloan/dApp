@@ -69,7 +69,7 @@ export const ListingModal = ({
   const anchorWallet = useAnchorWallet();
 
   const queryClient = useQueryClient();
-  const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
+  const floorPriceQuery = { data: { floorPrice: 1_000_000_000 } }; // useFloorPriceQuery(selected?.metadata.data.symbol);
 
   const mutation = useMutation(
     (variables: FormFields) => {

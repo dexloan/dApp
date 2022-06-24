@@ -5,59 +5,6 @@ import { AnchorWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { getProgram, getProvider } from "./provider";
 import { LISTINGS_PROGRAM_ID } from "./constants";
 
-class ListingOptions {
-  public amount: anchor.BN;
-  public duration: anchor.BN;
-  public basisPoints: number;
-
-  constructor(options: {
-    amount: number;
-    duration: number;
-    basisPoints: number;
-  }) {
-    this.amount = new anchor.BN(options.amount);
-    this.duration = new anchor.BN(options.duration);
-    this.basisPoints = options.basisPoints;
-  }
-}
-
-export async function createListing(
-  connection: anchor.web3.Connection,
-  wallet: AnchorWallet,
-  mint: anchor.web3.PublicKey,
-  borrowerDepositTokenAccount: anchor.web3.PublicKey,
-  options: {
-    amount: number;
-    duration: number;
-    basisPoints: number;
-  }
-) {
-  const listingOptions = new ListingOptions(options);
-  const provider = getProvider(connection, wallet);
-  const program = getProgram(provider);
-
-  const listingAccount = await findListingAddress(mint, wallet.publicKey);
-
-  const [escrowAccount] = await anchor.web3.PublicKey.findProgramAddress(
-    [Buffer.from("escrow"), mint.toBuffer()],
-    LISTINGS_PROGRAM_ID
-  );
-
-  await program.methods
-    .initListing(listingOptions)
-    .accounts({
-      escrowAccount,
-      listingAccount,
-      mint,
-      borrowerDepositTokenAccount,
-      borrower: wallet.publicKey,
-      tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    })
-    .rpc();
-}
-
 export async function findListingAddress(
   mint: anchor.web3.PublicKey,
   borrower: anchor.web3.PublicKey
@@ -70,12 +17,76 @@ export async function findListingAddress(
   return listingAccount;
 }
 
-export async function createLoan(
+export async function findLoanAddress(
+  mint: anchor.web3.PublicKey,
+  borrower: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [loanAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("loan"), mint.toBuffer(), borrower.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return loanAddress;
+}
+
+export async function findCallOptionAddress(
+  mint: anchor.web3.PublicKey,
+  borrower: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [callOptionAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("call_option"), mint.toBuffer(), borrower.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return callOptionAddress;
+}
+
+export async function initLoan(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  depositTokenAccount: anchor.web3.PublicKey,
+  options: {
+    amount: number;
+    duration: number;
+    basisPoints: number;
+  }
+) {
+  const amount = new anchor.BN(options.amount);
+  const basisPoint = options.basisPoints;
+  const duration = new anchor.BN(options.duration);
+
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const loanAccount = await findLoanAddress(mint, wallet.publicKey);
+
+  const [escrowAccount] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("escrow"), mint.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  await program.methods
+    .initLoan(amount, basisPoint, duration)
+    .accounts({
+      escrowAccount,
+      loanAccount,
+      mint,
+      depositTokenAccount,
+      borrower: wallet.publicKey,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    })
+    .rpc();
+}
+
+export async function giveLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
   borrower: anchor.web3.PublicKey,
-  listing: anchor.web3.PublicKey
+  loanAccount: anchor.web3.PublicKey
 ): Promise<void> {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
@@ -85,7 +96,7 @@ export async function createLoan(
     .accounts({
       borrower,
       mint,
-      listingAccount: listing,
+      loanAccount,
       lender: wallet.publicKey,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
@@ -94,6 +105,89 @@ export async function createLoan(
     .rpc();
 }
 
+export async function closeLoan(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  loanAccount: anchor.web3.PublicKey,
+  borrowerTokenAccount: anchor.web3.PublicKey,
+  escrowAccount: anchor.web3.PublicKey
+): Promise<void> {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  await program.methods
+    .closeLoan()
+    .accounts({
+      escrowAccount,
+      loanAccount,
+      mint,
+      depositTokenAccount: borrowerTokenAccount,
+      borrower: wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+    })
+    .rpc();
+}
+
+export async function repayLoan(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  lender: anchor.web3.PublicKey,
+  loanAccount: anchor.web3.PublicKey,
+  borrowerTokenAccount: anchor.web3.PublicKey,
+  escrowAccount: anchor.web3.PublicKey
+): Promise<void> {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  await program.methods
+    .repayLoan()
+    .accounts({
+      lender,
+      loanAccount,
+      escrowAccount,
+      mint,
+      depositTokenAccount: borrowerTokenAccount,
+      borrower: wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+    })
+    .rpc();
+}
+
+export async function repossessCollateral(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  escrowAccount: anchor.web3.PublicKey,
+  lenderTokenAccount: anchor.web3.PublicKey,
+  loanAccount: anchor.web3.PublicKey
+) {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  await program.methods
+    .repossessCollateral()
+    .accounts({
+      escrowAccount,
+      mint,
+      lenderTokenAccount,
+      loanAccount,
+      lender: wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    })
+    .rpc();
+}
+
+/**
+ * Deprecated methods
+ */
 export async function cancelListing(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
@@ -119,34 +213,6 @@ export async function cancelListing(
     .rpc();
 }
 
-export async function repayLoan(
-  connection: anchor.web3.Connection,
-  wallet: AnchorWallet,
-  mint: anchor.web3.PublicKey,
-  lender: anchor.web3.PublicKey,
-  listingAccount: anchor.web3.PublicKey,
-  borrowerTokenAccount: anchor.web3.PublicKey,
-  escrowAccount: anchor.web3.PublicKey
-): Promise<void> {
-  const provider = getProvider(connection, wallet);
-  const program = getProgram(provider);
-
-  await program.methods
-    .repayLoan()
-    .accounts({
-      lender,
-      listingAccount,
-      escrowAccount,
-      mint,
-      borrowerDepositTokenAccount: borrowerTokenAccount,
-      borrower: wallet.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-    })
-    .rpc();
-}
-
 export async function closeAccount(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
@@ -156,7 +222,7 @@ export async function closeAccount(
   const program = getProgram(provider);
 
   await program.methods
-    .closeAccount()
+    .closeListing()
     .accounts({
       listingAccount,
       borrower: wallet.publicKey,
@@ -229,31 +295,4 @@ export async function getOrCreateTokenAccount(
   }
 
   return tokenAccount;
-}
-
-export async function repossessCollateral(
-  connection: anchor.web3.Connection,
-  wallet: AnchorWallet,
-  mint: anchor.web3.PublicKey,
-  escrowAccount: anchor.web3.PublicKey,
-  lenderTokenAccount: anchor.web3.PublicKey,
-  listingAccount: anchor.web3.PublicKey
-) {
-  const provider = getProvider(connection, wallet);
-  const program = getProgram(provider);
-
-  await program.methods
-    .repossessCollateral()
-    .accounts({
-      escrowAccount,
-      mint,
-      lenderTokenAccount,
-      listingAccount,
-      lender: wallet.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    })
-    .rpc();
 }

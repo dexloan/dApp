@@ -26,7 +26,7 @@ export async function fetchListing(
 
   if (response.ok === false) {
     const message = await response.json();
-    throw new Error(message);
+    // throw new Error(message);
   }
 
   const [metadataAddress] = await getMetadataPDA(listingAccount.mint);
@@ -141,8 +141,8 @@ export async function fetchNFTs(
     }),
   }).then((response) => response.json());
 
-  const filteredTokenAccounts = tokenAccounts.filter((account) =>
-    whitelist.mints.includes(account.data.mint.toBase58())
+  const filteredTokenAccounts = tokenAccounts.filter(
+    (account) => true // whitelist.mints.includes(account.data.mint.toBase58())
   );
 
   const metadataAddresses = await Promise.all(
