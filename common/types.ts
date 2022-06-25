@@ -32,8 +32,34 @@ export interface CollectionMap {
 }
 
 export type Listing = TypeDef<typeof IDL["accounts"][0], DexloanListings>;
-export interface ListingResult {
+export type Loan = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
+export type CallOption = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+
+interface Result {
   publicKey: anchor.web3.PublicKey;
-  listing: Listing;
   metadata: Metadata;
+}
+
+export interface ListingResult extends Result {
+  data: Listing;
+}
+
+export interface LoanResult extends Result {
+  data: Loan;
+}
+
+export interface CallOptionResult extends Result {
+  data: CallOption;
+}
+
+export interface ListingTypeInterface {
+  callOption: CallOption;
+  listing: Listing;
+  loan: Loan;
+}
+
+export interface ListingResultInterface {
+  callOption: CallOptionResult;
+  listing: ListingResult;
+  loan: LoanResult;
 }

@@ -6,8 +6,95 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import bs58 from "bs58";
 
-import { ListingResult, ListingState } from "./types";
+import { LISTINGS_PROGRAM_ID } from "./constants";
+import {
+  ListingResult,
+  ListingState,
+  LoanResult,
+  Loan,
+  CallOptionResult,
+} from "./types";
 import { getProgram, getProvider } from "./provider";
+
+export async function findListingAddress(
+  mint: anchor.web3.PublicKey,
+  borrower: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [listingAccount] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("listing"), mint.toBuffer(), borrower.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return listingAccount;
+}
+
+export async function findLoanAddress(
+  mint: anchor.web3.PublicKey,
+  borrower: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [loanAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("loan"), mint.toBuffer(), borrower.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return loanAddress;
+}
+
+export async function findCallOptionAddress(
+  mint: anchor.web3.PublicKey,
+  borrower: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [callOptionAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("call_option"), mint.toBuffer(), borrower.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return callOptionAddress;
+}
+
+export async function findEscrowAddress(
+  mint: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [escrowAccount] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("escrow"), mint.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return escrowAccount;
+}
+
+export async function findMetadataAddress(mint: anchor.web3.PublicKey) {
+  return anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("metadata"), METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    METADATA_PROGRAM_ID
+  );
+}
+
+export async function assertMintIsWhitelisted(mint: anchor.web3.PublicKey) {
+  const origin =
+    typeof window === "undefined" ? process.env.NEXT_PUBLIC_HOST : "";
+
+  const response = await fetch(`${origin}/api/whitelist/${mint.toBase58()}`);
+
+  if (response.ok === false) {
+    const message = await response.json();
+    // throw new Error(message);
+  }
+}
+
+export async function fetchMetadata(
+  connection: anchor.web3.Connection,
+  mint: anchor.web3.PublicKey
+): Promise<Metadata> {
+  const [metadataAddress] = await findMetadataAddress(mint);
+  const metadataAccountInfo = await connection.getAccountInfo(metadataAddress);
+
+  if (metadataAccountInfo === null) {
+    throw new Error("No metadata");
+  }
+
+  return Metadata.fromAccountInfo(metadataAccountInfo)[0];
+}
 
 export async function fetchListing(
   connection: anchor.web3.Connection,
@@ -15,34 +102,79 @@ export async function fetchListing(
 ): Promise<ListingResult> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
+
   const listingAccount = await program.account.listing.fetch(listing);
 
-  const origin =
-    typeof window === "undefined" ? process.env.NEXT_PUBLIC_HOST : "";
+  assertMintIsWhitelisted(listingAccount.mint);
 
-  const response = await fetch(
-    `${origin}/api/whitelist/${listingAccount.mint.toBase58()}`
-  );
-
-  if (response.ok === false) {
-    const message = await response.json();
-    // throw new Error(message);
-  }
-
-  const [metadataAddress] = await getMetadataPDA(listingAccount.mint);
-  const metadataAccountInfo = await connection.getAccountInfo(metadataAddress);
-
-  if (metadataAccountInfo === null) {
-    throw new Error("No metadata");
-  }
-
-  const [metadata] = Metadata.fromAccountInfo(metadataAccountInfo);
+  const metadata = await fetchMetadata(connection, listingAccount.mint);
 
   return {
     metadata,
     publicKey: listing,
-    listing: listingAccount,
+    data: listingAccount,
   };
+}
+
+export async function fetchLoan(
+  connection: anchor.web3.Connection,
+  loan: anchor.web3.PublicKey
+): Promise<LoanResult> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
+
+  const loanAccount = await program.account.loan.fetch(loan);
+
+  assertMintIsWhitelisted(loanAccount.mint);
+
+  const metadata = await fetchMetadata(connection, loanAccount.mint);
+
+  return {
+    metadata,
+    publicKey: loan,
+    data: loanAccount as Loan,
+  };
+}
+
+export async function fetchCallOption(
+  connection: anchor.web3.Connection,
+  callOption: anchor.web3.PublicKey
+): Promise<CallOptionResult> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
+
+  const callOptionAccount = await program.account.callOption.fetch(callOption);
+
+  assertMintIsWhitelisted(callOptionAccount.mint);
+
+  const metadata = await fetchMetadata(connection, callOptionAccount.mint);
+
+  return {
+    metadata,
+    publicKey: callOption,
+    data: callOptionAccount,
+  };
+}
+
+export async function fetchMetadataAccounts(
+  connection: anchor.web3.Connection,
+  items: {
+    account: { mint: anchor.web3.PublicKey };
+  }[]
+) {
+  const metadataAddresses = await Promise.all(
+    items.map((listing) =>
+      findMetadataAddress(listing.account.mint).then(([address]) => address)
+    )
+  );
+
+  const rawMetadataAccounts = await connection.getMultipleAccountsInfo(
+    metadataAddresses
+  );
+
+  return rawMetadataAccounts.map((account) =>
+    account ? Metadata.fromAccountInfo(account)[0] : null
+  );
 }
 
 export async function fetchMultipleListings(
@@ -51,50 +183,30 @@ export async function fetchMultipleListings(
 ): Promise<ListingResult[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
-  const listings = await program.account.listing.all(filter);
+  const listings = await program.account.listing
+    .all(filter)
+    .then((result) =>
+      result.sort(
+        (a, b) => a.account.amount.toNumber() - b.account.amount.toNumber()
+      )
+    );
 
-  const filteredListings = listings.sort(
-    (a, b) => a.account.amount.toNumber() - b.account.amount.toNumber()
-  );
-
-  const metadataAddresses = await Promise.all(
-    filteredListings.map((listing) =>
-      getMetadataPDA(listing.account.mint).then(([address]) => address)
-    )
-  );
-
-  const rawMetadataAccounts = await connection.getMultipleAccountsInfo(
-    metadataAddresses
-  );
+  const metadataAccounts = await fetchMetadataAccounts(connection, listings);
 
   const combinedAccounts = listings.map((listing, index) => {
-    const metadataAccount = rawMetadataAccounts[index];
+    const metadataAccount = metadataAccounts[index];
 
     if (metadataAccount) {
-      try {
-        const [metadata] = Metadata.fromAccountInfo(metadataAccount);
-
-        return {
-          metadata,
-          publicKey: listing.publicKey,
-          listing: listing.account,
-        };
-      } catch (err) {
-        console.error(err);
-        return null;
-      }
+      return {
+        metadata: metadataAccount,
+        publicKey: listing.publicKey,
+        data: listing.account,
+      };
     }
     return null;
   });
 
   return combinedAccounts.filter(Boolean) as ListingResult[];
-}
-
-function getMetadataPDA(mint: anchor.web3.PublicKey) {
-  return anchor.web3.PublicKey.findProgramAddress(
-    [Buffer.from("metadata"), METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    METADATA_PROGRAM_ID
-  );
 }
 
 export const fetchActiveListings = (connection: anchor.web3.Connection) => {
@@ -110,6 +222,70 @@ export const fetchActiveListings = (connection: anchor.web3.Connection) => {
     },
   ]);
 };
+
+export async function fetchMultipleLoans(
+  connection: anchor.web3.Connection,
+  filter: anchor.web3.GetProgramAccountsFilter[] = []
+): Promise<LoanResult[]> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
+  const listings = await program.account.loan
+    .all(filter)
+    .then((result) =>
+      result.sort(
+        (a, b) => a.account.amount.toNumber() - b.account.amount.toNumber()
+      )
+    );
+
+  const metadataAccounts = await fetchMetadataAccounts(connection, listings);
+
+  const combinedAccounts = listings.map((listing, index) => {
+    const metadataAccount = metadataAccounts[index];
+
+    if (metadataAccount) {
+      return {
+        metadata: metadataAccount,
+        publicKey: listing.publicKey,
+        data: listing.account,
+      };
+    }
+    return null;
+  });
+
+  return combinedAccounts.filter(Boolean) as LoanResult[];
+}
+
+export async function fetchMultipleCallOptions(
+  connection: anchor.web3.Connection,
+  filter: anchor.web3.GetProgramAccountsFilter[] = []
+): Promise<CallOptionResult[]> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
+  const listings = await program.account.loan
+    .all(filter)
+    .then((result) =>
+      result.sort(
+        (a, b) => a.account.amount.toNumber() - b.account.amount.toNumber()
+      )
+    );
+
+  const metadataAccounts = await fetchMetadataAccounts(connection, listings);
+
+  const combinedAccounts = listings.map((listing, index) => {
+    const metadataAccount = metadataAccounts[index];
+
+    if (metadataAccount) {
+      return {
+        metadata: metadataAccount,
+        publicKey: listing.publicKey,
+        data: listing.account,
+      };
+    }
+    return null;
+  });
+
+  return combinedAccounts.filter(Boolean) as CallOptionResult[];
+}
 
 export async function fetchNFTs(
   connection: anchor.web3.Connection,
@@ -147,7 +323,7 @@ export async function fetchNFTs(
 
   const metadataAddresses = await Promise.all(
     filteredTokenAccounts.map((account) =>
-      getMetadataPDA(account.data.mint).then(([address]) => address)
+      findMetadataAddress(account.data.mint).then(([address]) => address)
     )
   );
 

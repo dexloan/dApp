@@ -103,7 +103,7 @@ export type DexloanListings = {
       args: [];
     },
     {
-      name: "makeLoan";
+      name: "giveLoan";
       accounts: [
         {
           name: "borrower";
@@ -522,7 +522,7 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "loanAccount";
+          name: "listingAccount";
           isMut: true;
           isSigner: false;
         }
@@ -880,7 +880,7 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
-      name: "makeLoan",
+      name: "giveLoan",
       accounts: [
         {
           name: "borrower",
@@ -1299,7 +1299,7 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "loanAccount",
+          name: "listingAccount",
           isMut: true,
           isSigner: false,
         },

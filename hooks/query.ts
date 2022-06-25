@@ -51,9 +51,10 @@ export function useMetadataFileQuery(uri?: string) {
   );
 }
 
-export const getListingQueryKey = (
-  listing: anchor.web3.PublicKey | undefined
-) => ["listing", listing?.toBase58()];
+export const getListingQueryKey = (mint: anchor.web3.PublicKey | undefined) => [
+  "listing",
+  mint?.toBase58(),
+];
 
 export function useListingQuery(
   connection: anchor.web3.Connection,
