@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { DexloanListings, IDL } from "./idl";
+import { DexloanListings, IDL } from "./idl/Dexloan";
 import { LISTINGS_PROGRAM_ID } from "./constants";
 
 export function getProgram(

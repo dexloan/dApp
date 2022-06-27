@@ -6,7 +6,11 @@ import { useQuery } from "react-query";
 import { ListingState } from "../common/types";
 import {
   fetchListing,
+  fetchLoan,
+  fetchCallOption,
   fetchMultipleListings,
+  fetchMultipleLoans,
+  fetchMultipleCallOptions,
   fetchNFTs,
 } from "../common/query";
 
@@ -51,10 +55,9 @@ export function useMetadataFileQuery(uri?: string) {
   );
 }
 
-export const getListingQueryKey = (mint: anchor.web3.PublicKey | undefined) => [
-  "listing",
-  mint?.toBase58(),
-];
+export const getListingQueryKey = (
+  listing: anchor.web3.PublicKey | undefined
+) => ["listing", listing?.toBase58()];
 
 export function useListingQuery(
   connection: anchor.web3.Connection,
@@ -66,6 +69,41 @@ export function useListingQuery(
       if (listing) return fetchListing(connection, listing);
     },
     { enabled: Boolean(listing) }
+  );
+}
+
+export const getLoanQueryKey = (loan: anchor.web3.PublicKey | undefined) => [
+  "loan",
+  loan?.toBase58(),
+];
+
+export function useLoanQuery(
+  connection: anchor.web3.Connection,
+  loan: anchor.web3.PublicKey | undefined
+) {
+  return useQuery(
+    getLoanQueryKey(loan),
+    () => {
+      if (loan) return fetchLoan(connection, loan);
+    },
+    { enabled: Boolean(loan) }
+  );
+}
+
+export const getCallOptionQueryKey = (
+  callOption: anchor.web3.PublicKey | undefined
+) => ["callOption", callOption?.toBase58()];
+
+export function useCallOptionQuery(
+  connection: anchor.web3.Connection,
+  callOption: anchor.web3.PublicKey | undefined
+) {
+  return useQuery(
+    getCallOptionQueryKey(callOption),
+    () => {
+      if (callOption) return fetchLoan(connection, callOption);
+    },
+    { enabled: Boolean(callOption) }
   );
 }
 
@@ -85,6 +123,29 @@ export function useListingsQuery(connection: anchor.web3.Connection) {
             ),
           },
         },
+      ]),
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
+}
+
+export const getLoansQueryKey = () => ["loans"];
+
+export function useLoansQuery(connection: anchor.web3.Connection) {
+  return useQuery(
+    getListingsQueryKey(),
+    () =>
+      fetchMultipleLoans(connection, [
+        // {
+        //   memcmp: {
+        //     // filter listed
+        //     offset: 7 + 1,
+        //     bytes: bs58.encode(
+        //       new anchor.BN(ListingState.Listed).toArrayLike(Buffer)
+        //     ),
+        //   },
+        // },
       ]),
     {
       refetchOnWindowFocus: false,
@@ -122,16 +183,16 @@ export function useBorrowingsQuery(
   );
 }
 
-export const getLoansQueryKey = (
+export const getPersonalLoansQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["loans", walletAddress?.toBase58()];
 
-export function useLoansQuery(
+export function usePersonalLoansQuery(
   connection: anchor.web3.Connection,
   wallet?: AnchorWallet
 ) {
   return useQuery(
-    getLoansQueryKey(wallet?.publicKey),
+    getPersonalLoansQueryKey(wallet?.publicKey),
     () => {
       if (wallet) {
         return fetchMultipleListings(connection, [

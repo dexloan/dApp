@@ -7,10 +7,16 @@ import * as anchor from "@project-serum/anchor";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
-import { ListingResult, ListingState } from "../common/types";
+import {
+  ListingResult,
+  ListingState,
+  LoanState,
+  CallOptionState,
+} from "../common/types";
 import {
   cancelListing,
   closeAccount,
+  closeLoan,
   giveLoan,
   getOrCreateTokenAccount,
   repayLoan,
@@ -20,7 +26,10 @@ import {
   getBorrowingsQueryKey,
   getListingQueryKey,
   getListingsQueryKey,
+  getLoanQueryKey,
   getLoansQueryKey,
+  getCallOptionQueryKey,
+  getPersonalLoansQueryKey,
 } from "./query";
 
 interface RepossessMutationProps {
@@ -62,18 +71,17 @@ export const useRepossessMutation = (onSuccess: () => void) => {
         toast.success("NFT repossessed.");
 
         queryClient.setQueryData(
-          getLoansQueryKey(anchorWallet?.publicKey),
+          getPersonalLoansQueryKey(anchorWallet?.publicKey),
           (loans: ListingResult[] | undefined) => {
             if (!loans) return [];
 
             return loans.filter(
-              (loan) =>
-                loan.listing.mint.toBase58() !== variables.mint.toBase58()
+              (loan) => loan.data.mint.toBase58() !== variables.mint.toBase58()
             );
           }
         );
 
-        setListingState(queryClient, variables.mint, ListingState.Defaulted);
+        setLoanState(queryClient, variables.mint, LoanState.Defaulted);
 
         onSuccess();
       },
@@ -127,7 +135,7 @@ export const useRepaymentMutation = (onSuccess: () => void) => {
 
             return borrowings.filter(
               (borrowing) =>
-                borrowing.listing.mint.toBase58() !== variables.mint.toBase58()
+                borrowing.data.mint.toBase58() !== variables.mint.toBase58()
             );
           }
         );
@@ -182,8 +190,7 @@ export const useCancelMutation = (onSuccess: () => void) => {
             if (!listings) return [];
 
             return listings.filter(
-              (item) =>
-                item.listing.mint.toBase58() !== variables.mint.toBase58()
+              (item) => item.data.mint.toBase58() !== variables.mint.toBase58()
             );
           }
         );
@@ -194,8 +201,7 @@ export const useCancelMutation = (onSuccess: () => void) => {
             if (!listings) return [];
 
             return listings.filter(
-              (item) =>
-                item.listing.mint.toBase58() !== variables.mint.toBase58()
+              (item) => item.data.mint.toBase58() !== variables.mint.toBase58()
             );
           }
         );
@@ -220,7 +226,7 @@ export const useLoanMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, LoanMutationProps>(
-    async ({ mint, borrower, listing }) => {
+    async ({ mint, borrower }) => {
       if (anchorWallet) {
         return giveLoan(connection, anchorWallet, mint, borrower);
       }
@@ -243,18 +249,18 @@ export const useLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.invalidateQueries(
-          getLoansQueryKey(anchorWallet?.publicKey)
+          getPersonalLoansQueryKey(anchorWallet?.publicKey)
         );
 
         queryClient.setQueryData<ListingResult | undefined>(
           getListingQueryKey(variables.listing),
-          (data) => {
-            if (data) {
+          (item) => {
+            if (item) {
               return {
-                ...data,
+                ...item,
                 listing: {
-                  ...data.listing,
-                  state: ListingState.Active,
+                  ...item.data,
+                  state: LoanState.Active,
                   startDate: new anchor.BN(Date.now() / 1000),
                 },
               };
@@ -275,18 +281,25 @@ export const useLoanMutation = (onSuccess: () => void) => {
 };
 
 interface CloseMutationVariables {
-  listing: anchor.web3.PublicKey;
+  mint: anchor.web3.PublicKey;
 }
 
 export const useCloseLoanMutation = (onSuccess: () => void) => {
+  const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, CloseMutationVariables>(
-    async ({ listing }) => {
+    async ({ mint }) => {
       if (anchorWallet) {
-        return closeLoan(connection, anchorWallet, listing);
+        const borrowerTokenAccount = await getOrCreateTokenAccount(
+          connection,
+          wallet,
+          mint
+        );
+
+        return closeLoan(connection, anchorWallet, mint, borrowerTokenAccount);
       }
       throw new Error("Not ready");
     },
@@ -300,7 +313,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
             if (data) {
               return data?.filter(
                 (item) =>
-                  item.publicKey.toBase58() !== variables.listing.toBase58()
+                  item.data.mint.toBase58() !== variables.mint.toBase58()
               );
             }
           }
@@ -312,7 +325,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
             if (data) {
               return data?.filter(
                 (item) =>
-                  item.publicKey.toBase58() !== variables.listing.toBase58()
+                  item.data.mint.toBase58() !== variables.mint.toBase58()
               );
             }
           }
@@ -330,19 +343,61 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
   );
 };
 
+function setCallOptionState(
+  queryClient: QueryClient,
+  callOption: anchor.web3.PublicKey,
+  state: typeof CallOptionState[keyof typeof CallOptionState]
+) {
+  queryClient.setQueryData<ListingResult | undefined>(
+    getCallOptionQueryKey(callOption),
+    (item) => {
+      if (item) {
+        return {
+          ...item,
+          data: {
+            ...item.data,
+            state,
+          },
+        };
+      }
+    }
+  );
+}
+
+function setLoanState(
+  queryClient: QueryClient,
+  loan: anchor.web3.PublicKey,
+  state: typeof LoanState[keyof typeof LoanState]
+) {
+  queryClient.setQueryData<ListingResult | undefined>(
+    getLoanQueryKey(loan),
+    (item) => {
+      if (item) {
+        return {
+          ...item,
+          data: {
+            ...item.data,
+            state,
+          },
+        };
+      }
+    }
+  );
+}
+
 function setListingState(
   queryClient: QueryClient,
-  mint: anchor.web3.PublicKey,
+  listing: anchor.web3.PublicKey,
   state: ListingState
 ) {
   queryClient.setQueryData<ListingResult | undefined>(
-    getListingQueryKey(mint),
-    (data) => {
-      if (data) {
+    getListingQueryKey(listing),
+    (item) => {
+      if (item) {
         return {
-          ...data,
-          listing: {
-            ...data.listing,
+          ...item,
+          data: {
+            ...item.data,
             state,
           },
         };

@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
-import { DexloanListings, IDL } from "./idl";
+import { DexloanListings, IDL } from "./idl/Dexloan";
 
 export enum ListingState {
   Initialized = 0,
@@ -31,9 +31,9 @@ export interface CollectionMap {
   [key: string]: Collection;
 }
 
-export type Listing = TypeDef<typeof IDL["accounts"][0], DexloanListings>;
-export type Loan = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
-export type CallOption = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+export type CallOption = TypeDef<typeof IDL["accounts"][0], DexloanListings>;
+export type Listing = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
+export type Loan = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
 
 interface Result {
   publicKey: anchor.web3.PublicKey;
@@ -50,16 +50,4 @@ export interface LoanResult extends Result {
 
 export interface CallOptionResult extends Result {
   data: CallOption;
-}
-
-export interface ListingTypeInterface {
-  callOption: CallOption;
-  listing: Listing;
-  loan: Loan;
-}
-
-export interface ListingResultInterface {
-  callOption: CallOptionResult;
-  listing: ListingResult;
-  loan: LoanResult;
 }

@@ -1,8 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "react-query";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
-import toast from "react-hot-toast";
 import {
   Box,
   Button,
@@ -34,8 +32,8 @@ import {
 import { IconType } from "react-icons";
 import * as utils from "../../utils";
 import { NFTResult } from "../../common/types";
-import { createListing } from "../../common/actions";
 import { useFloorPriceQuery } from "../../hooks/query";
+import { useInitLoanMutation } from "../../hooks/mutation/loan";
 
 interface FormFields {
   ltv: number;
@@ -65,67 +63,28 @@ export const ListingModal = ({
     },
   });
 
-  const { connection } = useConnection();
-  const anchorWallet = useAnchorWallet();
+  const floorPriceQuery = {
+    data: { floorPrice: 1_000_000_000 },
+    isLoading: false,
+  }; // useFloorPriceQuery(selected?.metadata.data.symbol);
 
-  const queryClient = useQueryClient();
-  const floorPriceQuery = { data: { floorPrice: 1_000_000_000 } }; // useFloorPriceQuery(selected?.metadata.data.symbol);
-
-  const mutation = useMutation(
-    (variables: FormFields) => {
-      if (
-        anchorWallet &&
-        floorPriceQuery.data?.floorPrice &&
-        selected?.tokenAccount.data.mint &&
-        selected?.tokenAccount.pubkey
-      ) {
-        const listingOptions = {
-          amount: (variables.ltv / 100) * floorPriceQuery.data?.floorPrice,
-          basisPoints: variables.apy * 100,
-          duration: variables.duration * 24 * 60 * 60,
-        };
-
-        return createListing(
-          connection,
-          anchorWallet,
-          selected.tokenAccount.data.mint,
-          selected.tokenAccount.pubkey,
-          listingOptions
-        );
-      }
-      throw new Error("Not ready");
-    },
-    {
-      onError(err) {
-        console.error("Error: " + err);
-        if (err instanceof Error) {
-          toast.error("Error: " + err.message);
-        }
-      },
-      onSuccess() {
-        toast.success("Listing created");
-
-        queryClient.setQueryData<NFTResult[]>(
-          ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
-          (data) => {
-            if (!data) {
-              return [];
-            }
-            return data.filter(
-              (item: NFTResult) =>
-                item?.tokenAccount.pubkey !== selected?.tokenAccount.pubkey
-            );
-          }
-        );
-
-        onRequestClose();
-      },
-    }
-  );
+  const mutation = useInitLoanMutation(() => onRequestClose());
 
   function onSubmit() {
     handleSubmit((data) => {
-      mutation.mutate(data);
+      if (selected && floorPriceQuery.data) {
+        const options = {
+          amount: (data.ltv / 100) * floorPriceQuery.data.floorPrice,
+          basisPoints: data.apy * 100,
+          duration: data.duration * 24 * 60 * 60,
+        };
+
+        mutation.mutate({
+          options,
+          mint: selected.tokenAccount.data.mint,
+          depositTokenAccount: selected.tokenAccount.pubkey,
+        });
+      }
     })();
   }
 
