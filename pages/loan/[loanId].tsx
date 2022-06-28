@@ -74,7 +74,7 @@ LoanPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
+      const pubkey = new anchor.web3.PublicKey(ctx.query.loanId as string);
       const result = await fetchLoan(connection, pubkey);
       const jsonMetadata = await fetch(result.metadata.data.uri).then(
         (response) => {
