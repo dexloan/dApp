@@ -185,10 +185,10 @@ const ListingLayout = () => {
   const { listingId } = router.query;
   const anchorWallet = useAnchorWallet();
 
-  const listingAddress = listingId
+  const pubkey = listingId
     ? new anchor.web3.PublicKey(listingId as string)
     : undefined;
-  const listingQuery = useListingQuery(listingAddress);
+  const listingQuery = useListingQuery(pubkey);
 
   const symbol = listingQuery.data?.metadata?.data.symbol;
   const floorPriceQuery = useFloorPriceQuery(symbol);
@@ -199,13 +199,69 @@ const ListingLayout = () => {
   const hasExpired =
     listing?.startDate && utils.hasExpired(listing.startDate, listing.duration);
 
+  const isLender =
+    listing && listing.lender.toBase58() === anchorWallet?.publicKey.toBase58();
   const isBorrower =
     listing &&
     listing.borrower.toBase58() === anchorWallet?.publicKey.toBase58();
 
+  function renderActiveButton() {
+    if (listing && pubkey && isBorrower) {
+      return (
+        <RepayButton
+          amount={listing.amount}
+          basisPoints={listing.basisPoints}
+          duration={listing.duration}
+          startDate={listing.startDate}
+          escrow={listing.escrow}
+          mint={listing.mint}
+          listing={pubkey}
+          lender={listing.lender}
+        />
+      );
+    } else if (hasExpired && listing && pubkey && isLender) {
+      return (
+        <RepossessButton
+          escrow={listing.escrow}
+          mint={listing.mint}
+          listing={pubkey}
+        />
+      );
+    }
+
+    return null;
+  }
+
+  function renderListedButton() {
+    if (listing && pubkey && isBorrower) {
+      return (
+        <CancelButton
+          escrow={listing.escrow}
+          mint={listing.mint}
+          listing={pubkey}
+        />
+      );
+    } else if (listing && pubkey) {
+      return (
+        <LoanButton
+          listing={pubkey}
+          amount={listing.amount}
+          borrower={listing.borrower}
+          duration={listing.duration}
+          basisPoints={listing.basisPoints}
+          mint={listing.mint}
+        />
+      );
+    }
+    return null;
+  }
+
   function renderCloseAccountButton() {
-    if (listing?.mint && isBorrower) {
-      return <CloseAccountButton mint={listing.mint} />;
+    if (
+      pubkey &&
+      listing?.borrower.toBase58() === anchorWallet?.publicKey.toBase58()
+    ) {
+      return <CloseAccountButton listing={pubkey} />;
     }
 
     return null;
@@ -248,7 +304,7 @@ const ListingLayout = () => {
               </Text>
             </Box>
             <Box mt="4" mb="4">
-              {renderCloseAccountButton()}
+              {renderListedButton()}
             </Box>
           </>
         );
@@ -279,7 +335,7 @@ const ListingLayout = () => {
               </Text>
             </Box>
             <Box mt="4" mb="4">
-              {renderCloseAccountButton()}
+              {renderActiveButton()}
             </Box>
           </>
         );
@@ -410,10 +466,193 @@ const ListingLayout = () => {
 
           {renderByState()}
 
-          <Activity mint={listingQuery.data?.data.mint} />
+          <Activity mint={listingQuery.data?.listing.mint} />
         </Box>
       </Flex>
     </Container>
+  );
+};
+
+interface LoanButtonProps {
+  amount: anchor.BN;
+  basisPoints: number;
+  duration: anchor.BN;
+  mint: anchor.web3.PublicKey;
+  borrower: anchor.web3.PublicKey;
+  listing: anchor.web3.PublicKey;
+}
+
+const LoanButton = ({
+  amount,
+  basisPoints,
+  duration,
+  mint,
+  borrower,
+  listing,
+}: LoanButtonProps) => {
+  const [open, setDialog] = useState(false);
+  const mutation = useLoanMutation(() => setDialog(false));
+  const anchorWallet = useAnchorWallet();
+  const { setVisible } = useWalletModal();
+
+  async function onLend() {
+    if (anchorWallet) {
+      setDialog(true);
+    } else {
+      setVisible(true);
+    }
+  }
+
+  return (
+    <>
+      <Button colorScheme="green" w="100%" onClick={onLend}>
+        Lend SOL
+      </Button>
+      <LoanDialog
+        open={open}
+        loading={mutation.isLoading}
+        amount={amount}
+        duration={duration}
+        basisPoints={basisPoints}
+        onRequestClose={() => setDialog(false)}
+        onConfirm={() =>
+          mutation.mutate({
+            mint,
+            borrower,
+            listing,
+          })
+        }
+      />
+    </>
+  );
+};
+
+interface CancelButtonProps {
+  mint: anchor.web3.PublicKey;
+  escrow: anchor.web3.PublicKey;
+  listing: anchor.web3.PublicKey;
+}
+
+const CancelButton = ({ mint, escrow, listing }: CancelButtonProps) => {
+  const [dialog, setDialog] = useState(false);
+  const mutation = useCancelMutation(() => setDialog(false));
+  const anchorWallet = useAnchorWallet();
+  const { setVisible } = useWalletModal();
+
+  async function onCancel() {
+    if (anchorWallet) {
+      setDialog(true);
+    } else {
+      setVisible(true);
+    }
+  }
+
+  return (
+    <>
+      <Button colorScheme="blue" w="100%" onClick={onCancel}>
+        Cancel Listing
+      </Button>
+      <CancelDialog
+        open={dialog}
+        loading={mutation.isLoading}
+        onRequestClose={() => setDialog(false)}
+        onConfirm={() => mutation.mutate({ mint, escrow, listing })}
+      />
+    </>
+  );
+};
+
+interface RepayButtonProps extends Omit<LoanButtonProps, "borrower"> {
+  startDate: anchor.BN;
+  lender: anchor.web3.PublicKey;
+}
+
+const RepayButton = ({
+  amount,
+  basisPoints,
+  duration,
+  startDate,
+  mint,
+  lender,
+}: RepayButtonProps) => {
+  const router = useRouter();
+  const [dialog, setDialog] = useState(false);
+  const mutation = useRepayLoanMutation(() => setDialog(false));
+  const anchorWallet = useAnchorWallet();
+  const { setVisible } = useWalletModal();
+
+  async function onRepay() {
+    if (anchorWallet) {
+      setDialog(true);
+    } else {
+      setVisible(true);
+    }
+  }
+
+  useEffect(() => {
+    if (mutation.isSuccess) {
+      router.replace("/manage");
+    }
+  }, [router, mutation.isSuccess]);
+
+  return (
+    <>
+      <Button colorScheme="blue" w="100%" onClick={onRepay}>
+        Repay Loan
+      </Button>
+      <RepayDialog
+        open={dialog}
+        loading={mutation.isLoading}
+        amount={amount}
+        basisPoints={basisPoints}
+        duration={duration}
+        startDate={startDate}
+        onRequestClose={() => setDialog(false)}
+        onConfirm={() =>
+          mutation.mutate({
+            mint,
+            lender,
+          })
+        }
+      />
+    </>
+  );
+};
+
+interface RepossessButtonProps {
+  mint: anchor.web3.PublicKey;
+}
+
+const RepossessButton: React.FC<RepossessButtonProps> = ({ mint }) => {
+  const [dialog, setDialog] = useState(false);
+  const mutation = useRepossessMutation(() => setDialog(false));
+  const anchorWallet = useAnchorWallet();
+  const { setVisible } = useWalletModal();
+
+  async function onRepossess() {
+    if (anchorWallet) {
+      setDialog(true);
+    } else {
+      setVisible(true);
+    }
+  }
+
+  return (
+    <>
+      <Button colorScheme="red" w="100%" onClick={onRepossess}>
+        Repossess NFT
+      </Button>
+      <RepossessDialog
+        open={dialog}
+        loading={mutation.isLoading}
+        onRequestClose={() => setDialog(false)}
+        onConfirm={() =>
+          mutation.mutate({
+            mint,
+          })
+        }
+      />
+    </>
   );
 };
 

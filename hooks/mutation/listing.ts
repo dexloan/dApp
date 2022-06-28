@@ -7,36 +7,34 @@ import * as anchor from "@project-serum/anchor";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
+import * as actions from "../../common/actions";
 import { ListingResult, ListingState } from "../../common/types";
-import { listing, getOrCreateTokenAccount } from "../../common/actions";
 import {
-  getBorrowingsQueryKey,
   getListingQueryKey,
   getListingsQueryKey,
-  getPersonalLoansQueryKey,
-} from "../query/listing";
-import { findLoanAddress } from "../../common/query/loan";
+  getPersonalListingsQueryKey,
+} from "../query";
 
-interface CancelMutationProps {
+interface CloseListingProps {
   mint: anchor.web3.PublicKey;
 }
 
-export const useCancelMutation = (onSuccess: () => void) => {
+export const useCloseListingMutation = (onSuccess: () => void) => {
   const { connection } = useConnection();
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, CancelMutationProps>(
+  return useMutation<void, Error, CloseListingProps>(
     async ({ mint }) => {
       if (anchorWallet) {
-        const borrowerTokenAccount = await getOrCreateTokenAccount(
+        const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
           mint
         );
 
-        return listing.cancelListing(
+        return actions.cancelListing(
           connection,
           anchorWallet,
           mint,
@@ -65,7 +63,7 @@ export const useCancelMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData(
-          getBorrowingsQueryKey(anchorWallet?.publicKey),
+          getPersonalListingsQueryKey(anchorWallet?.publicKey),
           (listings: ListingResult[] | undefined) => {
             if (!listings) return [];
 
