@@ -129,12 +129,13 @@ export async function repossessCollateral(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
+  borrower: anchor.web3.PublicKey,
   lenderTokenAccount: anchor.web3.PublicKey
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await findLoanAddress(mint, wallet.publicKey);
+  const loanAccount = await findLoanAddress(mint, borrower);
   const escrowAccount = await findEscrowAddress(mint);
 
   await program.methods

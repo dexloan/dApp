@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { AnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
 
 import * as query from "../../common/query";
@@ -8,10 +8,9 @@ export const getLoanQueryKey = (
   loanAddress: anchor.web3.PublicKey | undefined
 ) => ["loan", loanAddress?.toBase58()];
 
-export function useLoanQuery(
-  connection: anchor.web3.Connection,
-  loanAddress: anchor.web3.PublicKey | undefined
-) {
+export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
+  const { connection } = useConnection();
+
   return useQuery(
     getLoanQueryKey(loanAddress),
     () => {

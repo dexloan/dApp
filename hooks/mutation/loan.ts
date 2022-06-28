@@ -215,6 +215,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
 
 interface RepossessProps {
   mint: anchor.web3.PublicKey;
+  borrower: anchor.web3.PublicKey;
 }
 
 export const useRepossessMutation = (onSuccess: () => void) => {
@@ -224,7 +225,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, RepossessProps>(
-    async ({ mint }) => {
+    async ({ mint, borrower }) => {
       if (anchorWallet && wallet.publicKey) {
         const lenderTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
@@ -236,6 +237,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           mint,
+          borrower,
           lenderTokenAccount
         );
       }
@@ -270,7 +272,8 @@ export const useRepossessMutation = (onSuccess: () => void) => {
   );
 };
 
-interface RepayLoanProps extends RepossessProps {
+interface RepayLoanProps {
+  mint: anchor.web3.PublicKey;
   lender: anchor.web3.PublicKey;
 }
 
