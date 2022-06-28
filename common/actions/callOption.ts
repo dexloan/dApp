@@ -2,8 +2,8 @@ import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
+import * as query from "../query";
 import { getProgram, getProvider } from "../provider";
-import { callOption, findEscrowAddress } from "../query";
 
 export async function initCallOption(
   connection: anchor.web3.Connection,
@@ -23,11 +23,11 @@ export async function initCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const callOptionAccount = await callOption.findCallOptionAddress(
+  const callOptionAccount = await query.findCallOptionAddress(
     mint,
     wallet.publicKey
   );
-  const escrowAccount = await findEscrowAddress(mint);
+  const escrowAccount = await query.findEscrowAddress(mint);
 
   await program.methods
     .initCallOption(amount, strikePrice, expiry)
@@ -54,18 +54,20 @@ export async function buyCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const escrowAccount = await findEscrowAddress(mint);
-  const callOptionAccount = await callOption.findCallOptionAddress(
+  const escrowAccount = await query.findEscrowAddress(mint);
+  const callOptionAccount = await query.findCallOptionAddress(
     mint,
     wallet.publicKey
   );
+  const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
+    .value[0].address;
 
   await program.methods
     .buyCallOption()
     .accounts({
       escrowAccount,
       callOptionAccount,
-      depositTokenAccount, // Find account
+      depositTokenAccount,
       mint,
       seller,
       buyer: wallet.publicKey,
@@ -86,11 +88,11 @@ export async function exerciseCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const callOptionAccount = await callOption.findCallOptionAddress(
+  const callOptionAccount = await query.findCallOptionAddress(
     mint,
     wallet.publicKey
   );
-  const escrowAccount = await findEscrowAddress(mint);
+  const escrowAccount = await query.findEscrowAddress(mint);
 
   await program.methods
     .exerciseCallOption()
@@ -118,11 +120,11 @@ export async function closeCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const callOptionAccount = await callOption.findCallOptionAddress(
+  const callOptionAccount = await query.findCallOptionAddress(
     mint,
     wallet.publicKey
   );
-  const escrowAccount = await findEscrowAddress(mint);
+  const escrowAccount = await query.findEscrowAddress(mint);
 
   await program.methods
     .closeCallOption()

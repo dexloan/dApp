@@ -1,22 +1,23 @@
 import * as anchor from "@project-serum/anchor";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
 
-import { callOption } from "../../common/query";
+import * as query from "../../common/query";
 
 export const getCallOptionQueryKey = (
   callOptionAddress: anchor.web3.PublicKey | undefined
 ) => ["callOption", callOptionAddress?.toBase58()];
 
 export function useCallOptionQuery(
-  connection: anchor.web3.Connection,
   callOptionAddress: anchor.web3.PublicKey | undefined
 ) {
+  const { connection } = useConnection();
+
   return useQuery(
     getCallOptionQueryKey(callOptionAddress),
     () => {
       if (callOptionAddress)
-        return callOption.fetchCallOption(connection, callOptionAddress);
+        return query.fetchCallOption(connection, callOptionAddress);
     },
     { enabled: Boolean(callOptionAddress) }
   );
@@ -24,11 +25,13 @@ export function useCallOptionQuery(
 
 export const getCallOptionsQueryKey = () => ["callOptions"];
 
-export function useCallOptionsQuery(connection: anchor.web3.Connection) {
+export function useCallOptionsQuery() {
+  const { connection } = useConnection();
+
   return useQuery(
     getCallOptionsQueryKey(),
     () => {
-      return callOption.fetchMultipleCallOptions(connection);
+      return query.fetchMultipleCallOptions(connection);
     },
     {
       refetchOnWindowFocus: false,
@@ -40,27 +43,27 @@ export const getSellerCallOptionsQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["sellerCallOptions", walletAddress?.toBase58()];
 
-export function useSellerCallOptionsQuery(
-  connection: anchor.web3.Connection,
-  wallet?: AnchorWallet
-) {
+export function useSellerCallOptionsQuery() {
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+
   return useQuery(
-    getSellerCallOptionsQueryKey(wallet?.publicKey),
+    getSellerCallOptionsQueryKey(anchorWallet?.publicKey),
     () => {
-      if (wallet) {
-        return callOption.fetchMultipleCallOptions(connection, [
+      if (anchorWallet) {
+        return query.fetchMultipleCallOptions(connection, [
           {
             memcmp: {
               // filter seller
               offset: 8 + 8 + 1,
-              bytes: wallet.publicKey.toBase58(),
+              bytes: anchorWallet.publicKey.toBase58(),
             },
           },
         ]);
       }
     },
     {
-      enabled: Boolean(wallet),
+      enabled: Boolean(anchorWallet?.publicKey),
       refetchOnWindowFocus: false,
     }
   );
@@ -70,27 +73,27 @@ export const getBuyerCallOptionsQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["buyerCallOptions", walletAddress?.toBase58()];
 
-export function usePersonalLoansQuery(
-  connection: anchor.web3.Connection,
-  wallet?: AnchorWallet
-) {
+export function useBuyerCallOptionsQuery() {
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+
   return useQuery(
-    getBuyerCallOptionsQueryKey(wallet?.publicKey),
+    getBuyerCallOptionsQueryKey(anchorWallet?.publicKey),
     () => {
-      if (wallet) {
-        return callOption.fetchMultipleCallOptions(connection, [
+      if (anchorWallet) {
+        return query.fetchMultipleCallOptions(connection, [
           {
             memcmp: {
               // filter lender
               offset: 8 + 8 + 32 + 1,
-              bytes: wallet?.publicKey.toBase58(),
+              bytes: anchorWallet?.publicKey.toBase58(),
             },
           },
         ]);
       }
     },
     {
-      enabled: Boolean(wallet?.publicKey),
+      enabled: Boolean(anchorWallet?.publicKey),
       refetchOnWindowFocus: false,
     }
   );

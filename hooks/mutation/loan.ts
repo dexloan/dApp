@@ -7,16 +7,16 @@ import * as anchor from "@project-serum/anchor";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
+import * as actions from "../../common/actions";
+import * as query from "../../common/query";
 import { NFTResult, LoanResult } from "../../common/types";
 import { LoanState } from "../../common/constants";
-import { loan, getOrCreateTokenAccount } from "../../common/actions";
 import {
   getBorrowingsQueryKey,
   getLoanQueryKey,
   getLoansQueryKey,
   getPersonalLoansQueryKey,
 } from "../query/loan";
-import { findLoanAddress } from "../../common/query/loan";
 
 interface InitLoanMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -36,7 +36,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
   return useMutation(
     (variables: InitLoanMutationVariables) => {
       if (anchorWallet) {
-        return loan.initLoan(
+        return actions.initLoan(
           connection,
           anchorWallet,
           variables.mint,
@@ -88,13 +88,13 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
   return useMutation<void, Error, GiveLoanMutationProps>(
     async ({ mint, borrower }) => {
       if (anchorWallet) {
-        return loan.giveLoan(connection, anchorWallet, mint, borrower);
+        return actions.giveLoan(connection, anchorWallet, mint, borrower);
       }
       throw new Error("Not ready");
     },
     {
       async onSuccess(_, variables) {
-        const loanAddress = await findLoanAddress(
+        const loanAddress = await query.findLoanAddress(
           variables.mint,
           variables.borrower
         );
@@ -158,13 +158,13 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
   return useMutation<void, Error, CloseMutationVariables>(
     async ({ mint }) => {
       if (anchorWallet) {
-        const borrowerTokenAccount = await getOrCreateTokenAccount(
+        const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
           mint
         );
 
-        return loan.closeLoan(
+        return actions.closeLoan(
           connection,
           anchorWallet,
           mint,
@@ -226,13 +226,13 @@ export const useRepossessMutation = (onSuccess: () => void) => {
   return useMutation<void, Error, RepossessMutationProps>(
     async ({ mint }) => {
       if (anchorWallet && wallet.publicKey) {
-        const lenderTokenAccount = await getOrCreateTokenAccount(
+        const lenderTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
           mint
         );
 
-        return loan.repossessCollateral(
+        return actions.repossessCollateral(
           connection,
           anchorWallet,
           mint,
@@ -283,13 +283,13 @@ export const useRepaymentMutation = (onSuccess: () => void) => {
   return useMutation<void, Error, RepaymentMutationProps>(
     async ({ mint, lender }) => {
       if (anchorWallet) {
-        const borrowerTokenAccount = await getOrCreateTokenAccount(
+        const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
           mint
         );
 
-        return loan.repayLoan(
+        return actions.repayLoan(
           connection,
           anchorWallet,
           mint,

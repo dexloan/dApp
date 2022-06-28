@@ -7,11 +7,16 @@ import * as anchor from "@project-serum/anchor";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
+import * as actions from "../../common/actions";
 import { NFTResult, CallOptionResult } from "../../common/types";
 import { CallOptionState } from "../../common/constants";
-import { callOption } from "../../common/actions";
 import { findCallOptionAddress } from "../../common/query/callOption";
-import { getCallOptionQueryKey } from "../query/callOption";
+import {
+  getCallOptionQueryKey,
+  getCallOptionsQueryKey,
+  getBuyerCallOptionsQueryKey,
+  getSellerCallOptionsQueryKey,
+} from "../query/callOption";
 
 interface InitCallOptionMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -31,7 +36,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
   return useMutation(
     (variables: InitCallOptionMutationVariables) => {
       if (anchorWallet) {
-        return callOption.initCallOption(
+        return actions.initCallOption(
           connection,
           anchorWallet,
           variables.mint,
@@ -70,12 +75,80 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
   );
 };
 
+interface CloseCallOptionVariables {
+  mint: anchor.web3.PublicKey;
+}
+
+export const useCloseCallOptionMutation = (onSuccess: () => void) => {
+  const wallet = useWallet();
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, CloseCallOptionVariables>(
+    async ({ mint }) => {
+      if (anchorWallet) {
+        const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
+          connection,
+          wallet,
+          mint
+        );
+
+        return actions.closeCallOption(
+          connection,
+          anchorWallet,
+          mint,
+          borrowerTokenAccount
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onSuccess(_, variables) {
+        queryClient.setQueryData<CallOptionResult[] | undefined>(
+          getSellerCallOptionsQueryKey(anchorWallet?.publicKey),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) =>
+                  item.data.mint.toBase58() !== variables.mint.toBase58()
+              );
+            }
+          }
+        );
+
+        queryClient.setQueryData<CallOptionResult[] | undefined>(
+          getCallOptionsQueryKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) =>
+                  item.data.mint.toBase58() !== variables.mint.toBase58()
+              );
+            }
+          }
+        );
+
+        toast.success("Call option closed");
+
+        onSuccess();
+      },
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+    }
+  );
+};
+
 interface BuyCallOptionVariables {
   mint: anchor.web3.PublicKey;
   seller: anchor.web3.PublicKey;
 }
 
-export const useGiveLoanMutation = (onSuccess: () => void) => {
+export const useBuyCallOptionMutation = (onSuccess: () => void) => {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
@@ -83,19 +156,19 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
   return useMutation<void, Error, BuyCallOptionVariables>(
     async ({ mint, seller }) => {
       if (anchorWallet) {
-        return callOption.buyCallOption(connection, anchorWallet, mint, seller);
+        return actions.buyCallOption(connection, anchorWallet, mint, seller);
       }
       throw new Error("Not ready");
     },
     {
       async onSuccess(_, variables) {
-        const loanAddress = await findCallOptionAddress(
+        const callOptionAddress = await findCallOptionAddress(
           variables.mint,
-          variables.borrower
+          variables.seller
         );
 
-        queryClient.setQueryData<LoanResult[] | undefined>(
-          getLoansQueryKey(),
+        queryClient.setQueryData<CallOptionResult[] | undefined>(
+          getCallOptionsQueryKey(),
           (data) => {
             if (data) {
               return data?.filter(
@@ -107,26 +180,26 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.invalidateQueries(
-          getPersonalLoansQueryKey(anchorWallet?.publicKey)
+          getBuyerCallOptionsQueryKey(anchorWallet?.publicKey)
         );
 
-        queryClient.setQueryData<LoanResult | undefined>(
-          getLoanQueryKey(loanAddress),
+        queryClient.setQueryData<CallOptionResult | undefined>(
+          getCallOptionQueryKey(callOptionAddress),
           (item) => {
             if (item) {
               return {
                 ...item,
                 listing: {
                   ...item.data,
-                  state: LoanState.Active,
-                  startDate: new anchor.BN(Date.now() / 1000),
+                  state: CallOptionState.Active,
+                  buyer: anchorWallet?.publicKey,
                 },
               };
             }
           }
         );
 
-        toast.success("Loan created");
+        toast.success("Call option bought");
 
         onSuccess();
       },
@@ -135,6 +208,69 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
         if (err instanceof Error) {
           toast.error("Error: " + err.message);
         }
+      },
+    }
+  );
+};
+
+interface ExerciseCallOptionVariables {
+  mint: anchor.web3.PublicKey;
+  seller: anchor.web3.PublicKey;
+}
+
+export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
+  const wallet = useWallet();
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, ExerciseCallOptionVariables>(
+    async ({ mint, seller }) => {
+      if (anchorWallet && wallet.publicKey) {
+        const buyerTokenAccount = await actions.getOrCreateTokenAccount(
+          connection,
+          wallet,
+          mint
+        );
+
+        return actions.exerciseCallOption(
+          connection,
+          anchorWallet,
+          mint,
+          buyerTokenAccount,
+          seller
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+      onSuccess(_, variables) {
+        queryClient.setQueryData(
+          getBuyerCallOptionsQueryKey(anchorWallet?.publicKey),
+          (items: CallOptionResult[] | undefined) => {
+            if (!items) return [];
+
+            return items.filter(
+              (item) => item.data.mint.toBase58() !== variables.mint.toBase58()
+            );
+          }
+        );
+
+        setCallOptionState(
+          queryClient,
+          variables.mint,
+          CallOptionState.Exercised
+        );
+
+        toast.success("Option exercised");
+
+        onSuccess();
       },
     }
   );

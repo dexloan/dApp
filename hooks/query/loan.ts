@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
 
-import { loan } from "../../common/query";
+import * as query from "../../common/query";
 
 export const getLoanQueryKey = (
   loanAddress: anchor.web3.PublicKey | undefined
@@ -15,7 +15,7 @@ export function useLoanQuery(
   return useQuery(
     getLoanQueryKey(loanAddress),
     () => {
-      if (loanAddress) return loan.fetchLoan(connection, loanAddress);
+      if (loanAddress) return query.fetchLoan(connection, loanAddress);
     },
     { enabled: Boolean(loanAddress) }
   );
@@ -26,7 +26,7 @@ export const getLoansQueryKey = () => ["loans"];
 export function useLoansQuery(connection: anchor.web3.Connection) {
   return useQuery(
     getLoansQueryKey(),
-    () => loan.fetchMultipleLoans(connection),
+    () => query.fetchMultipleLoans(connection),
     {
       refetchOnWindowFocus: false,
     }
@@ -45,7 +45,7 @@ export function useBorrowingsQuery(
     getBorrowingsQueryKey(wallet?.publicKey),
     () => {
       if (wallet) {
-        return loan.fetchMultipleLoans(connection, [
+        return query.fetchMultipleLoans(connection, [
           {
             memcmp: {
               // filter borrower
@@ -75,7 +75,7 @@ export function usePersonalLoansQuery(
     getPersonalLoansQueryKey(wallet?.publicKey),
     () => {
       if (wallet) {
-        return loan.fetchMultipleLoans(connection, [
+        return query.fetchMultipleLoans(connection, [
           {
             memcmp: {
               // filter lender
