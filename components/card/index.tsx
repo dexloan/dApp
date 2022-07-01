@@ -37,10 +37,10 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       tabIndex={1}
       ref={containerRef}
       _focus={{
-        boxShadow: "lg",
+        boxShadow: href || onClick ? "lg" : undefined,
       }}
       _hover={{
-        boxShadow: "md",
+        boxShadow: href || onClick ? "md" : undefined,
       }}
       transition="box-shadow 0.2s ease-in"
       onClick={onClick}

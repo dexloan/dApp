@@ -10,11 +10,16 @@ import {
   Flex,
   Heading,
   Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Spinner,
   Text,
 } from "@chakra-ui/react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
+import { IoChevronDown } from "react-icons/io5";
 import * as utils from "../utils";
 import {
   ListingState,
@@ -46,7 +51,7 @@ const Manage: NextPage = () => {
         return <Loans />;
 
       default:
-        return <Borrow />;
+        return <MyItems />;
     }
   }
 
@@ -59,7 +64,7 @@ const Manage: NextPage = () => {
             colorScheme={router.query.tab === undefined ? "green" : undefined}
             cursor="pointer"
           >
-            Borrow
+            My Items
           </Button>
         </NextLink>
         <NextLink href="/manage?tab=listed">
@@ -78,6 +83,15 @@ const Manage: NextPage = () => {
             cursor="pointer"
           >
             Loans
+          </Button>
+        </NextLink>
+        <NextLink href="/manage?tab=call_options">
+          <Button
+            as="a"
+            colorScheme={router.query.tab === "loans" ? "green" : undefined}
+            cursor="pointer"
+          >
+            Call Options
           </Button>
         </NextLink>
       </ButtonGroup>
@@ -318,10 +332,11 @@ const Listings = () => {
   );
 };
 
-const Borrow = () => {
+const MyItems = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
+  const [type, setType] = useState<"loan" | "callOption">("loan");
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
   const collections = useMemo(() => {
@@ -363,7 +378,10 @@ const Borrow = () => {
             <Collection
               key={collection.symbol}
               collection={collection}
-              onSelectItem={setSelected}
+              onSelectItem={(item, type) => {
+                setSelected(item);
+                setType(type);
+              }}
             />
           );
         })
@@ -374,13 +392,13 @@ const Borrow = () => {
         </Box>
       )}
 
-      {/* <InitLoanModal
-        selected={selected}
+      <InitLoanModal
+        selected={selected && type === "loan" ? selected : null}
         onRequestClose={() => setSelected(null)}
-      /> */}
+      />
 
       <InitCallOptionModal
-        selected={selected}
+        selected={selected && type === "callOption" ? selected : null}
         onRequestClose={() => setSelected(null)}
       />
     </>
@@ -389,7 +407,7 @@ const Borrow = () => {
 
 interface CollectionProps {
   collection: Collection;
-  onSelectItem: (item: NFTResult) => void;
+  onSelectItem: (item: NFTResult, type: "loan" | "callOption") => void;
 }
 
 const Collection = ({ collection, onSelectItem }: CollectionProps) => {
@@ -398,31 +416,45 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
   const renderItem = useCallback(
     (item: NFTResult) => {
       return (
-        item?.metadata.data.uri &&
-        item?.metadata.data.name && (
-          <Card
-            key={item?.tokenAccount.pubkey.toBase58()}
-            uri={item?.metadata.data.uri}
-            imageAlt={item?.metadata.data.name}
-            onClick={() => onSelectItem(item)}
-          >
-            <Box p="4" pb="6">
-              <Box
-                mt="1"
-                fontWeight="semibold"
-                as="h4"
-                textAlign="left"
-                isTruncated
-              >
-                {item?.metadata.data.name}
-              </Box>
-              <VerifiedCollection
-                size="xs"
-                symbol={item?.metadata.data.symbol}
-              />
+        <Card
+          key={item?.tokenAccount.pubkey.toBase58()}
+          uri={item?.metadata.data.uri}
+          imageAlt={item?.metadata.data.name}
+        >
+          <Box p="4" pb="6">
+            <Box
+              mt="1"
+              fontWeight="semibold"
+              as="h4"
+              textAlign="left"
+              isTruncated
+            >
+              {item?.metadata.data.name}
             </Box>
-          </Card>
-        )
+            <VerifiedCollection size="xs" symbol={item?.metadata.data.symbol} />
+          </Box>
+          <Box m="2">
+            <Menu isLazy>
+              <MenuButton
+                as={Button}
+                rightIcon={<IoChevronDown />}
+                width="100%"
+                textAlign="left"
+                colorScheme="green"
+              >
+                List Item
+              </MenuButton>
+              <MenuList>
+                <MenuItem onClick={() => onSelectItem(item, "loan")}>
+                  Borrow Against
+                </MenuItem>
+                <MenuItem onClick={() => onSelectItem(item, "callOption")}>
+                  Sell Call Option
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </Box>
+        </Card>
       );
     },
     [onSelectItem]
