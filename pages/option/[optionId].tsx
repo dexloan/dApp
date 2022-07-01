@@ -29,7 +29,12 @@ import {
   useCloseCallOptionMutation,
   useExerciseCallOptionMutation,
 } from "../../hooks/mutation";
-import { CancelDialog, LoanDialog, RepayDialog } from "../../components/dialog";
+import {
+  CancelDialog,
+  BuyCallOptionDialog,
+  ExerciseDialog,
+  CloseCallOptionDialog,
+} from "../../components/dialog";
 import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
@@ -196,26 +201,26 @@ const CallOptionLayout = () => {
     callOption.buyer.toBase58() === anchorWallet?.publicKey.toBase58();
 
   function renderActiveButton() {
-    if (!hasExpired && callOption && isBuyer) {
-      return <ExerciseOption callOption={callOption} />;
+    if (!hasExpired && callOptionQueryResult.data && isBuyer) {
+      return <ExerciseButton callOption={callOptionQueryResult.data} />;
     }
 
     return null;
   }
 
   function renderListedButton() {
-    if (callOption && isSeller) {
-      return <CancelButton callOption={callOption} />;
-    } else if (callOption) {
-      return <BuyButton callOption={callOption} />;
+    if (callOptionQueryResult.data && isSeller) {
+      return <CloseButton callOption={callOptionQueryResult.data} />;
+    } else if (callOptionQueryResult.data) {
+      return <BuyButton callOption={callOptionQueryResult.data} />;
     }
     return null;
   }
 
   function renderCloseAccountButton() {
-    if (callOption && isSeller) {
+    if (callOptionQueryResult.data && isSeller) {
       // TODO is this needed?
-      return <CloseAccountButton callOption={callOption} />;
+      return <CloseButton callOption={callOptionQueryResult.data} />;
     }
 
     return null;
@@ -394,20 +399,12 @@ const BuyButton = ({ callOption }: BuyButtonProps) => {
       <Button colorScheme="green" w="100%" onClick={onLend}>
         Lend SOL
       </Button>
-      <LoanDialog
+      <BuyCallOptionDialog
         open={open}
         loading={mutation.isLoading}
-        amount={amount}
-        duration={duration}
-        basisPoints={basisPoints}
+        callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() =>
-          mutation.mutate({
-            mint,
-            borrower,
-            listing,
-          })
-        }
+        onConfirm={() => mutation.mutate(callOption.data)}
       />
     </>
   );
@@ -436,11 +433,12 @@ const CloseButton = ({ callOption }: CloseButtonProps) => {
       <Button colorScheme="blue" w="100%" onClick={onCancel}>
         Close Option
       </Button>
-      <CancelDialog
+      <CloseCallOptionDialog
         open={dialog}
         loading={mutation.isLoading}
+        callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate({ mint, escrow, listing })}
+        onConfirm={() => mutation.mutate(callOption.data)}
       />
     </>
   );
@@ -476,20 +474,12 @@ const ExerciseButton = ({ callOption }: ExerciseButtonProps) => {
       <Button colorScheme="blue" w="100%" onClick={onRepay}>
         Exercise Call Option
       </Button>
-      <RepayDialog
+      <ExerciseDialog
         open={dialog}
         loading={mutation.isLoading}
-        amount={amount}
-        basisPoints={basisPoints}
-        duration={duration}
-        startDate={startDate}
+        callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() =>
-          mutation.mutate({
-            mint,
-            lender,
-          })
-        }
+        onConfirm={() => mutation.mutate(callOption.data)}
       />
     </>
   );

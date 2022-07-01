@@ -27,16 +27,16 @@ const Home: NextPage = () => {
           {listingsQuery.data?.map((item) => {
             if (
               item?.publicKey &&
-              item?.listing.basisPoints &&
+              item?.data.basisPoints &&
               item?.metadata.data.uri &&
               item?.metadata.data.name
             ) {
               return (
                 <ListedCard
                   key={item?.publicKey.toBase58()}
-                  amount={item?.listing.amount}
-                  basisPoints={item?.listing.basisPoints}
-                  duration={item?.listing.duration}
+                  amount={item?.data.amount}
+                  basisPoints={item?.data.basisPoints}
+                  duration={item?.data.duration}
                   uri={item?.metadata.data.uri}
                   name={item?.metadata.data.name}
                   symbol={item?.metadata.data.symbol}

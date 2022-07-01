@@ -11,7 +11,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import * as utils from "../../utils";
-import { start } from "repl";
+import { CallOptionResult } from "../../common/types";
 
 interface MutationDialogProps {
   open: boolean;
@@ -212,6 +212,87 @@ export const CloseAccountDialog: React.FC<
       loading={loading}
       header={"Close listing account"}
       content={<Text>Close listing account to recover rent?</Text>}
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+interface CallOptionDialogProps
+  extends Pick<
+    MutationDialogProps,
+    "open" | "loading" | "onConfirm" | "onRequestClose"
+  > {
+  callOption: CallOptionResult;
+}
+
+export const BuyCallOptionDialog = ({
+  callOption,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: CallOptionDialogProps) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header={"Buy call option"}
+      content={
+        <Text>
+          Purchase option to buy ${callOption.metadata.data.name} at strike
+          price of {utils.formatAmount(callOption.data.strikePrice)}, expiring $
+          {callOption.data.expiry}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+export const ExerciseDialog = ({
+  callOption,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: CallOptionDialogProps) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header={"Exercise call option"}
+      content={
+        <Text>
+          Exercise option to buy ${callOption.metadata.data.name} for $
+          {utils.formatAmount(callOption.data.strikePrice)}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+export const CloseCallOptionDialog = ({
+  callOption,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: CallOptionDialogProps) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header={"Exercise call option"}
+      content={
+        <Text>
+          Close call option listing$
+          {callOption.data.buyer ? " and recover NFT from escrow" : ""}?
+        </Text>
+      }
       onConfirm={onConfirm}
       onRequestClose={onRequestClose}
     />
