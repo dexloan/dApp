@@ -8,6 +8,7 @@ import {
   fetchMetadataAccounts,
   assertMintIsWhitelisted,
 } from "./common";
+import { CallOption } from "../model";
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,
@@ -23,28 +24,24 @@ export async function findCallOptionAddress(
 
 export async function fetchCallOption(
   connection: anchor.web3.Connection,
-  callOption: anchor.web3.PublicKey
-): Promise<CallOptionResult> {
+  address: anchor.web3.PublicKey
+): Promise<CallOption> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
-  const callOptionAccount = await program.account.callOption.fetch(callOption);
+  const callOptionAccount = await program.account.callOption.fetch(address);
 
   assertMintIsWhitelisted(callOptionAccount.mint);
 
   const metadata = await fetchMetadata(connection, callOptionAccount.mint);
 
-  return {
-    metadata,
-    publicKey: callOption,
-    data: callOptionAccount,
-  };
+  return new CallOption(callOptionAccount, metadata, address);
 }
 
 export async function fetchMultipleCallOptions(
   connection: anchor.web3.Connection,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
-): Promise<CallOptionResult[]> {
+): Promise<CallOption[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const listings = await program.account.loan
@@ -61,14 +58,14 @@ export async function fetchMultipleCallOptions(
     const metadataAccount = metadataAccounts[index];
 
     if (metadataAccount) {
-      return {
-        metadata: metadataAccount,
-        publicKey: listing.publicKey,
-        data: listing.account,
-      };
+      return new CallOption(
+        listing.account,
+        metadataAccount,
+        listing.publicKey
+      );
     }
     return null;
   });
 
-  return combinedAccounts.filter(Boolean) as CallOptionResult[];
+  return combinedAccounts.filter(Boolean) as CallOption[];
 }

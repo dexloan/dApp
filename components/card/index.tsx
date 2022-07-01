@@ -2,8 +2,9 @@ import * as anchor from "@project-serum/anchor";
 import { Badge, Box, Flex, Skeleton, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import * as utils from "../../utils";
+import { CallOption } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
 
@@ -89,7 +90,7 @@ export const CardList = ({ children }: CardListProps) => {
   );
 };
 
-interface ListedCardProps {
+interface LoanCardProps {
   amount: anchor.BN;
   basisPoints: number;
   duration: anchor.BN;
@@ -99,7 +100,7 @@ interface ListedCardProps {
   listing: anchor.web3.PublicKey;
 }
 
-export const ListedCard = ({
+export const LoanCard = ({
   amount,
   basisPoints,
   duration,
@@ -107,7 +108,7 @@ export const ListedCard = ({
   symbol,
   uri,
   listing,
-}: ListedCardProps) => {
+}: LoanCardProps) => {
   const floorPriceQuery = useFloorPriceQuery(symbol);
   const floorPrice = floorPriceQuery.data
     ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
@@ -148,6 +149,55 @@ export const ListedCard = ({
         <Text fontSize="xs" fontWeight="medium">
           Floor Price {floorPrice ?? <EllipsisProgress />}
         </Text>
+      </Box>
+    </Card>
+  );
+};
+
+interface CallOptionCardProps {
+  callOption: CallOption;
+}
+
+export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
+  return (
+    <Card
+      href={`/option/${callOption.address}`}
+      uri={callOption.metadata.data.uri}
+      imageAlt={callOption.metadata.data.name}
+    >
+      <Box p="4">
+        <Box display="flex" alignItems="baseline">
+          <Badge borderRadius="full" px="2" colorScheme="teal">
+            {callOption.strikePrice}
+          </Badge>
+          <Box
+            color="gray.500"
+            fontWeight="semibold"
+            letterSpacing="wide"
+            fontSize="xs"
+            textTransform="uppercase"
+            ml="2"
+          >
+            {callOption.expiry}
+          </Box>
+        </Box>
+        <Box
+          mt="1"
+          fontWeight="semibold"
+          as="h4"
+          lineHeight="tight"
+          isTruncated
+        >
+          {callOption.metadata.data.name}
+        </Box>
+      </Box>
+      <Box p="4" bgColor="blue.50">
+        <Box fontWeight="bold" as="h3">
+          {callOption.strikePrice}{" "}
+        </Box>
+        {/* <Text fontSize="xs" fontWeight="medium">
+          Floor Price {floorPrice ?? <EllipsisProgress />}
+        </Text> */}
       </Box>
     </Card>
   );

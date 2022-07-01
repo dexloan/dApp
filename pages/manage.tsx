@@ -33,8 +33,11 @@ import {
   useNFTByOwnerQuery,
   useFloorPriceQuery,
   usePersonalLoansQuery,
+  useCallOptionsQuery,
+  useBuyerCallOptionsQuery,
+  useSellerCallOptionsQuery,
 } from "../hooks/query";
-import { Card, CardList, ListedCard } from "../components/card";
+import { Card, CardList, LoanCard } from "../components/card";
 import { VerifiedCollection } from "../components/collection";
 import { InitCallOptionModal, InitLoanModal } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
@@ -163,7 +166,53 @@ const Loans = () => {
           {activeLoans?.map(
             (item) =>
               item && (
-                <ListedCard
+                <LoanCard
+                  key={item.publicKey.toBase58()}
+                  listing={item.publicKey}
+                  amount={item.data.amount}
+                  basisPoints={item.data.basisPoints}
+                  duration={item.data.duration}
+                  uri={item.metadata.data.uri}
+                  name={item.metadata.data.name}
+                  symbol={item.metadata.data.symbol}
+                />
+              )
+          )}
+        </CardList>
+      ) : (
+        <Box>
+          <Text>
+            Why not check out our{" "}
+            <NextLink href="/#listings" scroll={false}>
+              <Link color="green.600" fontWeight="semibold">
+                current listings
+              </Link>
+            </NextLink>{" "}
+            to start lending?
+          </Text>
+        </Box>
+      )}
+    </>
+  );
+};
+
+const CallOptions = () => {
+  const buyerQueryResult = useBuyerCallOptionsQuery();
+  const sellerQueryResult = useSellerCallOptionsQuery();
+
+  if (buyerQueryResult.isLoading || sellerQueryResult.isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <>
+      <SectionHeader title="Your Call Options" />
+      {buyerQueryResult.data?.length ? (
+        <CardList>
+          {buyerQueryResult.data?.map(
+            (item) =>
+              item && (
+                <LoanCard
                   key={item.publicKey.toBase58()}
                   listing={item.publicKey}
                   amount={item.data.amount}
@@ -267,7 +316,7 @@ const Listings = () => {
             {activeBorrowings?.map(
               (item) =>
                 item && (
-                  <ListedCard
+                  <LoanCard
                     key={item.publicKey.toBase58()}
                     listing={item.publicKey}
                     amount={item.data.amount}
@@ -290,7 +339,7 @@ const Listings = () => {
             {listedBorrowings?.map(
               (item) =>
                 item && (
-                  <ListedCard
+                  <LoanCard
                     key={item.publicKey.toBase58()}
                     listing={item.publicKey}
                     amount={item.data.amount}
@@ -313,7 +362,7 @@ const Listings = () => {
             {completedBorrowings?.map(
               (item) =>
                 item && (
-                  <ListedCard
+                  <LoanCard
                     key={item.publicKey.toBase58()}
                     listing={item.publicKey}
                     amount={item.data.amount}
