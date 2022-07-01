@@ -27,10 +27,11 @@ import {
   useLoansQuery,
   useNFTByOwnerQuery,
   useFloorPriceQuery,
+  usePersonalLoansQuery,
 } from "../hooks/query";
 import { Card, CardList, ListedCard } from "../components/card";
 import { VerifiedCollection } from "../components/collection";
-import { ListingModal } from "../components/form";
+import { InitCallOptionModal, InitLoanModal } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
 
 const Manage: NextPage = () => {
@@ -111,13 +112,10 @@ const LoadingSpinner = () => (
 );
 
 const Loans = () => {
-  const { connection } = useConnection();
-  const anchorWallet = useAnchorWallet();
-  const loansQuery = useLoansQuery(connection, anchorWallet);
+  const loansQuery = usePersonalLoansQuery();
 
   const activeLoans = useMemo(
-    () =>
-      loansQuery.data?.filter((l) => l?.listing.state === ListingState.Active),
+    () => loansQuery.data?.filter((l) => l?.data.state === ListingState.Active),
     [loansQuery.data]
   );
 
@@ -125,7 +123,7 @@ const Loans = () => {
     () =>
       activeLoans?.reduce((total, item) => {
         if (item) {
-          return total.add(item.listing.amount);
+          return total.add(item.data.amount);
         }
         return total;
       }, new anchor.BN(0)),
@@ -154,9 +152,9 @@ const Loans = () => {
                 <ListedCard
                   key={item.publicKey.toBase58()}
                   listing={item.publicKey}
-                  amount={item.listing.amount}
-                  basisPoints={item.listing.basisPoints}
-                  duration={item.listing.duration}
+                  amount={item.data.amount}
+                  basisPoints={item.data.basisPoints}
+                  duration={item.data.duration}
                   uri={item.metadata.data.uri}
                   name={item.metadata.data.name}
                   symbol={item.metadata.data.symbol}
@@ -189,16 +187,16 @@ const Listings = () => {
   const [activeBorrowings, listedBorrowings, completedBorrowings] = useMemo(
     () => [
       borrowingsQuery.data?.filter(
-        (b) => b?.listing.state === ListingState.Active
+        (b) => b?.data.state === ListingState.Active
       ),
       borrowingsQuery.data?.filter(
-        (b) => b?.listing.state === ListingState.Listed
+        (b) => b?.data.state === ListingState.Listed
       ),
       borrowingsQuery.data?.filter(
         (b) =>
-          b?.listing.state === ListingState.Defaulted ||
-          b?.listing.state === ListingState.Cancelled ||
-          b?.listing.state === ListingState.Repaid
+          b?.data.state === ListingState.Defaulted ||
+          b?.data.state === ListingState.Cancelled ||
+          b?.data.state === ListingState.Repaid
       ),
     ],
     [borrowingsQuery.data]
@@ -208,7 +206,7 @@ const Listings = () => {
     () =>
       activeBorrowings?.reduce((total, item) => {
         if (item) {
-          return total.add(item.listing.amount);
+          return total.add(item.data.amount);
         }
         return total;
       }, new anchor.BN(0)),
@@ -258,9 +256,9 @@ const Listings = () => {
                   <ListedCard
                     key={item.publicKey.toBase58()}
                     listing={item.publicKey}
-                    amount={item.listing.amount}
-                    basisPoints={item.listing.basisPoints}
-                    duration={item.listing.duration}
+                    amount={item.data.amount}
+                    basisPoints={item.data.basisPoints}
+                    duration={item.data.duration}
                     uri={item.metadata.data.uri}
                     name={item.metadata.data.name}
                     symbol={item.metadata.data.symbol}
@@ -281,9 +279,9 @@ const Listings = () => {
                   <ListedCard
                     key={item.publicKey.toBase58()}
                     listing={item.publicKey}
-                    amount={item.listing.amount}
-                    basisPoints={item.listing.basisPoints}
-                    duration={item.listing.duration}
+                    amount={item.data.amount}
+                    basisPoints={item.data.basisPoints}
+                    duration={item.data.duration}
                     uri={item.metadata.data.uri}
                     name={item.metadata.data.name}
                     symbol={item.metadata.data.symbol}
@@ -304,9 +302,9 @@ const Listings = () => {
                   <ListedCard
                     key={item.publicKey.toBase58()}
                     listing={item.publicKey}
-                    amount={item.listing.amount}
-                    basisPoints={item.listing.basisPoints}
-                    duration={item.listing.duration}
+                    amount={item.data.amount}
+                    basisPoints={item.data.basisPoints}
+                    duration={item.data.duration}
                     uri={item.metadata.data.uri}
                     name={item.metadata.data.name}
                     symbol={item.metadata.data.symbol}
@@ -376,7 +374,12 @@ const Borrow = () => {
         </Box>
       )}
 
-      <ListingModal
+      {/* <InitLoanModal
+        selected={selected}
+        onRequestClose={() => setSelected(null)}
+      /> */}
+
+      <InitCallOptionModal
         selected={selected}
         onRequestClose={() => setSelected(null)}
       />

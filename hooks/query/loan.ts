@@ -1,5 +1,9 @@
 import * as anchor from "@project-serum/anchor";
-import { AnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import {
+  AnchorWallet,
+  useAnchorWallet,
+  useConnection,
+} from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
 
 import * as query from "../../common/query";
@@ -22,7 +26,9 @@ export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
 
 export const getLoansQueryKey = () => ["loans"];
 
-export function useLoansQuery(connection: anchor.web3.Connection) {
+export function useLoansQuery() {
+  const { connection } = useConnection();
+
   return useQuery(
     getLoansQueryKey(),
     () => query.fetchMultipleLoans(connection),
@@ -66,27 +72,27 @@ export const getPersonalLoansQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["loans", walletAddress?.toBase58()];
 
-export function usePersonalLoansQuery(
-  connection: anchor.web3.Connection,
-  wallet?: AnchorWallet
-) {
+export function usePersonalLoansQuery() {
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+
   return useQuery(
-    getPersonalLoansQueryKey(wallet?.publicKey),
+    getPersonalLoansQueryKey(anchorWallet?.publicKey),
     () => {
-      if (wallet) {
+      if (anchorWallet) {
         return query.fetchMultipleLoans(connection, [
           {
             memcmp: {
               // filter lender
               offset: 8 + 8 + 32 + 1,
-              bytes: wallet?.publicKey.toBase58(),
+              bytes: anchorWallet?.publicKey.toBase58(),
             },
           },
         ]);
       }
     },
     {
-      enabled: Boolean(wallet?.publicKey),
+      enabled: Boolean(anchorWallet?.publicKey),
       refetchOnWindowFocus: false,
     }
   );
