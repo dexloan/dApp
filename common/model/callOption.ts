@@ -13,7 +13,7 @@ export type CallOptionArgs = {
 
 export type CallOptionPretty = ReturnType<CallOption["pretty"]>;
 
-export class CallOption {
+export class CallOption implements CallOptionArgs {
   constructor(
     public readonly data: CallOptionData,
     public readonly metadata: Metadata,
@@ -26,6 +26,10 @@ export class CallOption {
 
   get expiry() {
     return dayjs.unix(this.data.expiry.toNumber()).format("DD/MM/YYYY");
+  }
+
+  get expired() {
+    return Date.now() / 1000 > this.data.expiry.toNumber();
   }
 
   get cost() {

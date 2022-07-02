@@ -7,7 +7,7 @@ import {
   fetchMetadataAccounts,
   assertMintIsWhitelisted,
 } from "./common";
-import { CallOption } from "../model/callOption";
+import { CallOption, CallOptionPretty } from "../model/callOption";
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,
@@ -24,7 +24,7 @@ export async function findCallOptionAddress(
 export async function fetchCallOption(
   connection: anchor.web3.Connection,
   address: anchor.web3.PublicKey
-): Promise<CallOption> {
+): Promise<CallOptionPretty> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
@@ -34,13 +34,13 @@ export async function fetchCallOption(
 
   const metadata = await fetchMetadata(connection, callOptionAccount.mint);
 
-  return new CallOption(callOptionAccount, metadata, address);
+  return new CallOption(callOptionAccount, metadata, address).pretty();
 }
 
 export async function fetchMultipleCallOptions(
   connection: anchor.web3.Connection,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
-): Promise<CallOption[]> {
+): Promise<CallOptionPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const listings = await program.account.loan
@@ -61,10 +61,10 @@ export async function fetchMultipleCallOptions(
         listing.account,
         metadataAccount,
         listing.publicKey
-      );
+      ).pretty();
     }
     return null;
   });
 
-  return combinedAccounts.filter(Boolean) as CallOption[];
+  return combinedAccounts.filter(Boolean) as CallOptionPretty[];
 }

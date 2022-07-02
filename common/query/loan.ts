@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { LoanResult, Loan } from "../types";
+import { Loan, LoanPretty } from "../model";
 import { getProgram, getProvider } from "../provider";
 import {
   fetchMetadata,
@@ -23,28 +23,25 @@ export async function findLoanAddress(
 
 export async function fetchLoan(
   connection: anchor.web3.Connection,
-  loan: anchor.web3.PublicKey
-): Promise<LoanResult> {
+  address: anchor.web3.PublicKey
+): Promise<LoanPretty> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
-  const loanAccount = await program.account.loan.fetch(loan);
+  const loanAccount = await program.account.loan.fetch(address);
 
-  assertMintIsWhitelisted(loanAccount.mint);
+  const [metadata] = await Promise.all([
+    fetchMetadata(connection, loanAccount.mint),
+    assertMintIsWhitelisted(loanAccount.mint),
+  ]);
 
-  const metadata = await fetchMetadata(connection, loanAccount.mint);
-
-  return {
-    metadata,
-    publicKey: loan,
-    data: loanAccount as Loan,
-  };
+  return new Loan(loanAccount, metadata, address).pretty();
 }
 
 export async function fetchMultipleLoans(
   connection: anchor.web3.Connection,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
-): Promise<LoanResult[]> {
+): Promise<LoanPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const listings = await program.account.loan
@@ -61,14 +58,14 @@ export async function fetchMultipleLoans(
     const metadataAccount = metadataAccounts[index];
 
     if (metadataAccount) {
-      return {
-        metadata: metadataAccount,
-        publicKey: listing.publicKey,
-        data: listing.account,
-      };
+      return new Loan(
+        listing.account,
+        metadataAccount,
+        listing.publicKey
+      ).pretty();
     }
     return null;
   });
 
-  return combinedAccounts.filter(Boolean) as LoanResult[];
+  return combinedAccounts.filter(Boolean) as LoanPretty[];
 }

@@ -35,8 +35,8 @@ export type CallOptionData = TypeDef<
   typeof IDL["accounts"][0],
   DexloanListings
 >;
-export type Listing = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
-export type Loan = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+export type LoanData = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+export type ListingData = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
 
 interface Result {
   publicKey: anchor.web3.PublicKey;
@@ -44,11 +44,11 @@ interface Result {
 }
 
 export interface ListingResult extends Result {
-  data: Listing;
+  data: ListingData;
 }
 
 export interface LoanResult extends Result {
-  data: Loan;
+  data: LoanData;
 }
 
 export interface CallOptionResult extends Result {

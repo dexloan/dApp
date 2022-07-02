@@ -16,12 +16,12 @@ import {
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import * as utils from "../../utils";
 import { RPC_ENDPOINT, CallOptionState } from "../../common/constants";
 import { CallOptionResult } from "../../common/types";
+import { CallOption, CallOptionPretty } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import { useCallOptionQuery, useFloorPriceQuery } from "../../hooks/query";
 import {
@@ -30,7 +30,6 @@ import {
   useExerciseCallOptionMutation,
 } from "../../hooks/mutation";
 import {
-  CancelDialog,
   BuyCallOptionDialog,
   ExerciseDialog,
   CloseCallOptionDialog,
@@ -43,11 +42,7 @@ import { EllipsisProgress } from "../../components/progress";
 
 interface CallOptionProps {
   initialData: {
-    callOption: {
-      publicKey: any;
-      data: any;
-      metadata: any;
-    };
+    callOption: CallOptionPretty;
     jsonMetadata: any;
   } | null;
 }
@@ -55,7 +50,7 @@ interface CallOptionProps {
 const CallOptionPage: NextPage<CallOptionProps> = (props) => {
   return (
     <>
-      <CallOptionHead {...props} />
+      <CallOptionHead />
       <CallOptionLayout />
     </>
   );
@@ -66,8 +61,8 @@ CallOptionPage.getInitialProps = async (ctx) => {
     try {
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
       const pubkey = new anchor.web3.PublicKey(ctx.query.optionId as string);
-      const result = await fetchCallOption(connection, pubkey);
-      const jsonMetadata = await fetch(result.metadata.data.uri).then(
+      const callOption = await fetchCallOption(connection, pubkey);
+      const jsonMetadata = await fetch(callOption.metadata.data.uri).then(
         (response) => {
           return response.json().then((data) => data);
         }
@@ -75,20 +70,7 @@ CallOptionPage.getInitialProps = async (ctx) => {
 
       return {
         initialData: {
-          callOption: {
-            publicKey: result.publicKey.toBase58(),
-            data: {
-              ...result.data,
-              amount: result.data.amount.toNumber(),
-              seller: result.data.seller.toBase58(),
-              buyer: result.data.buyer.toBase58(),
-              expiry: result.data.expiry.toNumber(),
-              strikePrice: result.data.strikePrice.toNumber(),
-              escrow: result.data.escrow.toBase58(),
-              mint: result.data.mint.toBase58(),
-            },
-            metadata: result.metadata.pretty(),
-          },
+          callOption: callOption.pretty(),
           jsonMetadata,
         },
       };
@@ -103,77 +85,62 @@ CallOptionPage.getInitialProps = async (ctx) => {
   };
 };
 
-const CallOptionHead = ({ initialData }: CallOptionProps) => {
-  if (initialData) {
-    const description = `Borrowring ${utils.formatAmount(
-      new anchor.BN(initialData.callOption.data.amount)
-    )} over ${utils.formatDuration(
-      new anchor.BN(initialData.callOption.data.duration)
-    )}`;
+function usePageParam() {
+  const router = useRouter();
+  return useMemo(
+    () => new anchor.web3.PublicKey(router.query.optionId as string),
+    [router]
+  );
+}
 
-    return (
-      <Head>
-        <title>{initialData.callOption.metadata.data.name}</title>
-        <meta name="description" content={description} />
-        <meta name="author" content="Dexloan" />
-        <link
-          rel="shortcut icon"
-          type="image/x-icon"
-          href="/favicon.ico"
-        ></link>
-        <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
+const CallOptionHead = () => {
+  const callOptionAddress = usePageParam();
+  const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
+  const callOptionPretty = callOptionQueryResult.data;
 
-        <meta property="og:title" content={initialData.jsonMetadata.name} />
-        <meta property="og:type" content="website" />
-        <meta property="og:description" content={description} />
-        <meta
-          property="og:url"
-          content={`https://dexloan.io/option/${initialData.callOption.publicKey}`}
-        />
-        <meta property="og:image" content={initialData.jsonMetadata.image} />
-
-        <meta
-          property="twitter:title"
-          content={initialData.jsonMetadata.name}
-        />
-        <meta property="twitter:description" content={description} />
-        <meta
-          property="twitter:url"
-          content={`https://dexloan.io/option/${initialData.callOption.publicKey}`}
-        />
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta
-          property="twitter:image"
-          content={initialData.jsonMetadata.image}
-        />
-        <meta
-          property="twitter:image:alt"
-          content={initialData.jsonMetadata.name}
-        />
-        <meta property="twitter:label1" content="Amount" />
-        <meta
-          property="twitter:data1"
-          content={utils.formatAmount(
-            new anchor.BN(initialData.callOption.data.amount)
-          )}
-        />
-        <meta property="twitter:label2" content="APY" />
-        <meta
-          property="twitter:data2"
-          content={initialData.callOption.data.basisPoints / 100 + "%"}
-        />
-        <meta property="twitter:label3" content="Duration" />
-        <meta
-          property="twitter:data3"
-          content={utils.formatDuration(
-            new anchor.BN(initialData.callOption.data.duration)
-          )}
-        />
-      </Head>
-    );
+  if (!callOptionPretty) {
+    return null;
   }
 
-  return null;
+  const description = `Call Option with strike price ${callOption.strikePrice} expiring ${callOption.expiry}`;
+
+  return (
+    <Head>
+      <title>{callOption.metadata.data.name}</title>
+      <meta name="description" content={description} />
+      <meta name="author" content="Dexloan" />
+      <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"></link>
+      <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
+
+      <meta property="og:title" content={callOption.metadata.data.name} />
+      <meta property="og:type" content="website" />
+      <meta property="og:description" content={description} />
+      <meta
+        property="og:url"
+        content={`https://dexloan.io/option/${callOption.publicKey.toBase58()}`}
+      />
+      <meta property="og:image" content={initialData.jsonMetadata.image} />
+
+      <meta property="twitter:title" content={initialData.jsonMetadata.name} />
+      <meta property="twitter:description" content={description} />
+      <meta
+        property="twitter:url"
+        content={`https://dexloan.io/option/${callOption.publicKey.toBase58()}`}
+      />
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:image" content={initialData.jsonMetadata.image} />
+      <meta
+        property="twitter:image:alt"
+        content={initialData.jsonMetadata.name}
+      />
+      <meta property="twitter:label1" content="Strke Price" />
+      <meta property="twitter:data1" content={callOption.strikePrice} />
+      <meta property="twitter:label2" content="Cost" />
+      <meta property="twitter:data2" content={callOption.cost} />
+      <meta property="twitter:label3" content="Expiry" />
+      <meta property="twitter:data3" content={callOption.expiry} />
+    </Head>
+  );
 };
 
 const CallOptionLayout = () => {
@@ -181,27 +148,22 @@ const CallOptionLayout = () => {
   const anchorWallet = useAnchorWallet();
 
   const callOptionAddress = new anchor.web3.PublicKey(
-    router.query.listingId as string
+    router.query.optionId as string
   );
+
   const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
 
   const symbol = callOptionQueryResult.data?.metadata?.data.symbol;
   const floorPriceQuery = useFloorPriceQuery(symbol);
 
-  const callOption = callOptionQueryResult.data?.data;
-  const metadata = callOptionQueryResult.data?.metadata;
+  const callOption = callOptionQueryResult.data;
+  const metadata = callOption?.metadata;
 
-  const hasExpired = false; // TODO
-
-  const isSeller =
-    callOption &&
-    callOption.seller.toBase58() === anchorWallet?.publicKey.toBase58();
-  const isBuyer =
-    callOption &&
-    callOption.buyer.toBase58() === anchorWallet?.publicKey.toBase58();
+  const isSeller = callOption?.seller === anchorWallet?.publicKey.toBase58();
+  const isBuyer = callOption?.buyer === anchorWallet?.publicKey.toBase58();
 
   function renderActiveButton() {
-    if (!hasExpired && callOptionQueryResult.data && isBuyer) {
+    if (!callOption?.expired && callOptionQueryResult.data && isBuyer) {
       return <ExerciseButton callOption={callOptionQueryResult.data} />;
     }
 
@@ -229,7 +191,8 @@ const CallOptionLayout = () => {
   function renderProfitability() {
     if (callOption?.strikePrice && floorPriceQuery.data?.floorPrice) {
       const percentage = Number(
-        (callOption.strikePrice.toNumber() / floorPriceQuery.data.floorPrice) *
+        (callOption.data.strikePrice.toNumber() /
+          floorPriceQuery.data.floorPrice) *
           100
       ).toFixed(2);
       return percentage + "%";
@@ -241,7 +204,7 @@ const CallOptionLayout = () => {
   function renderByState() {
     if (callOption === undefined) return null;
 
-    switch (callOption.state) {
+    switch (callOption.data.state) {
       case CallOptionState.Listed:
         return (
           <Box mt="4" mb="4">
@@ -253,7 +216,7 @@ const CallOptionLayout = () => {
         return (
           <>
             <Box display="flex" pb="4">
-              {hasExpired ? (
+              {callOption?.expired ? (
                 <Tag colorScheme="red" ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Expired</TagLabel>
@@ -323,7 +286,7 @@ const CallOptionLayout = () => {
       >
         <Box w={{ base: "100%", lg: "auto" }} maxW={{ base: "xl", lg: "100%" }}>
           <ListingImage uri={metadata?.data.uri} />
-          <ExternalLinks mint={callOption?.mint} />
+          <ExternalLinks mint={callOption?.data.mint} />
         </Box>
         <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
           <Badge colorScheme="green" mb="2">
@@ -344,7 +307,7 @@ const CallOptionLayout = () => {
                     Cost
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
-                    {callOption.amount.toNumber()}
+                    {callOption.cost}
                   </Heading>
                 </Box>
                 <Box>
@@ -352,7 +315,7 @@ const CallOptionLayout = () => {
                     Expires
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
-                    {callOption.expiry.toNumber()}
+                    {callOption.expiry}
                   </Heading>
                 </Box>
                 <Box>
@@ -360,7 +323,7 @@ const CallOptionLayout = () => {
                     Strike Price
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
-                    {callOption.strikePrice.toNumber()}
+                    {callOption.strikePrice}
                   </Heading>
                 </Box>
               </Flex>
@@ -369,7 +332,7 @@ const CallOptionLayout = () => {
 
           {renderByState()}
 
-          <Activity mint={callOption?.mint} />
+          <Activity mint={callOption?.data.mint} />
         </Box>
       </Flex>
     </Container>
