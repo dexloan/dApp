@@ -1,14 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { CallOptionResult } from "../types";
 import { getProgram, getProvider } from "../provider";
 import {
   fetchMetadata,
   fetchMetadataAccounts,
   assertMintIsWhitelisted,
 } from "./common";
-import { CallOption } from "../model";
+import { CallOption } from "../model/callOption";
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,

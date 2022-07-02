@@ -3,8 +3,8 @@ import { Badge, Box, Flex, Skeleton, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import * as utils from "../../utils";
-import { CallOption } from "../../common/model";
+import * as utils from "../../common/utils";
+import { CallOption } from "../../common/model/callOption";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
 

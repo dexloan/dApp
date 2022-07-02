@@ -31,7 +31,7 @@ export interface CollectionMap {
   [key: string]: Collection;
 }
 
-export type CallOptionAccount = TypeDef<
+export type CallOptionData = TypeDef<
   typeof IDL["accounts"][0],
   DexloanListings
 >;
@@ -52,5 +52,5 @@ export interface LoanResult extends Result {
 }
 
 export interface CallOptionResult extends Result {
-  data: CallOptionAccount;
+  data: CallOptionData;
 }
