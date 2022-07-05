@@ -20,13 +20,14 @@ import {
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
 import { IoChevronDown } from "react-icons/io5";
-import * as utils from "../utils";
+import * as utils from "../common/utils";
 import {
   ListingState,
   Collection,
   CollectionMap,
   NFTResult,
 } from "../common/types";
+import { Loan, CallOption } from "../common/model";
 import {
   useBorrowingsQuery,
   useLoansQuery,
@@ -36,8 +37,16 @@ import {
   useCallOptionsQuery,
   useBuyerCallOptionsQuery,
   useSellerCallOptionsQuery,
+  // Deprecated
+  usePersonalListingsQuery,
 } from "../hooks/query";
-import { Card, CardList, LoanCard } from "../components/card";
+import {
+  Card,
+  CardList,
+  LoanCard,
+  ListingCard,
+  CallOptionCard,
+} from "../components/card";
 import { VerifiedCollection } from "../components/collection";
 import { InitCallOptionModal, InitLoanModal } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
@@ -47,11 +56,11 @@ const Manage: NextPage = () => {
 
   function renderContent() {
     switch (router.query.tab) {
-      case "listed":
-        return <Listings />;
-
       case "loans":
         return <Loans />;
+
+      case "call_options":
+        return <CallOptions />;
 
       default:
         return <MyItems />;
@@ -70,15 +79,6 @@ const Manage: NextPage = () => {
             My Items
           </Button>
         </NextLink>
-        <NextLink href="/manage?tab=listed">
-          <Button
-            as="a"
-            colorScheme={router.query.tab === "listed" ? "green" : undefined}
-            cursor="pointer"
-          >
-            Listings
-          </Button>
-        </NextLink>
         <NextLink href="/manage?tab=loans">
           <Button
             as="a"
@@ -91,7 +91,9 @@ const Manage: NextPage = () => {
         <NextLink href="/manage?tab=call_options">
           <Button
             as="a"
-            colorScheme={router.query.tab === "loans" ? "green" : undefined}
+            colorScheme={
+              router.query.tab === "call_options" ? "green" : undefined
+            }
             cursor="pointer"
           >
             Call Options
@@ -130,21 +132,45 @@ const LoadingSpinner = () => (
 
 const Loans = () => {
   const loansQuery = usePersonalLoansQuery();
+  const borrowingsQuery = useBorrowingsQuery();
+  // Deprecated listings
+  const listingsQuery = usePersonalListingsQuery();
 
-  const activeLoans = useMemo(
-    () => loansQuery.data?.filter((l) => l?.data.state === ListingState.Active),
+  const loans = useMemo(
+    () => loansQuery.data?.map((l) => Loan.fromJSON(l)) || [],
     [loansQuery.data]
+  );
+
+  const borrowings = useMemo(
+    () => borrowingsQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    [borrowingsQuery.data]
+  );
+
+  const deprecatedListings = useMemo(
+    () => listingsQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    [listingsQuery.data]
   );
 
   const totalLending = useMemo(
     () =>
-      activeLoans?.reduce((total, item) => {
+      loans?.reduce((total, item) => {
         if (item) {
           return total.add(item.data.amount);
         }
         return total;
       }, new anchor.BN(0)),
-    [activeLoans]
+    [loans]
+  );
+
+  const totalBorrowing = useMemo(
+    () =>
+      borrowings?.reduce((total, item) => {
+        if (item) {
+          return total.add(item.data.amount);
+        }
+        return total;
+      }, new anchor.BN(0)),
+    [borrowings]
   );
 
   if (loansQuery.isLoading) {
@@ -153,45 +179,72 @@ const Loans = () => {
 
   return (
     <>
-      <SectionHeader
-        title="My Active Loans"
-        subtitle={
-          activeLoans?.length
-            ? `Lending ${utils.formatAmount(totalLending)}`
-            : null
-        }
-      />
-      {activeLoans?.length ? (
-        <CardList>
-          {activeLoans?.map(
-            (item) =>
-              item && (
-                <LoanCard
-                  key={item.publicKey.toBase58()}
-                  listing={item.publicKey}
-                  amount={item.data.amount}
-                  basisPoints={item.data.basisPoints}
-                  duration={item.data.duration}
-                  uri={item.metadata.data.uri}
-                  name={item.metadata.data.name}
-                  symbol={item.metadata.data.symbol}
-                />
-              )
-          )}
-        </CardList>
-      ) : (
-        <Box>
-          <Text>
-            Why not check out our{" "}
-            <NextLink href="/#listings" scroll={false}>
-              <Link color="green.600" fontWeight="semibold">
-                current listings
-              </Link>
-            </NextLink>{" "}
-            to start lending?
-          </Text>
-        </Box>
+      {loans.length ? (
+        <>
+          <SectionHeader
+            title="My Loans"
+            subtitle={
+              loans.length
+                ? `Lending ${utils.formatAmount(totalLending)}`
+                : null
+            }
+          />
+          <CardList>
+            {loans.map((item) => (
+              <LoanCard key={item.publicKey.toBase58()} loan={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {borrowings.length ? (
+        <>
+          <SectionHeader
+            title="My Borrowings"
+            subtitle={
+              borrowings.length
+                ? `Borrowing ${utils.formatAmount(totalBorrowing)}`
+                : null
+            }
+          />
+          <CardList>
+            {borrowings.map((item) => (
+              <LoanCard key={item.publicKey.toBase58()} loan={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {!loans.length && !borrowings.length && (
+        <>
+          <SectionHeader title="My Loans" />
+          <Box mb="8">
+            <Text>
+              Why not check out our{" "}
+              <NextLink href="/#listings" scroll={false}>
+                <Link color="green.600" fontWeight="semibold">
+                  current listings
+                </Link>
+              </NextLink>{" "}
+              to start lending?
+            </Text>
+          </Box>
+        </>
       )}
+
+      {deprecatedListings.length ? (
+        <>
+          <SectionHeader
+            title="Deprecated V1 Listings"
+            subtitle="Please close the following accounts"
+          />
+          <CardList>
+            {deprecatedListings.map((item) => (
+              <ListingCard key={item.publicKey.toBase58()} listing={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
     </>
   );
 };
@@ -200,184 +253,71 @@ const CallOptions = () => {
   const buyerQueryResult = useBuyerCallOptionsQuery();
   const sellerQueryResult = useSellerCallOptionsQuery();
 
+  const buyerLoans = useMemo(() => {
+    if (buyerQueryResult.data) {
+      return buyerQueryResult.data.map(CallOption.fromJSON);
+    }
+    return [];
+  }, [buyerQueryResult.data]);
+
+  const sellerLoans = useMemo(() => {
+    if (sellerQueryResult.data) {
+      return sellerQueryResult.data.map(CallOption.fromJSON);
+    }
+    return [];
+  }, [sellerQueryResult.data]);
+
   if (buyerQueryResult.isLoading || sellerQueryResult.isLoading) {
     return <LoadingSpinner />;
   }
 
   return (
     <>
-      <SectionHeader title="Your Call Options" />
-      {buyerQueryResult.data?.length ? (
-        <CardList>
-          {buyerQueryResult.data?.map(
-            (item) =>
-              item && (
-                <LoanCard
-                  key={item.publicKey.toBase58()}
-                  listing={item.publicKey}
-                  amount={item.data.amount}
-                  basisPoints={item.data.basisPoints}
-                  duration={item.data.duration}
-                  uri={item.metadata.data.uri}
-                  name={item.metadata.data.name}
-                  symbol={item.metadata.data.symbol}
-                />
-              )
-          )}
-        </CardList>
-      ) : (
-        <Box>
-          <Text>
-            Why not check out our{" "}
-            <NextLink href="/#listings" scroll={false}>
-              <Link color="green.600" fontWeight="semibold">
-                current listings
-              </Link>
-            </NextLink>{" "}
-            to start lending?
-          </Text>
-        </Box>
+      {buyerLoans.length ? (
+        <>
+          <SectionHeader title="Your Call Options" />
+          <CardList>
+            {buyerLoans.map((item) => (
+              <CallOptionCard
+                key={item.publicKey.toBase58()}
+                callOption={item}
+              />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {sellerLoans.length ? (
+        <>
+          <SectionHeader title="Sold" />
+          <CardList>
+            {sellerLoans.map((item) => (
+              <CallOptionCard
+                key={item.publicKey.toBase58()}
+                callOption={item}
+              />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {!buyerLoans.length && !sellerLoans.length && (
+        <>
+          <SectionHeader title="Your Call Options" />
+          <Box>
+            <Text>
+              Why not check out our{" "}
+              <NextLink href="/#listings" scroll={false}>
+                <Link color="green.600" fontWeight="semibold">
+                  current listings
+                </Link>
+              </NextLink>{" "}
+              to start buying?
+            </Text>
+          </Box>
+        </>
       )}
     </>
-  );
-};
-
-const Listings = () => {
-  const { connection } = useConnection();
-  const anchorWallet = useAnchorWallet();
-  const borrowingsQuery = useBorrowingsQuery(connection, anchorWallet);
-
-  const [activeBorrowings, listedBorrowings, completedBorrowings] = useMemo(
-    () => [
-      borrowingsQuery.data?.filter(
-        (b) => b?.data.state === ListingState.Active
-      ),
-      borrowingsQuery.data?.filter(
-        (b) => b?.data.state === ListingState.Listed
-      ),
-      borrowingsQuery.data?.filter(
-        (b) =>
-          b?.data.state === ListingState.Defaulted ||
-          b?.data.state === ListingState.Cancelled ||
-          b?.data.state === ListingState.Repaid
-      ),
-    ],
-    [borrowingsQuery.data]
-  );
-
-  const totalBorrowings = useMemo(
-    () =>
-      activeBorrowings?.reduce((total, item) => {
-        if (item) {
-          return total.add(item.data.amount);
-        }
-        return total;
-      }, new anchor.BN(0)),
-    [activeBorrowings]
-  );
-
-  if (borrowingsQuery.isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (
-    !activeBorrowings?.length &&
-    !listedBorrowings?.length &&
-    !completedBorrowings?.length
-  ) {
-    return (
-      <>
-        <SectionHeader
-          title="My Active Listings"
-          subtitle={
-            activeBorrowings?.length && totalBorrowings
-              ? `Borrowing ${utils.formatAmount(totalBorrowings)}`
-              : null
-          }
-        />
-        <Text mb="6">You do not currently have any active listings.</Text>
-      </>
-    );
-  }
-
-  return (
-    <Box>
-      {activeBorrowings && activeBorrowings.length > 0 && (
-        <>
-          <SectionHeader
-            title="My Active Listings"
-            subtitle={
-              activeBorrowings?.length && totalBorrowings
-                ? `Borrowing ${utils.formatAmount(totalBorrowings)}`
-                : null
-            }
-          />
-          <CardList>
-            {activeBorrowings?.map(
-              (item) =>
-                item && (
-                  <LoanCard
-                    key={item.publicKey.toBase58()}
-                    listing={item.publicKey}
-                    amount={item.data.amount}
-                    basisPoints={item.data.basisPoints}
-                    duration={item.data.duration}
-                    uri={item.metadata.data.uri}
-                    name={item.metadata.data.name}
-                    symbol={item.metadata.data.symbol}
-                  />
-                )
-            )}
-          </CardList>
-        </>
-      )}
-
-      {listedBorrowings && listedBorrowings.length > 0 && (
-        <>
-          <SectionHeader title="My Listed NFTs" />
-          <CardList>
-            {listedBorrowings?.map(
-              (item) =>
-                item && (
-                  <LoanCard
-                    key={item.publicKey.toBase58()}
-                    listing={item.publicKey}
-                    amount={item.data.amount}
-                    basisPoints={item.data.basisPoints}
-                    duration={item.data.duration}
-                    uri={item.metadata.data.uri}
-                    name={item.metadata.data.name}
-                    symbol={item.metadata.data.symbol}
-                  />
-                )
-            )}
-          </CardList>
-        </>
-      )}
-
-      {completedBorrowings && completedBorrowings.length > 0 && (
-        <>
-          <SectionHeader title="My Completed Listings" />
-          <CardList>
-            {completedBorrowings?.map(
-              (item) =>
-                item && (
-                  <LoanCard
-                    key={item.publicKey.toBase58()}
-                    listing={item.publicKey}
-                    amount={item.data.amount}
-                    basisPoints={item.data.basisPoints}
-                    duration={item.data.duration}
-                    uri={item.metadata.data.uri}
-                    name={item.metadata.data.name}
-                    symbol={item.metadata.data.symbol}
-                  />
-                )
-            )}
-          </CardList>
-        </>
-      )}
-    </Box>
   );
 };
 

@@ -1,9 +1,9 @@
 import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
-import dayjs from "dayjs";
 
 import type { LoanData } from "../types";
 import * as utils from "../utils";
+import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 export type LoanArgs = {
   data: LoanData;
@@ -22,6 +22,14 @@ export class Loan implements LoanArgs {
 
   private expiry() {
     return this.data.startDate.add(this.data.duration);
+  }
+
+  public isLender(wallet: AnchorWallet) {
+    return this.data.lender.toBase58() === wallet.publicKey.toBase58();
+  }
+
+  public isBorrower(wallet: AnchorWallet) {
+    return this.data.borrower.toBase58() === wallet.publicKey.toBase58();
   }
 
   get amount() {

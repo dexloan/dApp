@@ -30,7 +30,7 @@ import {
   IoArrowForwardCircle,
 } from "react-icons/io5";
 import { IconType } from "react-icons";
-import * as utils from "../../utils";
+import * as utils from "../../common/utils";
 import { NFTResult } from "../../common/types";
 import { useFloorPriceQuery } from "../../hooks/query";
 import { useInitLoanMutation } from "../../hooks/mutation/loan";

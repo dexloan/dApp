@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import * as utils from "../../common/utils";
-import { CallOption } from "../../common/model/callOption";
+import { CallOption, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
 
@@ -21,7 +21,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
   const containerRef = useRef<HTMLDivElement & HTMLAnchorElement>(null);
 
   const metadataQuery = useMetadataFileQuery(uri);
-  console.log("metadataQuery.data?.image: ", metadataQuery.data?.image);
+
   const card = (
     <Box
       as={href ? "a" : "button"}
@@ -90,36 +90,32 @@ export const CardList = ({ children }: CardListProps) => {
   );
 };
 
-interface LoanCardProps {
-  amount: anchor.BN;
-  basisPoints: number;
-  duration: anchor.BN;
-  name: string;
-  symbol: string;
-  uri: string;
-  listing: anchor.web3.PublicKey;
+/**
+ * Deprecated
+ */
+
+interface ListingCardProps {
+  listing: Loan;
 }
 
-export const LoanCard = ({
-  amount,
-  basisPoints,
-  duration,
-  name,
-  symbol,
-  uri,
-  listing,
-}: LoanCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(symbol);
+export const ListingCard = ({ listing }: ListingCardProps) => {
+  const floorPriceQuery = useFloorPriceQuery(listing.metadata.data.symbol);
   const floorPrice = floorPriceQuery.data
     ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
     : null;
 
+  console.log(listing);
+
   return (
-    <Card href={`/listing/${listing.toBase58()}`} uri={uri} imageAlt={name}>
+    <Card
+      href={`/listing/${listing.publicKey.toBase58()}`}
+      uri={listing.metadata.data.uri}
+      imageAlt={listing.metadata.data.name}
+    >
       <Box p="4">
         <Box display="flex" alignItems="baseline">
           <Badge borderRadius="full" px="2" colorScheme="teal">
-            {basisPoints / 100}%
+            {listing.data.basisPoints / 100}%
           </Badge>
           <Box
             color="gray.500"
@@ -129,7 +125,7 @@ export const LoanCard = ({
             textTransform="uppercase"
             ml="2"
           >
-            {utils.formatDuration(duration)}
+            {listing.duration}
           </Box>
         </Box>
         <Box
@@ -139,12 +135,66 @@ export const LoanCard = ({
           lineHeight="tight"
           isTruncated
         >
-          {name}
+          {listing.metadata.data.name}
         </Box>
       </Box>
       <Box p="4" bgColor="blue.50">
         <Box fontWeight="bold" as="h3">
-          {utils.formatAmount(amount)}{" "}
+          {listing.amount}{" "}
+        </Box>
+        <Text fontSize="xs" fontWeight="medium">
+          Floor Price {floorPrice ?? <EllipsisProgress />}
+        </Text>
+      </Box>
+    </Card>
+  );
+};
+
+interface LoanCardProps {
+  loan: Loan;
+}
+
+export const LoanCard = ({ loan }: LoanCardProps) => {
+  const floorPriceQuery = useFloorPriceQuery(loan.metadata.data.symbol);
+  const floorPrice = floorPriceQuery.data
+    ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
+    : null;
+
+  return (
+    <Card
+      href={`/loan/${loan.publicKey.toBase58()}`}
+      uri={loan.metadata.data.uri}
+      imageAlt={loan.metadata.data.name}
+    >
+      <Box p="4">
+        <Box display="flex" alignItems="baseline">
+          <Badge borderRadius="full" px="2" colorScheme="teal">
+            {loan.data.basisPoints / 100}%
+          </Badge>
+          <Box
+            color="gray.500"
+            fontWeight="semibold"
+            letterSpacing="wide"
+            fontSize="xs"
+            textTransform="uppercase"
+            ml="2"
+          >
+            {loan.duration}
+          </Box>
+        </Box>
+        <Box
+          mt="1"
+          fontWeight="semibold"
+          as="h4"
+          lineHeight="tight"
+          isTruncated
+        >
+          {loan.metadata.data.name}
+        </Box>
+      </Box>
+      <Box p="4" bgColor="blue.50">
+        <Box fontWeight="bold" as="h3">
+          {loan.data.amount}{" "}
         </Box>
         <Text fontSize="xs" fontWeight="medium">
           Floor Price {floorPrice ?? <EllipsisProgress />}

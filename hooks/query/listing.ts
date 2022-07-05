@@ -26,7 +26,9 @@ export function useListingQuery(
 
 export const getListingsQueryKey = () => ["listings"];
 
-export function useListingsQuery(connection: anchor.web3.Connection) {
+export function useListingsQuery() {
+  const { connection } = useConnection();
+
   return useQuery(
     getListingsQueryKey(),
     () =>

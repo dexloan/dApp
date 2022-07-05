@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Redis from "ioredis";
-import * as utils from "../../../utils";
+import * as utils from "../../../common/utils";
 
 type Data = {
   floorPrice?: number;

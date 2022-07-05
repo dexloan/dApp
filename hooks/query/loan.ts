@@ -42,27 +42,27 @@ export const getBorrowingsQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["loans", walletAddress?.toBase58()];
 
-export function useBorrowingsQuery(
-  connection: anchor.web3.Connection,
-  wallet?: AnchorWallet
-) {
+export function useBorrowingsQuery() {
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+
   return useQuery(
-    getBorrowingsQueryKey(wallet?.publicKey),
+    getBorrowingsQueryKey(anchorWallet?.publicKey),
     () => {
-      if (wallet) {
+      if (anchorWallet) {
         return query.fetchMultipleLoans(connection, [
           {
             memcmp: {
               // filter borrower
               offset: 8 + 8 + 1,
-              bytes: wallet.publicKey.toBase58(),
+              bytes: anchorWallet.publicKey.toBase58(),
             },
           },
         ]);
       }
     },
     {
-      enabled: Boolean(wallet),
+      enabled: Boolean(anchorWallet),
       refetchOnWindowFocus: false,
     }
   );

@@ -23,7 +23,11 @@ import { RPC_ENDPOINT, CallOptionState } from "../../common/constants";
 import { CallOptionResult } from "../../common/types";
 import { CallOption, CallOptionPretty } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
-import { useCallOptionQuery, useFloorPriceQuery } from "../../hooks/query";
+import {
+  useCallOptionQuery,
+  useFloorPriceQuery,
+  useMetadataFileQuery,
+} from "../../hooks/query";
 import {
   useBuyCallOptionMutation,
   useCloseCallOptionMutation,
@@ -70,7 +74,7 @@ CallOptionPage.getInitialProps = async (ctx) => {
 
       return {
         initialData: {
-          callOption: callOption.pretty(),
+          callOption,
           jsonMetadata,
         },
       };
@@ -81,7 +85,6 @@ CallOptionPage.getInitialProps = async (ctx) => {
 
   return {
     initialData: null,
-    meta: null,
   };
 };
 
@@ -96,9 +99,19 @@ function usePageParam() {
 const CallOptionHead = () => {
   const callOptionAddress = usePageParam();
   const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
-  const callOptionPretty = callOptionQueryResult.data;
+  const metadataQuery = useMetadataFileQuery(
+    callOptionQueryResult.data?.metadata.data.uri
+  );
 
-  if (!callOptionPretty) {
+  const callOption = useMemo(() => {
+    if (callOptionQueryResult.data) {
+      return CallOption.fromJSON(callOptionQueryResult.data);
+    }
+  }, [callOptionQueryResult.data]);
+
+  const jsonMetadata = metadataQuery.data;
+
+  if (!callOption || !jsonMetadata) {
     return null;
   }
 
@@ -119,19 +132,19 @@ const CallOptionHead = () => {
         property="og:url"
         content={`https://dexloan.io/option/${callOption.publicKey.toBase58()}`}
       />
-      <meta property="og:image" content={initialData.jsonMetadata.image} />
+      <meta property="og:image" content={jsonMetadata.image} />
 
-      <meta property="twitter:title" content={initialData.jsonMetadata.name} />
+      <meta property="twitter:title" content={jsonMetadata.name} />
       <meta property="twitter:description" content={description} />
       <meta
         property="twitter:url"
         content={`https://dexloan.io/option/${callOption.publicKey.toBase58()}`}
       />
       <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:image" content={initialData.jsonMetadata.image} />
+      <meta property="twitter:image" content={jsonMetadata.image} />
       <meta
         property="twitter:image:alt"
-        content={initialData.jsonMetadata.name}
+        content={callOption.metadata.data.name}
       />
       <meta property="twitter:label1" content="Strke Price" />
       <meta property="twitter:data1" content={callOption.strikePrice} />
@@ -156,40 +169,43 @@ const CallOptionLayout = () => {
   const symbol = callOptionQueryResult.data?.metadata?.data.symbol;
   const floorPriceQuery = useFloorPriceQuery(symbol);
 
-  const callOption = callOptionQueryResult.data;
-  const metadata = callOption?.metadata;
+  const callOption = useMemo(() => {
+    if (callOptionQueryResult.data) {
+      return CallOption.fromJSON(callOptionQueryResult.data);
+    }
+  }, [callOptionQueryResult.data]);
 
   const isSeller = callOption?.seller === anchorWallet?.publicKey.toBase58();
   const isBuyer = callOption?.buyer === anchorWallet?.publicKey.toBase58();
 
   function renderActiveButton() {
-    if (!callOption?.expired && callOptionQueryResult.data && isBuyer) {
-      return <ExerciseButton callOption={callOptionQueryResult.data} />;
+    if (callOption && !callOption.expired && isBuyer) {
+      return <ExerciseButton callOption={callOption} />;
     }
 
     return null;
   }
 
   function renderListedButton() {
-    if (callOptionQueryResult.data && isSeller) {
-      return <CloseButton callOption={callOptionQueryResult.data} />;
-    } else if (callOptionQueryResult.data) {
-      return <BuyButton callOption={callOptionQueryResult.data} />;
+    if (callOption && isSeller) {
+      return <CloseButton callOption={callOption} />;
+    } else if (callOption) {
+      return <BuyButton callOption={callOption} />;
     }
     return null;
   }
 
   function renderCloseAccountButton() {
-    if (callOptionQueryResult.data && isSeller) {
+    if (callOption && isSeller) {
       // TODO is this needed?
-      return <CloseButton callOption={callOptionQueryResult.data} />;
+      return <CloseButton callOption={callOption} />;
     }
 
     return null;
   }
 
   function renderProfitability() {
-    if (callOption?.strikePrice && floorPriceQuery.data?.floorPrice) {
+    if (callOption && floorPriceQuery.data?.floorPrice) {
       const percentage = Number(
         (callOption.data.strikePrice.toNumber() /
           floorPriceQuery.data.floorPrice) *
@@ -285,7 +301,7 @@ const CallOptionLayout = () => {
         wrap="wrap"
       >
         <Box w={{ base: "100%", lg: "auto" }} maxW={{ base: "xl", lg: "100%" }}>
-          <ListingImage uri={metadata?.data.uri} />
+          <ListingImage uri={callOption?.metadata.data.uri} />
           <ExternalLinks mint={callOption?.data.mint} />
         </Box>
         <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
@@ -293,10 +309,10 @@ const CallOptionLayout = () => {
             Peer-to-peer Listing
           </Badge>
           <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
-            {metadata?.data.name}
+            {callOption?.metadata.data.name}
           </Heading>
           <Box mb="8">
-            <VerifiedCollection symbol={metadata?.data.symbol} />
+            <VerifiedCollection symbol={callOption?.metadata.data.symbol} />
           </Box>
 
           {callOption && (

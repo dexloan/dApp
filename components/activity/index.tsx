@@ -4,7 +4,7 @@ import { Box, Divider, Flex, Heading, Spinner, Text } from "@chakra-ui/react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 import { useQuery } from "react-query";
-import * as utils from "../../utils";
+import * as utils from "../../common/utils";
 import { fetchParsedTransactions } from "../../common/query";
 
 interface ActivityProps {

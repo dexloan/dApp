@@ -3,6 +3,7 @@ import bs58 from "bs58";
 
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { ListingResult, ListingState } from "../types";
+import { Loan, LoanPretty } from "../model";
 import { getProgram, getProvider } from "../provider";
 import {
   fetchMetadata,
@@ -25,7 +26,7 @@ export async function findListingAddress(
 export async function fetchListing(
   connection: anchor.web3.Connection,
   listing: anchor.web3.PublicKey
-): Promise<ListingResult> {
+): Promise<LoanPretty> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
@@ -35,17 +36,13 @@ export async function fetchListing(
 
   const metadata = await fetchMetadata(connection, listingAccount.mint);
 
-  return {
-    metadata,
-    publicKey: listing,
-    data: listingAccount,
-  };
+  return new Loan(listingAccount, metadata, listing).pretty();
 }
 
 export async function fetchMultipleListings(
   connection: anchor.web3.Connection,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
-): Promise<ListingResult[]> {
+): Promise<LoanPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const listings = await program.account.listing
@@ -62,16 +59,16 @@ export async function fetchMultipleListings(
     const metadataAccount = metadataAccounts[index];
 
     if (metadataAccount) {
-      return {
-        metadata: metadataAccount,
-        publicKey: listing.publicKey,
-        data: listing.account,
-      };
+      return new Loan(
+        listing.account,
+        metadataAccount,
+        listing.publicKey
+      ).pretty();
     }
     return null;
   });
 
-  return combinedAccounts.filter(Boolean) as ListingResult[];
+  return combinedAccounts.filter(Boolean) as LoanPretty[];
 }
 
 export const fetchActiveListings = (connection: anchor.web3.Connection) => {

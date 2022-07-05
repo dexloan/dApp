@@ -1,4 +1,3 @@
-import * as anchor from "@project-serum/anchor";
 import {
   Badge,
   Button,
@@ -10,7 +9,8 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import * as utils from "../../utils";
+import * as utils from "../../common/utils";
+import { Loan } from "../../common/model";
 import { CallOptionResult } from "../../common/types";
 
 interface MutationDialogProps {
@@ -64,21 +64,17 @@ export function MutationDialog({
   );
 }
 
-interface LoanDialogProps {
-  open: boolean;
-  amount: anchor.BN;
-  basisPoints: number;
-  duration: anchor.BN;
-  loading: boolean;
-  onConfirm: () => void;
-  onRequestClose: () => void;
+interface LoanDialogProps
+  extends Pick<
+    MutationDialogProps,
+    "open" | "loading" | "onConfirm" | "onRequestClose"
+  > {
+  loan: Loan;
 }
 
 export const LoanDialog: React.FC<LoanDialogProps> = ({
+  loan,
   open,
-  amount,
-  basisPoints,
-  duration,
   loading,
   onConfirm,
   onRequestClose,
@@ -92,17 +88,11 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
         <>
           <Text mb="4">
             <Badge fontSize="md" colorScheme="green">
-              {utils.formatAmount(amount)}
+              {loan.amount}
             </Badge>{" "}
-            <Badge fontSize="md">{basisPoints / 100}% APY</Badge>
+            <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>
           </Text>
-          <Text mb="4">
-            Loan will expire on{" "}
-            {utils.formatDueDate(
-              new anchor.BN(Math.floor(Date.now() / 1000)),
-              duration
-            )}
-          </Text>
+          <Text mb="4">Loan will expire on {loan.dueDate}</Text>
           <Text fontSize="sm">
             This loan may be repaid in full at any time. Interest will be
             calculated on a pro-rata basis. If the borrower fails to repay the
@@ -132,15 +122,10 @@ export const CancelDialog: React.FC<
   );
 };
 
-export const RepayDialog: React.FC<
-  LoanDialogProps & { startDate: anchor.BN }
-> = ({
+export const RepayDialog: React.FC<LoanDialogProps> = ({
+  loan,
   open,
   loading,
-  amount,
-  basisPoints,
-  duration,
-  startDate,
   onConfirm,
   onRequestClose,
 }) => {
@@ -153,19 +138,19 @@ export const RepayDialog: React.FC<
         <>
           <Text mb="4">
             <Badge colorScheme="green" borderRadius="md" fontSize="md" mr="2">
-              {utils.formatAmount(amount)}
+              {loan.amount}
             </Badge>
             <Badge borderRadius="md" fontSize="md" mr="2">
-              {basisPoints / 100}% APY
+              {loan.data.basisPoints / 100}% APY
             </Badge>
             <Badge colorScheme="blue" borderRadius="md" fontSize="md">
-              {utils.formatInterestDue(amount, startDate, basisPoints)}
+              {loan.interestDue}
             </Badge>
           </Text>
           <Text mb="4">
             Repay full loan amount of{" "}
             <Text as="span" fontWeight="semibold">
-              {utils.formatTotalDue(amount, startDate, basisPoints)}
+              {loan.totalDue}
             </Text>{" "}
             to recover your NFT.
           </Text>

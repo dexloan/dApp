@@ -1,15 +1,20 @@
 import type { NextPage } from "next";
 import { Container, Heading } from "@chakra-ui/react";
-import { useConnection } from "@solana/wallet-adapter-react";
 import Head from "next/head";
+import { useMemo } from "react";
 
-import { CardList, ListedCard } from "../components/card";
+import { Loan } from "../common/model";
+import { CardList, LoanCard } from "../components/card";
 import { Masthead } from "../components/masthead";
-import { useListingsQuery } from "../hooks/query";
+import { useLoansQuery } from "../hooks/query";
 
 const Home: NextPage = () => {
-  const { connection } = useConnection();
-  const listingsQuery = useListingsQuery(connection);
+  const loansQuery = useLoansQuery();
+
+  const loans = useMemo(
+    () => loansQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    [loansQuery.data]
+  );
 
   return (
     <>
@@ -24,27 +29,8 @@ const Home: NextPage = () => {
           Current listings
         </Heading>
         <CardList>
-          {listingsQuery.data?.map((item) => {
-            if (
-              item?.publicKey &&
-              item?.data.basisPoints &&
-              item?.metadata.data.uri &&
-              item?.metadata.data.name
-            ) {
-              return (
-                <ListedCard
-                  key={item?.publicKey.toBase58()}
-                  amount={item?.data.amount}
-                  basisPoints={item?.data.basisPoints}
-                  duration={item?.data.duration}
-                  uri={item?.metadata.data.uri}
-                  name={item?.metadata.data.name}
-                  symbol={item?.metadata.data.symbol}
-                  listing={item?.publicKey}
-                />
-              );
-            }
-            return null;
+          {loans.map((l) => {
+            return <LoanCard key={l.publicKey.toBase58()} loan={l} />;
           })}
         </CardList>
       </Container>
