@@ -21,20 +21,13 @@ import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
 import { IoChevronDown } from "react-icons/io5";
 import * as utils from "../common/utils";
-import {
-  ListingState,
-  Collection,
-  CollectionMap,
-  NFTResult,
-} from "../common/types";
+import { Collection, CollectionMap, NFTResult } from "../common/types";
 import { Loan, CallOption } from "../common/model";
 import {
-  useBorrowingsQuery,
-  useLoansQuery,
   useNFTByOwnerQuery,
   useFloorPriceQuery,
+  useBorrowingsQuery,
   usePersonalLoansQuery,
-  useCallOptionsQuery,
   useBuyerCallOptionsQuery,
   useSellerCallOptionsQuery,
   // Deprecated
@@ -177,6 +170,8 @@ const Loans = () => {
     return <LoadingSpinner />;
   }
 
+  console.log(borrowingsQuery);
+
   return (
     <>
       {loans.length ? (
@@ -218,7 +213,7 @@ const Loans = () => {
       {!loans.length && !borrowings.length && (
         <>
           <SectionHeader title="My Loans" />
-          <Box mb="8">
+          <Box mb="12">
             <Text>
               Why not check out our{" "}
               <NextLink href="/#listings" scroll={false}>

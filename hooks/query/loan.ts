@@ -40,7 +40,7 @@ export function useLoansQuery() {
 
 export const getBorrowingsQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["loans", walletAddress?.toBase58()];
+) => ["borrowings", walletAddress?.toBase58()];
 
 export function useBorrowingsQuery() {
   const { connection } = useConnection();
@@ -54,7 +54,7 @@ export function useBorrowingsQuery() {
           {
             memcmp: {
               // filter borrower
-              offset: 8 + 8 + 1,
+              offset: 8 + 1 + 8,
               bytes: anchorWallet.publicKey.toBase58(),
             },
           },
@@ -84,7 +84,7 @@ export function usePersonalLoansQuery() {
           {
             memcmp: {
               // filter lender
-              offset: 8 + 8 + 32 + 1,
+              offset: 8 + 1 + 32 + 1,
               bytes: anchorWallet?.publicKey.toBase58(),
             },
           },

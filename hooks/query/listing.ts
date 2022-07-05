@@ -8,7 +8,7 @@ import { ListingState } from "../../common/types";
 
 export const getListingQueryKey = (
   listing: anchor.web3.PublicKey | undefined
-) => ["listing", listing?.toBase58()];
+) => ["deprecated_listing", listing?.toBase58()];
 
 export function useListingQuery(
   listingAddress: anchor.web3.PublicKey | undefined
@@ -24,7 +24,7 @@ export function useListingQuery(
   );
 }
 
-export const getListingsQueryKey = () => ["listings"];
+export const getListingsQueryKey = () => ["deprecated_listings"];
 
 export function useListingsQuery() {
   const { connection } = useConnection();
@@ -51,7 +51,7 @@ export function useListingsQuery() {
 
 export const getPersonalListingsQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["borrowings", walletAddress?.toBase58()];
+) => ["deprecated_borrowings", walletAddress?.toBase58()];
 
 export function usePersonalListingsQuery() {
   const { connection } = useConnection();

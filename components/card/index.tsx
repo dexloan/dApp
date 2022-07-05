@@ -104,8 +104,6 @@ export const ListingCard = ({ listing }: ListingCardProps) => {
     ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
     : null;
 
-  console.log(listing);
-
   return (
     <Card
       href={`/listing/${listing.publicKey.toBase58()}`}
@@ -194,7 +192,7 @@ export const LoanCard = ({ loan }: LoanCardProps) => {
       </Box>
       <Box p="4" bgColor="blue.50">
         <Box fontWeight="bold" as="h3">
-          {loan.data.amount}{" "}
+          {loan.amount}{" "}
         </Box>
         <Text fontSize="xs" fontWeight="medium">
           Floor Price {floorPrice ?? <EllipsisProgress />}
