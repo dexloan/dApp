@@ -14,7 +14,7 @@ import {
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import Head from "next/head";
 import { useMemo } from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { Toaster } from "react-hot-toast";
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -48,26 +48,28 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ConnectionProvider endpoint={RPC_ENDPOINT}>
-        <WalletProvider wallets={wallets} autoConnect>
-          <WalletModalProvider>
-            <ChakraProvider theme={theme}>
-              <Head>
-                <title>Dexloan | NFT Lending</title>
-                <meta
-                  name="viewport"
-                  content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover"
-                />
-              </Head>
-              <Navbar />
-              <Component {...pageProps} />
-              <Toaster />
-              <FontFace />
-            </ChakraProvider>
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <Hydrate state={pageProps.dehydratedState}>
+        <ConnectionProvider endpoint={RPC_ENDPOINT}>
+          <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>
+              <ChakraProvider theme={theme}>
+                <Head>
+                  <title>Dexloan | NFT Lending</title>
+                  <meta
+                    name="viewport"
+                    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover"
+                  />
+                </Head>
+                <Navbar />
+                <Component {...pageProps} />
+                <Toaster />
+                <FontFace />
+              </ChakraProvider>
+            </WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </Hydrate>
     </QueryClientProvider>
   );
 }

@@ -17,13 +17,16 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
+import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
 import { LoanState, RPC_ENDPOINT } from "../../common/constants";
 import { ListingState } from "../../common/types";
 import { fetchLoan } from "../../common/query";
-import { Loan, LoanPretty } from "../../common/model";
+import { Loan } from "../../common/model";
 import {
+  getLoanQueryKey,
+  getMetadataFileQueryKey,
   useFloorPriceQuery,
   useLoanQuery,
   useMetadataFileQuery,
@@ -49,13 +52,10 @@ import { VerifiedCollection } from "../../components/collection";
 import { EllipsisProgress } from "../../components/progress";
 
 interface LoanProps {
-  initialData: {
-    loan: LoanPretty;
-    jsonMetadata: any;
-  } | null;
+  dehydratedState: DehydratedState | undefined;
 }
 
-const LoanPage: NextPage<LoanProps> = (props) => {
+const LoanPage: NextPage<LoanProps> = () => {
   return (
     <>
       <LoanHead />
@@ -67,20 +67,26 @@ const LoanPage: NextPage<LoanProps> = (props) => {
 LoanPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
+      const queryClient = new QueryClient();
+
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const pubkey = new anchor.web3.PublicKey(ctx.query.loanId as string);
-      const loan = await fetchLoan(connection, pubkey);
-      const jsonMetadata = await fetch(loan.metadata.data.uri).then(
-        (response) => {
-          return response.json().then((data) => data);
-        }
+      const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
+
+      const loan = await queryClient.fetchQuery(
+        getLoanQueryKey(loanAddress),
+        () => fetchLoan(connection, loanAddress)
+      );
+
+      await queryClient.prefetchQuery(
+        getMetadataFileQueryKey(loan.metadata.data.uri),
+        () =>
+          fetch(loan.metadata.data.uri).then((response) => {
+            return response.json().then((data) => data);
+          })
       );
 
       return {
-        initialData: {
-          loan,
-          jsonMetadata,
-        },
+        dehydratedState: dehydrate(queryClient),
       };
     } catch (err) {
       console.log(err);
@@ -88,7 +94,7 @@ LoanPage.getInitialProps = async (ctx) => {
   }
 
   return {
-    initialData: null,
+    dehydratedState: undefined,
   };
 };
 

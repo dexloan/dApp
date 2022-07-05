@@ -17,13 +17,16 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
+import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
 import { RPC_ENDPOINT, CallOptionState } from "../../common/constants";
 import { CallOptionResult } from "../../common/types";
-import { CallOption, CallOptionPretty } from "../../common/model";
+import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
+  getCallOptionQueryKey,
+  getMetadataFileQueryKey,
   useCallOptionQuery,
   useFloorPriceQuery,
   useMetadataFileQuery,
@@ -45,10 +48,7 @@ import { VerifiedCollection } from "../../components/collection";
 import { EllipsisProgress } from "../../components/progress";
 
 interface CallOptionProps {
-  initialData: {
-    callOption: CallOptionPretty;
-    jsonMetadata: any;
-  } | null;
+  dehydratedState: DehydratedState | undefined;
 }
 
 const CallOptionPage: NextPage<CallOptionProps> = (props) => {
@@ -63,20 +63,26 @@ const CallOptionPage: NextPage<CallOptionProps> = (props) => {
 CallOptionPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
+      const queryClient = new QueryClient();
+
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const pubkey = new anchor.web3.PublicKey(ctx.query.optionId as string);
-      const callOption = await fetchCallOption(connection, pubkey);
-      const jsonMetadata = await fetch(callOption.metadata.data.uri).then(
-        (response) => {
-          return response.json().then((data) => data);
-        }
+      const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
+
+      const callOption = await queryClient.fetchQuery(
+        getCallOptionQueryKey(loanAddress),
+        () => fetchCallOption(connection, loanAddress)
+      );
+
+      await queryClient.prefetchQuery(
+        getMetadataFileQueryKey(callOption.metadata.data.uri),
+        () =>
+          fetch(callOption.metadata.data.uri).then((response) => {
+            return response.json().then((data) => data);
+          })
       );
 
       return {
-        initialData: {
-          callOption,
-          jsonMetadata,
-        },
+        dehydratedState: dehydrate(queryClient),
       };
     } catch (err) {
       console.log(err);
@@ -84,7 +90,7 @@ CallOptionPage.getInitialProps = async (ctx) => {
   }
 
   return {
-    initialData: null,
+    dehydratedState: undefined,
   };
 };
 
