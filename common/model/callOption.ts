@@ -1,5 +1,6 @@
 import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { AnchorWallet } from "@solana/wallet-adapter-react";
 import dayjs from "dayjs";
 
 import type { CallOptionData } from "../types";
@@ -20,12 +21,38 @@ export class CallOption implements CallOptionArgs {
     public readonly publicKey: web3.PublicKey
   ) {}
 
+  public isBuyer(wallet?: AnchorWallet) {
+    if (wallet) {
+      return this.data.buyer.equals(wallet.publicKey);
+    }
+    return false;
+  }
+
+  public isSeller(wallet?: AnchorWallet) {
+    if (wallet) {
+      return this.data.seller.equals(wallet.publicKey);
+    }
+    return false;
+  }
+
+  get state() {
+    if (typeof this.data.state === "object" && this.data.state !== null) {
+      return Object.keys(this.data.state)[0];
+    }
+    return "unknown";
+  }
+
   get address() {
     return this.publicKey.toBase58();
   }
 
   get expiry() {
     return dayjs.unix(this.data.expiry.toNumber()).format("DD/MM/YYYY");
+  }
+
+  get expiryLongFormat() {
+    const date = dayjs.unix(this.data.expiry.toNumber());
+    return date.format("MMM D, YYYY") + " at " + date.format("h:mm A");
   }
 
   get expired() {
@@ -42,6 +69,10 @@ export class CallOption implements CallOptionArgs {
 
   get buyer() {
     return this.data.buyer ? this.data.buyer.toBase58() : "";
+  }
+
+  get hasBuyer() {
+    return !utils.isSystemProgram(this.data.buyer);
   }
 
   get seller() {

@@ -10,8 +10,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import * as utils from "../../common/utils";
-import { Loan } from "../../common/model";
-import { CallOptionResult } from "../../common/types";
+import { CallOption, Loan } from "../../common/model";
 
 interface MutationDialogProps {
   open: boolean;
@@ -208,7 +207,7 @@ interface CallOptionDialogProps
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  callOption: CallOptionResult;
+  callOption: CallOption;
 }
 
 export const BuyCallOptionDialog = ({
@@ -224,11 +223,24 @@ export const BuyCallOptionDialog = ({
       loading={loading}
       header={"Buy call option"}
       content={
-        <Text>
-          Purchase option to buy ${callOption.metadata.data.name} at strike
-          price of {utils.formatAmount(callOption.data.strikePrice)}, expiring $
-          {callOption.data.expiry}?
-        </Text>
+        <>
+          <Text mb="4">
+            <Badge colorScheme="green" borderRadius="md" fontSize="md" mr="2">
+              {callOption.strikePrice}
+            </Badge>
+            <Badge borderRadius="md" fontSize="md" mr="2">
+              {callOption.cost}
+            </Badge>
+            <Badge colorScheme="blue" borderRadius="md" fontSize="md">
+              {callOption.expiry}
+            </Badge>
+          </Text>
+          <Text mb="4">
+            Purchase option to buy {callOption.metadata.data.name} at strike
+            price of {callOption.strikePrice} for a cost of {callOption.cost}.
+            Expires on {callOption.expiryLongFormat}.
+          </Text>
+        </>
       }
       onConfirm={onConfirm}
       onRequestClose={onRequestClose}
@@ -271,11 +283,11 @@ export const CloseCallOptionDialog = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={"Exercise call option"}
+      header={"Cancel listing"}
       content={
         <Text>
-          Close call option listing$
-          {callOption.data.buyer ? " and recover NFT from escrow" : ""}?
+          Close call option listing
+          {callOption.hasBuyer ? " and recover NFT from escrow" : ""}?
         </Text>
       }
       onConfirm={onConfirm}

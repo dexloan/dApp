@@ -4,6 +4,10 @@ import dayjs from "dayjs";
 const SECONDS_PER_YEAR = 31_536_000;
 const LAMPORTS_PER_SOL = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
 
+export function isSystemProgram(pubkey: anchor.web3.PublicKey) {
+  return pubkey.equals(anchor.web3.SystemProgram.programId);
+}
+
 export function toMonths(seconds: number): number {
   return Math.abs(seconds / 60 / 60 / 24 / 30);
 }

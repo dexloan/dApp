@@ -21,7 +21,6 @@ import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
 import { RPC_ENDPOINT, CallOptionState } from "../../common/constants";
-import { CallOptionResult } from "../../common/types";
 import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
@@ -181,11 +180,8 @@ const CallOptionLayout = () => {
     }
   }, [callOptionQueryResult.data]);
 
-  const isSeller = callOption?.seller === anchorWallet?.publicKey.toBase58();
-  const isBuyer = callOption?.buyer === anchorWallet?.publicKey.toBase58();
-
   function renderActiveButton() {
-    if (callOption && !callOption.expired && isBuyer) {
+    if (callOption && !callOption.expired && callOption.isBuyer(anchorWallet)) {
       return <ExerciseButton callOption={callOption} />;
     }
 
@@ -193,7 +189,7 @@ const CallOptionLayout = () => {
   }
 
   function renderListedButton() {
-    if (callOption && isSeller) {
+    if (callOption && callOption.isSeller(anchorWallet)) {
       return <CloseButton callOption={callOption} />;
     } else if (callOption) {
       return <BuyButton callOption={callOption} />;
@@ -202,7 +198,7 @@ const CallOptionLayout = () => {
   }
 
   function renderCloseAccountButton() {
-    if (callOption && isSeller) {
+    if (callOption && callOption.isSeller(anchorWallet)) {
       // TODO is this needed?
       return <CloseButton callOption={callOption} />;
     }
@@ -226,7 +222,7 @@ const CallOptionLayout = () => {
   function renderByState() {
     if (callOption === undefined) return null;
 
-    switch (callOption.data.state) {
+    switch (callOption.state) {
       case CallOptionState.Listed:
         return (
           <Box mt="4" mb="4">
@@ -312,7 +308,7 @@ const CallOptionLayout = () => {
         </Box>
         <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
           <Badge colorScheme="green" mb="2">
-            Peer-to-peer Listing
+            Call Option
           </Badge>
           <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
             {callOption?.metadata.data.name}
@@ -362,7 +358,7 @@ const CallOptionLayout = () => {
 };
 
 interface BuyButtonProps {
-  callOption: CallOptionResult;
+  callOption: CallOption;
 }
 
 const BuyButton = ({ callOption }: BuyButtonProps) => {
@@ -382,7 +378,7 @@ const BuyButton = ({ callOption }: BuyButtonProps) => {
   return (
     <>
       <Button colorScheme="green" w="100%" onClick={onLend}>
-        Lend SOL
+        Buy Call Option
       </Button>
       <BuyCallOptionDialog
         open={open}
@@ -396,7 +392,7 @@ const BuyButton = ({ callOption }: BuyButtonProps) => {
 };
 
 interface CloseButtonProps {
-  callOption: CallOptionResult;
+  callOption: CallOption;
 }
 
 const CloseButton = ({ callOption }: CloseButtonProps) => {
@@ -430,7 +426,7 @@ const CloseButton = ({ callOption }: CloseButtonProps) => {
 };
 
 interface ExerciseButtonProps {
-  callOption: CallOptionResult;
+  callOption: CallOption;
 }
 
 const ExerciseButton = ({ callOption }: ExerciseButtonProps) => {

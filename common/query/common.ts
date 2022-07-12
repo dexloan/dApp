@@ -5,6 +5,7 @@ import {
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
 
+import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 
 export async function findEscrowAddress(
@@ -73,7 +74,7 @@ export async function fetchMetadataAccounts(
 }
 
 function hasDelegate(data: splToken.RawAccount) {
-  return data.delegate.toBase58() !== "11111111111111111111111111111111";
+  return !utils.isSystemProgram(data.delegate);
 }
 
 export async function fetchNFTs(

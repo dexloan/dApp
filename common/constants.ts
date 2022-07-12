@@ -9,9 +9,9 @@ export const RPC_ENDPOINT = "https://devnet.genesysgo.net/"; // "https://ssc-dao
 export const LoanState = {
   Listed: "listed",
   Active: "active",
-  Cancelled: "cancelled",
   Defaulted: "defaulted",
   Repaid: "repaid",
+  Cancelled: "cancelled",
 };
 
 export const SerializedLoanState = {
@@ -21,9 +21,10 @@ export const SerializedLoanState = {
 };
 
 export const CallOptionState = {
-  Listed: { listed: {} },
-  Active: { active: {} },
-  Exercised: { exercised: {} },
+  Listed: "listed",
+  Active: "active",
+  Exercised: "exercised",
+  Cancelled: "cancelled",
 };
 
 export const SerializedCallOptionState = {

@@ -1,9 +1,9 @@
 import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 import type { LoanData } from "../types";
 import * as utils from "../utils";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 export type LoanArgs = {
   data: LoanData;
