@@ -86,10 +86,7 @@ export async function exerciseCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const callOptionAccount = await query.findCallOptionAddress(
-    mint,
-    wallet.publicKey
-  );
+  const callOptionAccount = await query.findCallOptionAddress(mint, seller);
   const escrowAccount = await query.findEscrowAddress(mint);
 
   await program.methods
