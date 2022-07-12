@@ -43,7 +43,7 @@ export async function fetchMultipleCallOptions(
 ): Promise<CallOptionPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
-  const listings = await program.account.loan
+  const callOptions = await program.account.callOption
     .all(filter)
     .then((result) =>
       result.sort(
@@ -51,16 +51,16 @@ export async function fetchMultipleCallOptions(
       )
     );
 
-  const metadataAccounts = await fetchMetadataAccounts(connection, listings);
+  const metadataAccounts = await fetchMetadataAccounts(connection, callOptions);
 
-  const combinedAccounts = listings.map((listing, index) => {
+  const combinedAccounts = callOptions.map((callOption, index) => {
     const metadataAccount = metadataAccounts[index];
 
     if (metadataAccount) {
       return new CallOption(
-        listing.account,
+        callOption.account,
         metadataAccount,
-        listing.publicKey
+        callOption.publicKey
       ).pretty();
     }
     return null;

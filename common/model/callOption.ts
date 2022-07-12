@@ -54,7 +54,7 @@ export class CallOption implements CallOptionArgs {
         state: this.data.state,
         amount: this.data.amount.toNumber(),
         seller: this.data.seller.toBase58(),
-        buyer: this.data.buyer.toBase58(),
+        buyer: this.data.buyer?.toBase58(),
         expiry: this.data.expiry.toNumber(),
         strikePrice: this.data.strikePrice.toNumber(),
         escrow: this.data.escrow.toBase58(),

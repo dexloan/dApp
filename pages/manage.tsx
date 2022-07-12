@@ -170,8 +170,6 @@ const Loans = () => {
     return <LoadingSpinner />;
   }
 
-  console.log(borrowingsQuery);
-
   return (
     <>
       {loans.length ? (
@@ -247,6 +245,9 @@ const Loans = () => {
 const CallOptions = () => {
   const buyerQueryResult = useBuyerCallOptionsQuery();
   const sellerQueryResult = useSellerCallOptionsQuery();
+
+  console.log("buyerQueryResult: ", buyerQueryResult);
+  console.log("sellerQueryResult: ", sellerQueryResult);
 
   const buyerLoans = useMemo(() => {
     if (buyerQueryResult.data) {
