@@ -17,6 +17,7 @@ import {
   getBuyerCallOptionsQueryKey,
   getSellerCallOptionsQueryKey,
 } from "../query/callOption";
+import { CallOption, CallOptionPretty } from "../../common/model";
 
 interface InitCallOptionMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -167,13 +168,12 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
           variables.seller
         );
 
-        queryClient.setQueryData<CallOptionResult[] | undefined>(
+        queryClient.setQueryData<CallOptionPretty[] | undefined>(
           getCallOptionsQueryKey(),
           (data) => {
             if (data) {
               return data?.filter(
-                (item) =>
-                  item.data.mint.toBase58() !== variables.mint.toBase58()
+                (item) => item.data.mint !== variables.mint.toBase58()
               );
             }
           }
@@ -183,16 +183,16 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
           getBuyerCallOptionsQueryKey(anchorWallet?.publicKey)
         );
 
-        queryClient.setQueryData<CallOptionResult | undefined>(
+        queryClient.setQueryData<CallOptionPretty | undefined>(
           getCallOptionQueryKey(callOptionAddress),
           (item) => {
-            if (item) {
+            if (item && anchorWallet) {
               return {
                 ...item,
-                listing: {
+                data: {
                   ...item.data,
-                  state: CallOptionState.Active,
-                  buyer: anchorWallet?.publicKey,
+                  state: { active: {} },
+                  buyer: anchorWallet.publicKey.toBase58(),
                 },
               };
             }

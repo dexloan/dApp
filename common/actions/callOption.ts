@@ -55,10 +55,8 @@ export async function buyCallOption(
   const program = getProgram(provider);
 
   const escrowAccount = await query.findEscrowAddress(mint);
-  const callOptionAccount = await query.findCallOptionAddress(
-    mint,
-    wallet.publicKey
-  );
+  const callOptionAccount = await query.findCallOptionAddress(mint, seller);
+
   const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
     .value[0].address;
 

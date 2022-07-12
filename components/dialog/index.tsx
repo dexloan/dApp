@@ -262,8 +262,8 @@ export const ExerciseDialog = ({
       header={"Exercise call option"}
       content={
         <Text>
-          Exercise option to buy ${callOption.metadata.data.name} for $
-          {utils.formatAmount(callOption.data.strikePrice)}?
+          Exercise option to buy {callOption.metadata.data.name} for{" "}
+          {callOption.strikePrice}?
         </Text>
       }
       onConfirm={onConfirm}
