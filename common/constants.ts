@@ -7,10 +7,11 @@ export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
 export const RPC_ENDPOINT = "https://devnet.genesysgo.net/"; // "https://ssc-dao.genesysgo.net/";
 
 export const LoanState = {
-  Listed: { listed: {} },
-  Active: { active: {} },
-  Defaulted: { defaulted: {} },
-  Repaid: { repaid: {} },
+  Listed: "listed",
+  Active: "active",
+  Cancelled: "cancelled",
+  Defaulted: "defaulted",
+  Repaid: "repaid",
 };
 
 export const SerializedLoanState = {

@@ -32,6 +32,13 @@ export class Loan implements LoanArgs {
     return this.data.borrower.toBase58() === wallet.publicKey.toBase58();
   }
 
+  get state() {
+    if (typeof this.data.state === "object" && this.data.state !== null) {
+      return Object.keys(this.data.state)[0];
+    }
+    return "unknown";
+  }
+
   get amount() {
     return utils.formatAmount(this.data.amount);
   }

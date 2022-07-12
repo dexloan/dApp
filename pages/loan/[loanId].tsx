@@ -227,7 +227,7 @@ const LoanLayout = () => {
   function renderByState() {
     if (loan === undefined) return null;
 
-    switch (loan.data.state) {
+    switch (loan.state) {
       case LoanState.Listed:
         return (
           <>
@@ -245,7 +245,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case ListingState.Active:
+      case LoanState.Active:
         return (
           <>
             <Box display="flex" pb="4">
@@ -276,7 +276,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case ListingState.Repaid:
+      case LoanState.Repaid:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
@@ -285,7 +285,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case ListingState.Cancelled:
+      case LoanState.Cancelled:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
@@ -294,7 +294,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case ListingState.Defaulted:
+      case LoanState.Defaulted:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
