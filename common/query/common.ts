@@ -72,6 +72,10 @@ export async function fetchMetadataAccounts(
   );
 }
 
+function hasDelegate(data: splToken.RawAccount) {
+  return data.delegate.toBase58() !== "11111111111111111111111111111111";
+}
+
 export async function fetchNFTs(
   connection: anchor.web3.Connection,
   publicKey: anchor.web3.PublicKey
@@ -92,7 +96,15 @@ export async function fetchNFTs(
       };
     })
   ).then((accounts) =>
-    accounts.filter((account) => account.data.amount === BigInt("1"))
+    accounts.filter(
+      (account) =>
+        account.data.amount === BigInt("1") && !hasDelegate(account.data)
+    )
+  );
+
+  console.log(
+    "tokenAccounts: ",
+    tokenAccounts.map((acc) => acc.data.delegate.toBase58())
   );
 
   const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {
@@ -106,26 +118,19 @@ export async function fetchNFTs(
     (account) => true // whitelist.mints.includes(account.data.mint.toBase58())
   );
 
-  const metadataAddresses = await Promise.all(
-    filteredTokenAccounts.map((account) =>
-      findMetadataAddress(account.data.mint).then(([address]) => address)
-    )
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    filteredTokenAccounts.map((a) => ({ account: { mint: a.data.mint } }))
   );
 
-  const rawMetadataAccounts = await connection.getMultipleAccountsInfo(
-    metadataAddresses
-  );
-
-  const combinedAccounts = rawMetadataAccounts.map((metadataAccount, index) => {
-    if (metadataAccount) {
+  const combinedAccounts = metadataAccounts.map((metadata, index) => {
+    if (metadata) {
       try {
         const tokenAccount = filteredTokenAccounts[index];
 
         if (tokenAccount.data.amount === BigInt("0")) {
           return null;
         }
-
-        const [metadata] = Metadata.fromAccountInfo(metadataAccount);
 
         return {
           metadata,
