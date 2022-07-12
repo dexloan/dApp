@@ -84,7 +84,7 @@ interface CardListProps {
 
 export const CardList = ({ children }: CardListProps) => {
   return (
-    <Flex flexDirection="row" wrap="wrap" gap="1.25rem" mb="20">
+    <Flex flexDirection="row" wrap="wrap" gap="1.25rem" mb="12">
       {children}
     </Flex>
   );
