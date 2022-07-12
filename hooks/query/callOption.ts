@@ -1,6 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
+import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
@@ -31,7 +32,15 @@ export function useCallOptionsQuery() {
   return useQuery(
     getCallOptionsQueryKey(),
     () => {
-      return query.fetchMultipleCallOptions(connection);
+      return query.fetchMultipleCallOptions(connection, [
+        {
+          memcmp: {
+            // filter listed
+            offset: 8,
+            bytes: bs58.encode([0]),
+          },
+        },
+      ]);
     },
     {
       refetchOnWindowFocus: false,

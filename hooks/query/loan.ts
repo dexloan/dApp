@@ -5,6 +5,7 @@ import {
   useConnection,
 } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
+import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
@@ -31,7 +32,16 @@ export function useLoansQuery() {
 
   return useQuery(
     getLoansQueryKey(),
-    () => query.fetchMultipleLoans(connection),
+    () =>
+      query.fetchMultipleLoans(connection, [
+        {
+          memcmp: {
+            // filter listed
+            offset: 8,
+            bytes: bs58.encode([0]),
+          },
+        },
+      ]),
     {
       refetchOnWindowFocus: false,
     }
