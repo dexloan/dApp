@@ -92,6 +92,7 @@ export const InitCallOptionModal = ({
 
   return (
     <Modal
+      isCentered
       size="3xl"
       isOpen={Boolean(selected)}
       onClose={() => {
@@ -103,7 +104,7 @@ export const InitCallOptionModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="2xl" fontWeight="black">
-          List Call Option
+          Sell Call Option
         </ModalHeader>
         <ModalBody>
           <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">

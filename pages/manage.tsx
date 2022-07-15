@@ -10,16 +10,17 @@ import {
   Flex,
   Heading,
   Link,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   Spinner,
   Text,
 } from "@chakra-ui/react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
-import { IoChevronDown } from "react-icons/io5";
+import { IoCalendar, IoCash } from "react-icons/io5";
 import * as utils from "../common/utils";
 import { Collection, CollectionMap, NFTResult } from "../common/types";
 import { Loan, CallOption } from "../common/model";
@@ -246,9 +247,6 @@ const CallOptions = () => {
   const buyerQueryResult = useBuyerCallOptionsQuery();
   const sellerQueryResult = useSellerCallOptionsQuery();
 
-  console.log("buyerQueryResult: ", buyerQueryResult);
-  console.log("sellerQueryResult: ", sellerQueryResult);
-
   const buyerLoans = useMemo(() => {
     if (buyerQueryResult.data) {
       return buyerQueryResult.data.map(CallOption.fromJSON);
@@ -321,7 +319,7 @@ const MyItems = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
-  const [type, setType] = useState<"loan" | "callOption">("loan");
+  const [type, setType] = useState<"loan" | "callOption" | null>(null);
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
   const collections = useMemo(() => {
@@ -351,40 +349,81 @@ const MyItems = () => {
     });
   }, [nftQuery.data]);
 
+  const renderedCollections = useMemo(() => {
+    return collections?.length ? (
+      collections.map((collection) => {
+        return (
+          <Collection
+            key={collection.symbol}
+            collection={collection}
+            onSelectItem={setSelected}
+          />
+        );
+      })
+    ) : (
+      <Box>
+        <SectionHeader title="My Items" />
+        <Text>You do not currently hold any NFTs approved for lending.</Text>
+      </Box>
+    );
+  }, [collections]);
+
   if (!nftQuery.isFetched) {
     return <LoadingSpinner />;
   }
 
   return (
     <>
-      {collections?.length ? (
-        collections.map((collection) => {
-          return (
-            <Collection
-              key={collection.symbol}
-              collection={collection}
-              onSelectItem={(item, type) => {
-                setSelected(item);
-                setType(type);
-              }}
-            />
-          );
-        })
-      ) : (
-        <Box>
-          <SectionHeader title="My Items" />
-          <Text>You do not currently hold any NFTs approved for lending.</Text>
-        </Box>
-      )}
+      {renderedCollections}
+
+      <Modal
+        isCentered
+        size="xl"
+        isOpen={Boolean(selected && type === null)}
+        onClose={() => setSelected(null)}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader fontSize="2xl" fontWeight="black">
+            Select listing type
+          </ModalHeader>
+          <ModalBody>
+            <Button
+              w="100%"
+              mb="4"
+              colorScheme="green"
+              rightIcon={<IoCash />}
+              onClick={() => setType("loan")}
+            >
+              Borrow against
+            </Button>
+            <Button
+              w="100%"
+              mb="4"
+              colorScheme="teal"
+              rightIcon={<IoCalendar />}
+              onClick={() => setType("callOption")}
+            >
+              Sell call option
+            </Button>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
 
       <InitLoanModal
         selected={selected && type === "loan" ? selected : null}
-        onRequestClose={() => setSelected(null)}
+        onRequestClose={() => {
+          setSelected(null);
+          setType(null);
+        }}
       />
 
       <InitCallOptionModal
         selected={selected && type === "callOption" ? selected : null}
-        onRequestClose={() => setSelected(null)}
+        onRequestClose={() => {
+          setSelected(null);
+          setType(null);
+        }}
       />
     </>
   );
@@ -392,7 +431,7 @@ const MyItems = () => {
 
 interface CollectionProps {
   collection: Collection;
-  onSelectItem: (item: NFTResult, type: "loan" | "callOption") => void;
+  onSelectItem: (item: NFTResult) => void;
 }
 
 const Collection = ({ collection, onSelectItem }: CollectionProps) => {
@@ -419,25 +458,9 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
             <VerifiedCollection size="xs" symbol={item?.metadata.data.symbol} />
           </Box>
           <Box m="2">
-            <Menu isLazy>
-              <MenuButton
-                as={Button}
-                rightIcon={<IoChevronDown />}
-                width="100%"
-                textAlign="left"
-                colorScheme="green"
-              >
-                List Item
-              </MenuButton>
-              <MenuList>
-                <MenuItem onClick={() => onSelectItem(item, "loan")}>
-                  Borrow Against
-                </MenuItem>
-                <MenuItem onClick={() => onSelectItem(item, "callOption")}>
-                  Sell Call Option
-                </MenuItem>
-              </MenuList>
-            </Menu>
+            <Button w="100%" onClick={() => onSelectItem(item)}>
+              Select
+            </Button>
           </Box>
         </Card>
       );

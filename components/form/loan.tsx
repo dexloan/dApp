@@ -22,7 +22,6 @@ import {
   Text,
   Tooltip,
 } from "@chakra-ui/react";
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   IoAnalytics,
   IoCalendar,
@@ -90,6 +89,7 @@ export const InitLoanModal = ({
 
   return (
     <Modal
+      isCentered
       size="3xl"
       isOpen={Boolean(selected)}
       onClose={() => {
