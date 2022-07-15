@@ -42,16 +42,20 @@ const Home: NextPage = () => {
             return <LoanCard key={l.publicKey.toBase58()} loan={l} />;
           })}
         </CardList>
-        <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
-          Call Options
-        </Heading>
-        <CardList>
-          {callOptions.map((c) => {
-            return (
-              <CallOptionCard key={c.publicKey.toBase58()} callOption={c} />
-            );
-          })}
-        </CardList>
+        {callOptions.length ? (
+          <>
+            <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
+              Call Options
+            </Heading>
+            <CardList>
+              {callOptions.map((c) => {
+                return (
+                  <CallOptionCard key={c.publicKey.toBase58()} callOption={c} />
+                );
+              })}
+            </CardList>
+          </>
+        ) : null}
       </Container>
     </>
   );
