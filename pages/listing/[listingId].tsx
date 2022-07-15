@@ -18,14 +18,13 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import * as utils from "../../common/utils";
 import { RPC_ENDPOINT } from "../../common/constants";
 import { ListingState } from "../../common/types";
 import { Loan, LoanPretty } from "../../common/model";
 import { fetchListing } from "../../common/query";
 import { useFloorPriceQuery, useListingQuery } from "../../hooks/query";
 import { useCloseListingMutation } from "../../hooks/mutation";
-import { CancelDialog, CloseAccountDialog } from "../../components/dialog";
+import { CloseAccountDialog } from "../../components/dialog";
 import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";

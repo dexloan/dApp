@@ -32,7 +32,6 @@ import {
   useMetadataFileQuery,
 } from "../../hooks/query";
 import {
-  useCloseListingMutation,
   useCloseLoanMutation,
   useGiveLoanMutation,
   useRepayLoanMutation,
@@ -559,7 +558,7 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
 }) => {
   const router = useRouter();
   const [dialog, setDialog] = useState(false);
-  const mutation = useCloseListingMutation(() => setDialog(false));
+  const mutation = useCloseLoanMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 

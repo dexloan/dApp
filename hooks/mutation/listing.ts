@@ -8,7 +8,7 @@ import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
-import { ListingResult, ListingState } from "../../common/types";
+import { ListingState } from "../../common/types";
 import {
   getListingQueryKey,
   getListingsQueryKey,
@@ -53,22 +53,22 @@ export const useCloseListingMutation = (onSuccess: () => void) => {
       onSuccess(_, variables) {
         queryClient.setQueryData(
           getListingsQueryKey(),
-          (listings: ListingResult[] | undefined) => {
+          (listings: any[] | undefined) => {
             if (!listings) return [];
 
             return listings.filter(
-              (item) => item.data.mint.toBase58() !== variables.mint.toBase58()
+              (item) => item.data.mint !== variables.mint.toBase58()
             );
           }
         );
 
         queryClient.setQueryData(
           getPersonalListingsQueryKey(anchorWallet?.publicKey),
-          (listings: ListingResult[] | undefined) => {
+          (listings: any[] | undefined) => {
             if (!listings) return [];
 
             return listings.filter(
-              (item) => item.data.mint.toBase58() !== variables.mint.toBase58()
+              (item) => item.data.mint !== variables.mint.toBase58()
             );
           }
         );
@@ -88,9 +88,9 @@ function setListingState(
   listing: anchor.web3.PublicKey,
   state: ListingState
 ) {
-  queryClient.setQueryData<ListingResult | undefined>(
+  queryClient.setQueryData<any | undefined>(
     getListingQueryKey(listing),
-    (item) => {
+    (item: any) => {
       if (item) {
         return {
           ...item,

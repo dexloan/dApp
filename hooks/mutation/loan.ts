@@ -9,7 +9,8 @@ import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { NFTResult, LoanResult } from "../../common/types";
+import { NFTResult } from "../../common/types";
+import { LoanPretty } from "../../common/model";
 import { LoanState } from "../../common/constants";
 import {
   getBorrowingsQueryKey,
@@ -99,13 +100,12 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
           variables.borrower
         );
 
-        queryClient.setQueryData<LoanResult[] | undefined>(
+        queryClient.setQueryData<LoanPretty[] | undefined>(
           getLoansQueryKey(),
           (data) => {
             if (data) {
               return data?.filter(
-                (item) =>
-                  item.data.mint.toBase58() !== variables.mint.toBase58()
+                (item) => item.data.mint !== variables.mint.toBase58()
               );
             }
           }
@@ -115,7 +115,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
           getPersonalLoansQueryKey(anchorWallet?.publicKey)
         );
 
-        queryClient.setQueryData<LoanResult | undefined>(
+        queryClient.setQueryData<LoanPretty | undefined>(
           getLoanQueryKey(loanAddress),
           (item) => {
             if (item) {
@@ -175,25 +175,23 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
     },
     {
       onSuccess(_, variables) {
-        queryClient.setQueryData<LoanResult[] | undefined>(
+        queryClient.setQueryData<LoanPretty[] | undefined>(
           getBorrowingsQueryKey(anchorWallet?.publicKey),
           (data) => {
             if (data) {
               return data?.filter(
-                (item) =>
-                  item.data.mint.toBase58() !== variables.mint.toBase58()
+                (item) => item.data.mint !== variables.mint.toBase58()
               );
             }
           }
         );
 
-        queryClient.setQueryData<LoanResult[] | undefined>(
+        queryClient.setQueryData<LoanPretty[] | undefined>(
           getLoansQueryKey(),
           (data) => {
             if (data) {
               return data?.filter(
-                (item) =>
-                  item.data.mint.toBase58() !== variables.mint.toBase58()
+                (item) => item.data.mint !== variables.mint.toBase58()
               );
             }
           }
@@ -255,11 +253,11 @@ export const useRepossessMutation = (onSuccess: () => void) => {
 
         queryClient.setQueryData(
           getPersonalLoansQueryKey(anchorWallet?.publicKey),
-          (loans: LoanResult[] | undefined) => {
+          (loans: LoanPretty[] | undefined) => {
             if (!loans) return [];
 
             return loans.filter(
-              (loan) => loan.data.mint.toBase58() !== variables.mint.toBase58()
+              (loan) => loan.data.mint !== variables.mint.toBase58()
             );
           }
         );
@@ -314,12 +312,11 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
 
         queryClient.setQueryData(
           getBorrowingsQueryKey(anchorWallet?.publicKey),
-          (borrowings: LoanResult[] | undefined) => {
+          (borrowings: LoanPretty[] | undefined) => {
             if (!borrowings) return [];
 
             return borrowings.filter(
-              (borrowing) =>
-                borrowing.data.mint.toBase58() !== variables.mint.toBase58()
+              (borrowing) => borrowing.data.mint !== variables.mint.toBase58()
             );
           }
         );
@@ -337,7 +334,7 @@ function setLoanState(
   loan: anchor.web3.PublicKey,
   state: typeof LoanState[keyof typeof LoanState]
 ) {
-  queryClient.setQueryData<LoanResult | undefined>(
+  queryClient.setQueryData<LoanPretty | undefined>(
     getLoanQueryKey(loan),
     (item) => {
       if (item) {
