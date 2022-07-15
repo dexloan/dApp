@@ -180,14 +180,6 @@ const CallOptionLayout = () => {
     }
   }, [callOptionQueryResult.data]);
 
-  function renderActiveButton() {
-    if (callOption && !callOption.expired && callOption.isBuyer(anchorWallet)) {
-      return <ExerciseButton callOption={callOption} />;
-    }
-
-    return null;
-  }
-
   function renderListedButton() {
     if (callOption && callOption.isSeller(anchorWallet)) {
       return <CloseButton callOption={callOption} />;
@@ -204,6 +196,18 @@ const CallOptionLayout = () => {
     }
 
     return null;
+  }
+
+  function renderActiveButton() {
+    if (!callOption) return null;
+
+    if (!callOption.expired && callOption.isBuyer(anchorWallet)) {
+      return <ExerciseButton callOption={callOption} />;
+    }
+
+    if (callOption.expired) {
+      return renderCloseAccountButton();
+    }
   }
 
   function renderProfitability() {
@@ -261,6 +265,15 @@ const CallOptionLayout = () => {
               </Text>
             </Box>
             <Box marginY="size-200">{renderCloseAccountButton()}</Box>
+          </>
+        );
+
+      case CallOptionState.Cancelled:
+        return (
+          <>
+            <Box p="4" borderRadius="lg" bgColor="blue.50">
+              <Text>Call option account closed.</Text>
+            </Box>
           </>
         );
 
@@ -412,7 +425,7 @@ const CloseButton = ({ callOption }: CloseButtonProps) => {
   return (
     <>
       <Button colorScheme="blue" w="100%" onClick={onCancel}>
-        Close Option
+        {callOption.expired ? "Close Account" : "Close Option"}
       </Button>
       <CloseCallOptionDialog
         open={dialog}

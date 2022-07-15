@@ -8,7 +8,7 @@ import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
-import { NFTResult, CallOptionResult } from "../../common/types";
+import { NFTResult } from "../../common/types";
 import { CallOptionState } from "../../common/constants";
 import { findCallOptionAddress } from "../../common/query/callOption";
 import {
@@ -17,7 +17,7 @@ import {
   getBuyerCallOptionsQueryKey,
   getSellerCallOptionsQueryKey,
 } from "../query/callOption";
-import { CallOption, CallOptionPretty } from "../../common/model";
+import { CallOptionPretty } from "../../common/model";
 
 interface InitCallOptionMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -106,25 +106,23 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
     },
     {
       onSuccess(_, variables) {
-        queryClient.setQueryData<CallOptionResult[] | undefined>(
+        queryClient.setQueryData<CallOptionPretty[] | undefined>(
           getSellerCallOptionsQueryKey(anchorWallet?.publicKey),
           (data) => {
             if (data) {
               return data?.filter(
-                (item) =>
-                  item.data.mint.toBase58() !== variables.mint.toBase58()
+                (item) => item.data.mint !== variables.mint.toBase58()
               );
             }
           }
         );
 
-        queryClient.setQueryData<CallOptionResult[] | undefined>(
+        queryClient.setQueryData<CallOptionPretty[] | undefined>(
           getCallOptionsQueryKey(),
           (data) => {
             if (data) {
               return data?.filter(
-                (item) =>
-                  item.data.mint.toBase58() !== variables.mint.toBase58()
+                (item) => item.data.mint !== variables.mint.toBase58()
               );
             }
           }
@@ -253,11 +251,11 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
       onSuccess(_, variables) {
         queryClient.setQueryData(
           getBuyerCallOptionsQueryKey(anchorWallet?.publicKey),
-          (items: CallOptionResult[] | undefined) => {
+          (items: CallOptionPretty[] | undefined) => {
             if (!items) return [];
 
             return items.filter(
-              (item) => item.data.mint.toBase58() !== variables.mint.toBase58()
+              (item) => item.data.mint !== variables.mint.toBase58()
             );
           }
         );
@@ -281,7 +279,7 @@ function setCallOptionState(
   callOption: anchor.web3.PublicKey,
   state: typeof CallOptionState[keyof typeof CallOptionState]
 ) {
-  queryClient.setQueryData<CallOptionResult | undefined>(
+  queryClient.setQueryData<CallOptionPretty | undefined>(
     getCallOptionQueryKey(callOption),
     (item) => {
       if (item) {

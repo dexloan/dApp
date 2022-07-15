@@ -289,7 +289,7 @@ const LoanLayout = () => {
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
-              <Text>Loan cancelled.</Text>
+              <Text>Loan account closed.</Text>
             </Box>
           </>
         );

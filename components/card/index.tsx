@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Badge, Box, Flex, Skeleton, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as utils from "../../common/utils";
 import { CallOption, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
@@ -154,9 +154,14 @@ interface LoanCardProps {
 
 export const LoanCard = ({ loan }: LoanCardProps) => {
   const floorPriceQuery = useFloorPriceQuery(loan.metadata.data.symbol);
-  const floorPrice = floorPriceQuery.data
-    ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-    : null;
+
+  const floorPrice = useMemo(
+    () =>
+      floorPriceQuery.data
+        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
+        : null,
+    [floorPriceQuery.data]
+  );
 
   return (
     <Card
@@ -207,6 +212,16 @@ interface CallOptionCardProps {
 }
 
 export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
+  const floorPriceQuery = useFloorPriceQuery(callOption.metadata.data.symbol);
+
+  const floorPrice = useMemo(
+    () =>
+      floorPriceQuery.data
+        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
+        : null,
+    [floorPriceQuery.data]
+  );
+
   return (
     <Card
       href={`/option/${callOption.address}`}
@@ -216,7 +231,7 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
       <Box p="4">
         <Box display="flex" alignItems="baseline">
           <Badge borderRadius="full" px="2" colorScheme="teal">
-            {callOption.strikePrice}
+            {callOption.cost}
           </Badge>
           <Box
             color="gray.500"
@@ -243,9 +258,9 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
         <Box fontWeight="bold" as="h3">
           {callOption.strikePrice}{" "}
         </Box>
-        {/* <Text fontSize="xs" fontWeight="medium">
+        <Text fontSize="xs" fontWeight="medium">
           Floor Price {floorPrice ?? <EllipsisProgress />}
-        </Text> */}
+        </Text>
       </Box>
     </Card>
   );
