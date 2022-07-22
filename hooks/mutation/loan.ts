@@ -9,9 +9,8 @@ import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { NFTResult } from "../../common/types";
+import { NFTResult, LoanStateEnum } from "../../common/types";
 import { LoanPretty } from "../../common/model";
-import { LoanState } from "../../common/constants";
 import {
   getBorrowingsQueryKey,
   getLoanQueryKey,
@@ -121,10 +120,10 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
             if (item) {
               return {
                 ...item,
-                listing: {
+                data: {
                   ...item.data,
-                  state: LoanState.Active,
-                  startDate: new anchor.BN(Date.now() / 1000),
+                  state: LoanStateEnum.Active,
+                  startDate: new anchor.BN(Date.now() / 1000).toNumber(),
                 },
               };
             }
@@ -262,7 +261,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
           }
         );
 
-        setLoanState(queryClient, variables.mint, LoanState.Defaulted);
+        setLoanState(queryClient, variables.mint, LoanStateEnum.Defaulted);
 
         onSuccess();
       },
@@ -321,7 +320,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
           }
         );
 
-        setLoanState(queryClient, variables.mint, LoanState.Repaid);
+        setLoanState(queryClient, variables.mint, LoanStateEnum.Repaid);
 
         onSuccess();
       },
@@ -332,7 +331,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
 function setLoanState(
   queryClient: QueryClient,
   loan: anchor.web3.PublicKey,
-  state: typeof LoanState[keyof typeof LoanState]
+  state: LoanStateEnum
 ) {
   queryClient.setQueryData<LoanPretty | undefined>(
     getLoanQueryKey(loan),

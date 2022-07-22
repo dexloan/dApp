@@ -20,7 +20,8 @@ import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import { RPC_ENDPOINT, CallOptionState } from "../../common/constants";
+import { CallOptionStateEnum } from "../../common/types";
+import { RPC_ENDPOINT } from "../../common/constants";
 import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
@@ -227,14 +228,14 @@ const CallOptionLayout = () => {
     if (callOption === undefined) return null;
 
     switch (callOption.state) {
-      case CallOptionState.Listed:
+      case CallOptionStateEnum.Listed:
         return (
           <Box mt="4" mb="4">
             {renderListedButton()}
           </Box>
         );
 
-      case CallOptionState.Active:
+      case CallOptionStateEnum.Active:
         return (
           <>
             <Box display="flex" pb="4">
@@ -256,7 +257,7 @@ const CallOptionLayout = () => {
           </>
         );
 
-      case CallOptionState.Exercised:
+      case CallOptionStateEnum.Exercised:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
@@ -268,7 +269,7 @@ const CallOptionLayout = () => {
           </>
         );
 
-      case CallOptionState.Cancelled:
+      case CallOptionStateEnum.Cancelled:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">

@@ -20,8 +20,8 @@ import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import { LoanState, RPC_ENDPOINT } from "../../common/constants";
-import { ListingState } from "../../common/types";
+import { RPC_ENDPOINT } from "../../common/constants";
+import { LoanStateEnum } from "../../common/types";
 import { fetchLoan } from "../../common/query";
 import { Loan } from "../../common/model";
 import {
@@ -227,7 +227,7 @@ const LoanLayout = () => {
     if (loan === undefined) return null;
 
     switch (loan.state) {
-      case LoanState.Listed:
+      case LoanStateEnum.Listed:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
@@ -244,7 +244,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case LoanState.Active:
+      case LoanStateEnum.Active:
         return (
           <>
             <Box display="flex" pb="4">
@@ -275,7 +275,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case LoanState.Repaid:
+      case LoanStateEnum.Repaid:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
@@ -284,7 +284,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case LoanState.Cancelled:
+      case LoanStateEnum.Cancelled:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
@@ -293,7 +293,7 @@ const LoanLayout = () => {
           </>
         );
 
-      case LoanState.Defaulted:
+      case LoanStateEnum.Defaulted:
         return (
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">

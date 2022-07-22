@@ -2,7 +2,7 @@ import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
-import type { LoanData } from "../types";
+import type { LoanData, LoanStateEnum } from "../types";
 import * as utils from "../utils";
 
 export type LoanArgs = {
@@ -30,13 +30,6 @@ export class Loan implements LoanArgs {
 
   public isBorrower(wallet: AnchorWallet) {
     return this.data.borrower.toBase58() === wallet.publicKey.toBase58();
-  }
-
-  get state() {
-    if (typeof this.data.state === "object" && this.data.state !== null) {
-      return Object.keys(this.data.state)[0];
-    }
-    return "unknown";
   }
 
   get amount() {
@@ -90,20 +83,24 @@ export class Loan implements LoanArgs {
     );
   }
 
+  get state(): LoanStateEnum | undefined {
+    if (typeof this.data.state === "object" && this.data.state !== null) {
+      return Object.keys(this.data.state)[0] as LoanStateEnum;
+    }
+  }
+
   pretty() {
     return {
       data: {
-        state: this.data.state,
+        state: this.state,
         amount: this.data.amount.toNumber(),
         borrower: this.data.borrower.toBase58(),
         lender: this.data.lender.toBase58(),
         basisPoints: this.data.basisPoints,
         duration: this.data.duration.toNumber(),
         startDate: this.data.startDate.toNumber(),
-        escrow: this.data.escrow.toBase58(),
         mint: this.data.mint.toBase58(),
         bump: this.data.bump,
-        escrowBump: this.data.escrowBump,
       },
       metadata: this.metadata.pretty(),
       publicKey: this.publicKey.toBase58(),
@@ -120,10 +117,8 @@ export class Loan implements LoanArgs {
         basisPoints: args.data.basisPoints,
         duration: new BN(args.data.duration),
         startDate: new BN(args.data.startDate),
-        escrow: new web3.PublicKey(args.data.escrow),
         mint: new web3.PublicKey(args.data.mint),
         bump: args.data.bump,
-        escrowBump: args.data.escrowBump,
       },
       Metadata.fromArgs({
         key: 0 as Key, // TODO

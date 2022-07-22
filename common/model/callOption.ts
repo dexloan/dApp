@@ -3,7 +3,7 @@ import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import dayjs from "dayjs";
 
-import type { CallOptionData } from "../types";
+import type { CallOptionData, CallOptionStateEnum } from "../types";
 import * as utils from "../utils";
 
 export type CallOptionArgs = {
@@ -33,13 +33,6 @@ export class CallOption implements CallOptionArgs {
       return this.data.seller.equals(wallet.publicKey);
     }
     return false;
-  }
-
-  get state() {
-    if (typeof this.data.state === "object" && this.data.state !== null) {
-      return Object.keys(this.data.state)[0];
-    }
-    return "unknown";
   }
 
   get address() {
@@ -79,19 +72,23 @@ export class CallOption implements CallOptionArgs {
     return this.data.seller ? this.data.seller.toBase58() : "";
   }
 
+  get state(): CallOptionStateEnum | undefined {
+    if (typeof this.data.state === "object" && this.data.state !== null) {
+      return Object.keys(this.data.state)[0] as CallOptionStateEnum;
+    }
+  }
+
   pretty() {
     return {
       data: {
-        state: this.data.state,
+        state: this.state,
         amount: this.data.amount.toNumber(),
         seller: this.data.seller.toBase58(),
         buyer: this.data.buyer?.toBase58(),
         expiry: this.data.expiry.toNumber(),
         strikePrice: this.data.strikePrice.toNumber(),
-        escrow: this.data.escrow.toBase58(),
         mint: this.data.mint.toBase58(),
         bump: this.data.bump,
-        escrowBump: this.data.escrowBump,
       },
       metadata: this.metadata.pretty(),
       publicKey: this.publicKey.toBase58(),
@@ -107,10 +104,8 @@ export class CallOption implements CallOptionArgs {
         buyer: new web3.PublicKey(args.data.buyer),
         expiry: new BN(args.data.expiry),
         strikePrice: new BN(args.data.strikePrice),
-        escrow: new web3.PublicKey(args.data.escrow),
         mint: new web3.PublicKey(args.data.mint),
         bump: args.data.bump,
-        escrowBump: args.data.escrowBump,
       },
       Metadata.fromArgs({
         key: 0 as Key, // TODO

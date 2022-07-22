@@ -6,17 +6,17 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as utils from "../utils";
-import { LISTINGS_PROGRAM_ID } from "../constants";
 
-export async function findEscrowAddress(
-  mint: anchor.web3.PublicKey
-): Promise<anchor.web3.PublicKey> {
-  const [escrowAccount] = await anchor.web3.PublicKey.findProgramAddress(
-    [Buffer.from("escrow"), mint.toBuffer()],
-    LISTINGS_PROGRAM_ID
+export async function findEditionAddress(mint: anchor.web3.PublicKey) {
+  return anchor.web3.PublicKey.findProgramAddress(
+    [
+      Buffer.from("metadata"),
+      METADATA_PROGRAM_ID.toBuffer(),
+      mint.toBuffer(),
+      Buffer.from("edition"),
+    ],
+    METADATA_PROGRAM_ID
   );
-
-  return escrowAccount;
 }
 
 export async function findMetadataAddress(mint: anchor.web3.PublicKey) {

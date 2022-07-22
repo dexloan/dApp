@@ -1,6 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
 import { getProgram, getProvider } from "../provider";
@@ -23,20 +24,21 @@ export async function initCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
+  const [edition] = await query.findEditionAddress(mint);
   const callOptionAccount = await query.findCallOptionAddress(
     mint,
     wallet.publicKey
   );
-  const escrowAccount = await query.findEscrowAddress(mint);
 
   await program.methods
     .initCallOption(amount, strikePrice, expiry)
     .accounts({
       mint,
-      escrowAccount,
+      edition,
       callOptionAccount,
       seller: wallet.publicKey,
       depositTokenAccount,
+      metadataProgram: METADATA_PROGRAM_ID,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId,
@@ -54,7 +56,7 @@ export async function buyCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const escrowAccount = await query.findEscrowAddress(mint);
+  const [edition] = await query.findEditionAddress(mint);
   const callOptionAccount = await query.findCallOptionAddress(mint, seller);
 
   const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
@@ -63,12 +65,13 @@ export async function buyCallOption(
   await program.methods
     .buyCallOption()
     .accounts({
-      escrowAccount,
       callOptionAccount,
       depositTokenAccount,
       mint,
+      edition,
       seller,
       buyer: wallet.publicKey,
+      metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
@@ -87,7 +90,7 @@ export async function exerciseCallOption(
   const program = getProgram(provider);
 
   const callOptionAccount = await query.findCallOptionAddress(mint, seller);
-  const escrowAccount = await query.findEscrowAddress(mint);
+  const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .exerciseCallOption()
@@ -95,9 +98,10 @@ export async function exerciseCallOption(
       buyer: wallet.publicKey,
       buyerTokenAccount,
       callOptionAccount,
-      escrowAccount,
       mint,
+      edition,
       seller,
+      metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
@@ -119,15 +123,18 @@ export async function closeCallOption(
     mint,
     wallet.publicKey
   );
-  const escrowAccount = await query.findEscrowAddress(mint);
+  const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .closeCallOption()
     .accounts({
       depositTokenAccount,
-      mint,
       callOptionAccount,
-      escrowAccount,
+      mint,
+      edition,
+      metadataProgram: METADATA_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();

@@ -21,12 +21,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "escrowAccount";
-          isMut: true;
+          name: "mint";
+          isMut: false;
           isSigner: false;
         },
         {
-          name: "mint";
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -80,12 +85,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "escrowAccount";
-          isMut: true;
+          name: "mint";
+          isMut: false;
           isSigner: false;
         },
         {
-          name: "mint";
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -117,16 +127,6 @@ export type DexloanListings = {
         },
         {
           name: "loanAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "escrowAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -167,11 +167,6 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "escrowAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "lender";
           isMut: true;
           isSigner: false;
@@ -183,6 +178,16 @@ export type DexloanListings = {
         },
         {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -208,17 +213,22 @@ export type DexloanListings = {
       name: "repossessCollateral";
       accounts: [
         {
-          name: "escrowAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "lender";
           isMut: true;
           isSigner: true;
         },
         {
+          name: "borrower";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "lenderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -229,6 +239,16 @@ export type DexloanListings = {
         },
         {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -274,12 +294,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "escrowAccount";
-          isMut: true;
+          name: "mint";
+          isMut: false;
           isSigner: false;
         },
         {
-          name: "mint";
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -338,17 +363,22 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "escrowAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
         {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -389,17 +419,27 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "escrowAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "buyerTokenAccount";
           isMut: true;
           isSigner: false;
         },
         {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -440,17 +480,22 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "escrowAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "depositTokenAccount";
           isMut: true;
           isSigner: false;
         },
         {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
           isMut: false;
           isSigner: false;
         },
@@ -563,19 +608,11 @@ export type DexloanListings = {
             type: "u64";
           },
           {
-            name: "escrow";
-            type: "publicKey";
-          },
-          {
             name: "mint";
             type: "publicKey";
           },
           {
             name: "bump";
-            type: "u8";
-          },
-          {
-            name: "escrowBump";
             type: "u8";
           }
         ];
@@ -669,19 +706,11 @@ export type DexloanListings = {
             type: "i64";
           },
           {
-            name: "escrow";
-            type: "publicKey";
-          },
-          {
             name: "mint";
             type: "publicKey";
           },
           {
             name: "bump";
-            type: "u8";
-          },
-          {
-            name: "escrowBump";
             type: "u8";
           }
         ];
@@ -689,6 +718,17 @@ export type DexloanListings = {
     }
   ];
   types: [
+    {
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "InvalidState";
+          }
+        ];
+      };
+    },
     {
       name: "CallOptionState";
       type: {
@@ -771,6 +811,11 @@ export type DexloanListings = {
       code: 6005;
       name: "OptionNotExpired";
       msg: "Option not expired";
+    },
+    {
+      code: 6006;
+      name: "NumericalOverflow";
+      msg: "NumericalOverflow";
     }
   ];
 };
@@ -798,12 +843,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "escrowAccount",
-          isMut: true,
+          name: "mint",
+          isMut: false,
           isSigner: false,
         },
         {
-          name: "mint",
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -857,12 +907,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "escrowAccount",
-          isMut: true,
+          name: "mint",
+          isMut: false,
           isSigner: false,
         },
         {
-          name: "mint",
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -894,16 +949,6 @@ export const IDL: DexloanListings = {
         },
         {
           name: "loanAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "escrowAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -944,11 +989,6 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "escrowAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "lender",
           isMut: true,
           isSigner: false,
@@ -960,6 +1000,16 @@ export const IDL: DexloanListings = {
         },
         {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -985,17 +1035,22 @@ export const IDL: DexloanListings = {
       name: "repossessCollateral",
       accounts: [
         {
-          name: "escrowAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "lender",
           isMut: true,
           isSigner: true,
         },
         {
+          name: "borrower",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "lenderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -1006,6 +1061,16 @@ export const IDL: DexloanListings = {
         },
         {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -1051,12 +1116,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "escrowAccount",
-          isMut: true,
+          name: "mint",
+          isMut: false,
           isSigner: false,
         },
         {
-          name: "mint",
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -1115,17 +1185,22 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "escrowAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
         {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -1166,17 +1241,27 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "escrowAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "buyerTokenAccount",
           isMut: true,
           isSigner: false,
         },
         {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -1217,17 +1302,22 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "escrowAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "depositTokenAccount",
           isMut: true,
           isSigner: false,
         },
         {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
           isMut: false,
           isSigner: false,
         },
@@ -1340,19 +1430,11 @@ export const IDL: DexloanListings = {
             type: "u64",
           },
           {
-            name: "escrow",
-            type: "publicKey",
-          },
-          {
             name: "mint",
             type: "publicKey",
           },
           {
             name: "bump",
-            type: "u8",
-          },
-          {
-            name: "escrowBump",
             type: "u8",
           },
         ],
@@ -1446,10 +1528,6 @@ export const IDL: DexloanListings = {
             type: "i64",
           },
           {
-            name: "escrow",
-            type: "publicKey",
-          },
-          {
             name: "mint",
             type: "publicKey",
           },
@@ -1457,15 +1535,22 @@ export const IDL: DexloanListings = {
             name: "bump",
             type: "u8",
           },
-          {
-            name: "escrowBump",
-            type: "u8",
-          },
         ],
       },
     },
   ],
   types: [
+    {
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "InvalidState",
+          },
+        ],
+      },
+    },
     {
       name: "CallOptionState",
       type: {
@@ -1548,6 +1633,11 @@ export const IDL: DexloanListings = {
       code: 6005,
       name: "OptionNotExpired",
       msg: "Option not expired",
+    },
+    {
+      code: 6006,
+      name: "NumericalOverflow",
+      msg: "NumericalOverflow",
     },
   ],
 };

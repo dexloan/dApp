@@ -1,9 +1,10 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
+import * as query from "../query";
 import { getProgram, getProvider } from "../provider";
-import { findEscrowAddress, findLoanAddress } from "../query";
 
 /**
  * Loans
@@ -27,20 +28,21 @@ export async function initLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await findLoanAddress(mint, wallet.publicKey);
-  const escrowAccount = await findEscrowAddress(mint);
+  const loanAccount = await query.findLoanAddress(mint, wallet.publicKey);
+  const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .initLoan(amount, basisPoint, duration)
     .accounts({
-      escrowAccount,
       loanAccount,
       mint,
+      edition,
       depositTokenAccount,
       borrower: wallet.publicKey,
+      metadataProgram: METADATA_PROGRAM_ID,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     })
     .rpc();
 }
@@ -54,7 +56,7 @@ export async function giveLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await findLoanAddress(mint, borrower);
+  const loanAccount = await query.findLoanAddress(mint, borrower);
 
   await program.methods
     .giveLoan()
@@ -79,17 +81,18 @@ export async function closeLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await findLoanAddress(mint, wallet.publicKey);
-  const escrowAccount = await findEscrowAddress(mint);
+  const loanAccount = await query.findLoanAddress(mint, wallet.publicKey);
+  const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .closeLoan()
     .accounts({
-      escrowAccount,
       loanAccount,
       mint,
+      edition,
       depositTokenAccount: borrowerTokenAccount,
       borrower: wallet.publicKey,
+      metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
     })
@@ -106,18 +109,19 @@ export async function repayLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await findLoanAddress(mint, wallet.publicKey);
-  const escrowAccount = await findEscrowAddress(mint);
+  const loanAccount = await query.findLoanAddress(mint, wallet.publicKey);
+  const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .repayLoan()
     .accounts({
       lender,
       loanAccount,
-      escrowAccount,
       mint,
-      depositTokenAccount: borrowerTokenAccount,
+      edition,
       borrower: wallet.publicKey,
+      depositTokenAccount: borrowerTokenAccount,
+      metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
@@ -135,17 +139,23 @@ export async function repossessCollateral(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await findLoanAddress(mint, borrower);
-  const escrowAccount = await findEscrowAddress(mint);
+  const loanAccount = await query.findLoanAddress(mint, borrower);
+  const [edition] = await query.findEditionAddress(mint);
+
+  const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
+    .value[0].address;
 
   await program.methods
     .repossessCollateral()
     .accounts({
-      escrowAccount,
       mint,
+      edition,
+      depositTokenAccount,
       lenderTokenAccount,
       loanAccount,
+      borrower,
       lender: wallet.publicKey,
+      metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
