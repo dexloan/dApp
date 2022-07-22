@@ -91,8 +91,6 @@ export const InitCallOptionModal = ({
       );
   }, []);
 
-  console.log("expiryOptions: ", expiryOptions);
-
   return (
     <Modal
       isCentered
