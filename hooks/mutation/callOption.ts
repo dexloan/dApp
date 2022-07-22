@@ -8,8 +8,7 @@ import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
-import { NFTResult } from "../../common/types";
-import { CallOptionState } from "../../common/constants";
+import { CallOptionStateEnum, NFTResult } from "../../common/types";
 import { findCallOptionAddress } from "../../common/query/callOption";
 import {
   getCallOptionQueryKey,
@@ -78,6 +77,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
 
 interface CloseCallOptionVariables {
   mint: anchor.web3.PublicKey;
+  seller: anchor.web3.PublicKey;
 }
 
 export const useCloseCallOptionMutation = (onSuccess: () => void) => {
@@ -87,7 +87,7 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, CloseCallOptionVariables>(
-    async ({ mint }) => {
+    async ({ mint, seller }) => {
       if (anchorWallet) {
         const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
@@ -105,7 +105,7 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         queryClient.setQueryData<CallOptionPretty[] | undefined>(
           getSellerCallOptionsQueryKey(anchorWallet?.publicKey),
           (data) => {
@@ -126,6 +126,17 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
               );
             }
           }
+        );
+
+        const callOptionAddress = await findCallOptionAddress(
+          variables.mint,
+          variables.seller
+        );
+
+        setCallOptionState(
+          queryClient,
+          callOptionAddress,
+          CallOptionStateEnum.Cancelled
         );
 
         toast.success("Call option closed");
@@ -189,7 +200,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
                 ...item,
                 data: {
                   ...item.data,
-                  state: { active: {} },
+                  state: CallOptionStateEnum.Active,
                   buyer: anchorWallet.publicKey.toBase58(),
                 },
               };
@@ -263,7 +274,7 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
         setCallOptionState(
           queryClient,
           variables.mint,
-          CallOptionState.Exercised
+          CallOptionStateEnum.Exercised
         );
 
         toast.success("Option exercised");
@@ -277,7 +288,7 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
 function setCallOptionState(
   queryClient: QueryClient,
   callOption: anchor.web3.PublicKey,
-  state: typeof CallOptionState[keyof typeof CallOptionState]
+  state: CallOptionStateEnum
 ) {
   queryClient.setQueryData<CallOptionPretty | undefined>(
     getCallOptionQueryKey(callOption),

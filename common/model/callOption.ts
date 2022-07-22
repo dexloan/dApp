@@ -98,7 +98,7 @@ export class CallOption implements CallOptionArgs {
   static fromJSON(args: CallOptionPretty) {
     return new CallOption(
       {
-        state: args.data.state,
+        state: { [args.data.state as string]: {} },
         amount: new BN(args.data.amount),
         seller: new web3.PublicKey(args.data.seller),
         buyer: new web3.PublicKey(args.data.buyer),

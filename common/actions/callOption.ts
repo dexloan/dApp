@@ -92,11 +92,15 @@ export async function exerciseCallOption(
   const callOptionAccount = await query.findCallOptionAddress(mint, seller);
   const [edition] = await query.findEditionAddress(mint);
 
+  const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
+    .value[0].address;
+
   await program.methods
     .exerciseCallOption()
     .accounts({
       buyer: wallet.publicKey,
       buyerTokenAccount,
+      depositTokenAccount,
       callOptionAccount,
       mint,
       edition,

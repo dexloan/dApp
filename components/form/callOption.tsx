@@ -6,8 +6,10 @@ import { Controller, useForm } from "react-hook-form";
 import {
   Box,
   Button,
+  Flex,
   FormLabel,
   FormControl,
+  FormHelperText,
   Input,
   Modal,
   ModalOverlay,
@@ -16,7 +18,9 @@ import {
   ModalFooter,
   ModalBody,
   Select,
+  Tooltip,
 } from "@chakra-ui/react";
+import { IoInformationCircle } from "react-icons/io5";
 import { NFTResult } from "../../common/types";
 import { useInitCallOptionMutation } from "../../hooks/mutation";
 import { useMemo } from "react";
@@ -56,12 +60,11 @@ export const InitCallOptionModal = ({
 
   function onSubmit() {
     handleSubmit((data) => {
-      console.log("data: ", data);
       if (selected) {
         const options = {
           amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
           strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
-          expiry: data.expiry,
+          expiry: Date.now() / 1000 + 60, // data.expiry,
         };
 
         mutation.mutate({
@@ -80,7 +83,7 @@ export const InitCallOptionModal = ({
         dayjs()
           .tz("America/New_York")
           .startOf("month")
-          .add(i, "month")
+          .add(i + 1, "month")
           .startOf("month")
           .day(6)
           .add(2, "week")
@@ -111,31 +114,36 @@ export const InitCallOptionModal = ({
             <form onSubmit={onSubmit}>
               <FormControl isInvalid={!isValid}>
                 <Box pb="6">
-                  <FormLabel htmlFor="cost">Cost</FormLabel>
                   <Controller
                     name="amount"
                     control={control}
                     rules={{
                       required: true,
+                      validate: (value) => {
+                        return !isNaN(value);
+                      },
                     }}
                     render={({
                       field: { value, onChange },
                       fieldState: { error },
                     }) => (
                       <FormControl isInvalid={Boolean(error)}>
+                        <FormLabel htmlFor="cost">Cost</FormLabel>
                         <Input
                           name="cost"
-                          placeholder="0.00"
+                          placeholder="0.00◎"
                           value={value}
                           onChange={onChange}
                         />
+                        <FormHelperText>
+                          The cost of the call option
+                        </FormHelperText>
                       </FormControl>
                     )}
                   />
                 </Box>
 
                 <Box pb="6">
-                  <FormLabel htmlFor="strike_price">Strike Price</FormLabel>
                   <Controller
                     name="strikePrice"
                     control={control}
@@ -147,19 +155,24 @@ export const InitCallOptionModal = ({
                       fieldState: { error },
                     }) => (
                       <FormControl isInvalid={Boolean(error)}>
+                        <FormLabel htmlFor="strike_price">
+                          Strike Price
+                        </FormLabel>
                         <Input
                           name="strike_price"
-                          placeholder="0.00"
+                          placeholder="0.00◎"
                           value={value}
                           onChange={onChange}
                         />
+                        <FormHelperText>
+                          The price at which the NFT can be bought
+                        </FormHelperText>
                       </FormControl>
                     )}
                   />
                 </Box>
 
                 <Box pb="6">
-                  <FormLabel htmlFor="expiry">Expiry</FormLabel>
                   <Controller
                     name="expiry"
                     control={control}
@@ -171,6 +184,7 @@ export const InitCallOptionModal = ({
                       fieldState: { error },
                     }) => (
                       <FormControl isInvalid={Boolean(error)}>
+                        <FormLabel htmlFor="expiry">Expiry</FormLabel>
                         <Select
                           name="expiry"
                           placeholder="Select expiry"
@@ -186,6 +200,9 @@ export const InitCallOptionModal = ({
                             </option>
                           ))}
                         </Select>
+                        <FormHelperText>
+                          The date the call option is valid until
+                        </FormHelperText>
                       </FormControl>
                     )}
                   />

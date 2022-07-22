@@ -184,7 +184,7 @@ const CallOptionLayout = () => {
   function renderListedButton() {
     if (callOption && callOption.isSeller(anchorWallet)) {
       return <CloseButton callOption={callOption} />;
-    } else if (callOption) {
+    } else if (callOption && !callOption.expired) {
       return <BuyButton callOption={callOption} />;
     }
     return null;
@@ -211,28 +211,17 @@ const CallOptionLayout = () => {
     }
   }
 
-  function renderProfitability() {
-    if (callOption && floorPriceQuery.data?.floorPrice) {
-      const percentage = Number(
-        (callOption.data.strikePrice.toNumber() /
-          floorPriceQuery.data.floorPrice) *
-          100
-      ).toFixed(2);
-      return percentage + "%";
-    }
-
-    return <EllipsisProgress />;
-  }
-
   function renderByState() {
     if (callOption === undefined) return null;
 
     switch (callOption.state) {
       case CallOptionStateEnum.Listed:
         return (
-          <Box mt="4" mb="4">
-            {renderListedButton()}
-          </Box>
+          <>
+            <Box mt="4" mb="4">
+              {renderListedButton()}
+            </Box>
+          </>
         );
 
       case CallOptionStateEnum.Active:
