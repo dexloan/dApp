@@ -1,7 +1,10 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
+import {
+  Metadata,
+  PROGRAM_ID as METADATA_PROGRAM_ID,
+} from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
 import { getProgram, getProvider } from "../provider";
@@ -84,34 +87,53 @@ export async function exerciseCallOption(
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
   buyerTokenAccount: anchor.web3.PublicKey,
-  seller: anchor.web3.PublicKey
+  seller: anchor.web3.PublicKey,
+  metadata: Metadata
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
   const callOptionAccount = await query.findCallOptionAddress(mint, seller);
+  const [metadataAddress] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
 
   const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
     .value[0].address;
 
-  await program.methods
-    .exerciseCallOption()
-    .accounts({
-      buyer: wallet.publicKey,
-      buyerTokenAccount,
-      depositTokenAccount,
-      callOptionAccount,
-      mint,
-      edition,
-      seller,
-      metadataProgram: METADATA_PROGRAM_ID,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    })
-    .rpc();
+  const creatorAccounts = metadata.data.creators?.map((creator) => ({
+    pubkey: creator.address,
+    isSigner: false,
+    isWritable: true,
+  }));
+  console.log(
+    "creatorAccounts: ",
+    creatorAccounts?.map((c) => c.pubkey.toBase58())
+  );
+  console.log(
+    "system program: ",
+    anchor.web3.SystemProgram.programId.toBase58()
+  );
+  const method = program.methods.exerciseCallOption().accounts({
+    buyerTokenAccount,
+    depositTokenAccount,
+    callOptionAccount,
+    mint,
+    edition,
+    seller,
+    buyer: wallet.publicKey,
+    metadata: metadataAddress,
+    metadataProgram: METADATA_PROGRAM_ID,
+    systemProgram: anchor.web3.SystemProgram.programId,
+    tokenProgram: splToken.TOKEN_PROGRAM_ID,
+    clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+  });
+
+  if (creatorAccounts?.length) {
+    method.remainingAccounts(creatorAccounts);
+  }
+
+  await method.rpc();
 }
 
 export async function closeCallOption(

@@ -4,6 +4,7 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
@@ -225,6 +226,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
 interface ExerciseCallOptionVariables {
   mint: anchor.web3.PublicKey;
   seller: anchor.web3.PublicKey;
+  metadata: Metadata;
 }
 
 export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
@@ -234,7 +236,7 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, ExerciseCallOptionVariables>(
-    async ({ mint, seller }) => {
+    async ({ mint, seller, metadata }) => {
       if (anchorWallet && wallet.publicKey) {
         const buyerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
@@ -247,7 +249,8 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
           anchorWallet,
           mint,
           buyerTokenAccount,
-          seller
+          seller,
+          metadata
         );
       }
       throw new Error("Not ready");

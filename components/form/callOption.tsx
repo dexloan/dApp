@@ -64,7 +64,7 @@ export const InitCallOptionModal = ({
         const options = {
           amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
           strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
-          expiry: Date.now() / 1000 + 60, // data.expiry,
+          expiry: data.expiry,
         };
 
         mutation.mutate({
@@ -149,6 +149,9 @@ export const InitCallOptionModal = ({
                     control={control}
                     rules={{
                       required: true,
+                      validate: (value) => {
+                        return !isNaN(value);
+                      },
                     }}
                     render={({
                       field: { value, onChange },

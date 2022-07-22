@@ -463,7 +463,9 @@ const ExerciseButton = ({ callOption }: ExerciseButtonProps) => {
         loading={mutation.isLoading}
         callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(callOption.data)}
+        onConfirm={() =>
+          mutation.mutate({ ...callOption.data, metadata: callOption.metadata })
+        }
       />
     </>
   );

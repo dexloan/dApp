@@ -439,6 +439,11 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
+          name: "metadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "metadataProgram";
           isMut: false;
           isSigner: false;
@@ -809,11 +814,26 @@ export type DexloanListings = {
     },
     {
       code: 6005;
+      name: "InvalidMint";
+      msg: "Invalid mint";
+    },
+    {
+      code: 6006;
+      name: "MetadataDoesntExist";
+      msg: "Metadata doesnt exist";
+    },
+    {
+      code: 6007;
+      name: "DerivedKeyInvalid";
+      msg: "Derived key invalid";
+    },
+    {
+      code: 6008;
       name: "OptionNotExpired";
       msg: "Option not expired";
     },
     {
-      code: 6006;
+      code: 6009;
       name: "NumericalOverflow";
       msg: "NumericalOverflow";
     }
@@ -1261,6 +1281,11 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
+          name: "metadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "metadataProgram",
           isMut: false,
           isSigner: false,
@@ -1631,11 +1656,26 @@ export const IDL: DexloanListings = {
     },
     {
       code: 6005,
+      name: "InvalidMint",
+      msg: "Invalid mint",
+    },
+    {
+      code: 6006,
+      name: "MetadataDoesntExist",
+      msg: "Metadata doesnt exist",
+    },
+    {
+      code: 6007,
+      name: "DerivedKeyInvalid",
+      msg: "Derived key invalid",
+    },
+    {
+      code: 6008,
       name: "OptionNotExpired",
       msg: "Option not expired",
     },
     {
-      code: 6006,
+      code: 6009,
       name: "NumericalOverflow",
       msg: "NumericalOverflow",
     },
