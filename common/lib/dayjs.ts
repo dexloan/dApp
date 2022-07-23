@@ -6,6 +6,6 @@ import advanced from "dayjs/plugin/advancedFormat";
 dayjs.extend(timezone);
 dayjs.extend(utc);
 dayjs.extend(advanced);
-dayjs().tz("America/New_York");
+dayjs.tz.setDefault("America/New_York");
 
 export default dayjs;

@@ -112,8 +112,6 @@ const LoanHead = () => {
     loanQueryResult.data?.metadata.data.uri
   );
 
-  console.log("loanQueryResult: ", loanQueryResult);
-
   const loan = useMemo(() => {
     if (loanQueryResult.data) {
       return Loan.fromJSON(loanQueryResult.data);
@@ -271,7 +269,7 @@ const LoanLayout = () => {
               <Text>
                 Repayment {loan.expired ? "was due before " : "due by "}
                 <Text as="span" fontWeight="semibold">
-                  {loan.dueDate}
+                  {loan.dueDateAndTime}
                 </Text>
                 . Failure to repay the loan by this date may result in
                 repossession of the NFT by the lender.

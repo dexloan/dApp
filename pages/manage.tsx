@@ -352,7 +352,7 @@ const CallOptions = () => {
         <>
           <SectionHeader
             title="Bought Options"
-            subtitle="Options you have a right to exercise"
+            subtitle="Options you have bought"
           />
           <CardList>
             {buyerCallOptions.map((item) => (

@@ -31,7 +31,9 @@ export function formatDueDate(
   duration: anchor.BN,
   showTime: boolean = true
 ) {
-  const date = dayjs.unix(startDate.add(duration).toNumber());
+  const date = dayjs
+    .unix(startDate.add(duration).toNumber())
+    .tz("America/New_York");
   return (
     date.format("MMM D, YYYY") +
     (showTime ? ` at ${date.format("h:mm A z")}` : "")
