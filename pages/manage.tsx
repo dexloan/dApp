@@ -22,7 +22,12 @@ import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
 import { IoCalendar, IoCash } from "react-icons/io5";
 import * as utils from "../common/utils";
-import { Collection, CollectionMap, NFTResult } from "../common/types";
+import {
+  Collection,
+  CollectionMap,
+  LoanStateEnum,
+  NFTResult,
+} from "../common/types";
 import { Loan, CallOption } from "../common/model";
 import {
   useNFTByOwnerQuery,
@@ -139,6 +144,16 @@ const Loans = () => {
     () => borrowingsQuery.data?.map((l) => Loan.fromJSON(l)) || [],
     [borrowingsQuery.data]
   );
+  console.log(borrowings);
+  const listedBorrowings = useMemo(
+    () => borrowings.filter((b) => b.state !== LoanStateEnum.Active),
+    [borrowings]
+  );
+
+  const activeBorrowings = useMemo(
+    () => borrowings.filter((b) => b.state === LoanStateEnum.Active),
+    [borrowings]
+  );
 
   const deprecatedListings = useMemo(
     () => listingsQuery.data?.map((l) => Loan.fromJSON(l)) || [],
@@ -158,13 +173,13 @@ const Loans = () => {
 
   const totalBorrowing = useMemo(
     () =>
-      borrowings?.reduce((total, item) => {
+      activeBorrowings?.reduce((total, item) => {
         if (item) {
           return total.add(item.data.amount);
         }
         return total;
       }, new anchor.BN(0)),
-    [borrowings]
+    [activeBorrowings]
   );
 
   if (loansQuery.isLoading) {
@@ -173,10 +188,39 @@ const Loans = () => {
 
   return (
     <>
+      {listedBorrowings.length ? (
+        <>
+          <SectionHeader title="Listed items" />
+          <CardList>
+            {listedBorrowings.map((item) => (
+              <LoanCard key={item.publicKey.toBase58()} loan={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {activeBorrowings.length ? (
+        <>
+          <SectionHeader
+            title="Loans taken"
+            subtitle={
+              activeBorrowings.length
+                ? `Borrowing ${utils.formatAmount(totalBorrowing)}`
+                : null
+            }
+          />
+          <CardList>
+            {activeBorrowings.map((item) => (
+              <LoanCard key={item.publicKey.toBase58()} loan={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
       {loans.length ? (
         <>
           <SectionHeader
-            title="My Loans"
+            title="Loans given"
             subtitle={
               loans.length
                 ? `Lending ${utils.formatAmount(totalLending)}`
@@ -185,24 +229,6 @@ const Loans = () => {
           />
           <CardList>
             {loans.map((item) => (
-              <LoanCard key={item.publicKey.toBase58()} loan={item} />
-            ))}
-          </CardList>
-        </>
-      ) : null}
-
-      {borrowings.length ? (
-        <>
-          <SectionHeader
-            title="My Borrowings"
-            subtitle={
-              borrowings.length
-                ? `Borrowing ${utils.formatAmount(totalBorrowing)}`
-                : null
-            }
-          />
-          <CardList>
-            {borrowings.map((item) => (
               <LoanCard key={item.publicKey.toBase58()} loan={item} />
             ))}
           </CardList>

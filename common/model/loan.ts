@@ -110,7 +110,7 @@ export class Loan implements LoanArgs {
   static fromJSON(args: LoanPretty) {
     return new Loan(
       {
-        state: args.data.state,
+        state: { [args.data.state as string]: {} },
         amount: new BN(args.data.amount),
         borrower: new web3.PublicKey(args.data.borrower),
         lender: new web3.PublicKey(args.data.lender),

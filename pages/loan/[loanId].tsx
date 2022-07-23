@@ -18,7 +18,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
-import { IoLeaf, IoAlert } from "react-icons/io5";
+import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 
 import { RPC_ENDPOINT } from "../../common/constants";
 import { LoanStateEnum } from "../../common/types";
@@ -111,6 +111,8 @@ const LoanHead = () => {
   const metadataQuery = useMetadataFileQuery(
     loanQueryResult.data?.metadata.data.uri
   );
+
+  console.log("loanQueryResult: ", loanQueryResult);
 
   const loan = useMemo(() => {
     if (loanQueryResult.data) {
@@ -230,6 +232,12 @@ const LoanLayout = () => {
       case LoanStateEnum.Listed:
         return (
           <>
+            <Box display="flex" pb="4">
+              <Tag colorScheme="green">
+                <TagLeftIcon boxSize="12px" as={IoList} />
+                <TagLabel>Listed</TagLabel>
+              </Tag>
+            </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>
                 Total amount due on {loan.dueDate} will be&nbsp;

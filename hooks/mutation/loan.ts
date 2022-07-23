@@ -94,11 +94,6 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const loanAddress = await query.findLoanAddress(
-          variables.mint,
-          variables.borrower
-        );
-
         queryClient.setQueryData<LoanPretty[] | undefined>(
           getLoansQueryKey(),
           (data) => {
@@ -112,6 +107,11 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
 
         queryClient.invalidateQueries(
           getPersonalLoansQueryKey(anchorWallet?.publicKey)
+        );
+
+        const loanAddress = await query.findLoanAddress(
+          variables.mint,
+          variables.borrower
         );
 
         queryClient.setQueryData<LoanPretty | undefined>(
@@ -146,6 +146,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
 
 interface CloseLoanVariables {
   mint: anchor.web3.PublicKey;
+  borrower: anchor.web3.PublicKey;
 }
 
 export const useCloseLoanMutation = (onSuccess: () => void) => {
@@ -173,7 +174,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         queryClient.setQueryData<LoanPretty[] | undefined>(
           getBorrowingsQueryKey(anchorWallet?.publicKey),
           (data) => {
@@ -195,6 +196,13 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
             }
           }
         );
+
+        const loanAddress = await query.findLoanAddress(
+          variables.mint,
+          variables.borrower
+        );
+
+        setBorrowingState(queryClient, loanAddress, LoanStateEnum.Cancelled);
 
         toast.success("Loan closed");
 
@@ -247,7 +255,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         toast.success("NFT repossessed.");
 
         queryClient.setQueryData(
@@ -261,7 +269,30 @@ export const useRepossessMutation = (onSuccess: () => void) => {
           }
         );
 
-        setLoanState(queryClient, variables.mint, LoanStateEnum.Defaulted);
+        const loanAddress = await query.findLoanAddress(
+          variables.mint,
+          variables.borrower
+        );
+
+        queryClient.invalidateQueries(
+          getPersonalLoansQueryKey(anchorWallet?.publicKey)
+        );
+
+        queryClient.setQueryData<LoanPretty | undefined>(
+          getLoanQueryKey(loanAddress),
+          (item) => {
+            if (item) {
+              return {
+                ...item,
+                data: {
+                  ...item.data,
+                  state: LoanStateEnum.Active,
+                  startDate: new anchor.BN(Date.now() / 1000).toNumber(),
+                },
+              };
+            }
+          }
+        );
 
         onSuccess();
       },
@@ -271,6 +302,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
 
 interface RepayLoanProps {
   mint: anchor.web3.PublicKey;
+  borrower: anchor.web3.PublicKey;
   lender: anchor.web3.PublicKey;
 }
 
@@ -306,7 +338,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         toast.success("Loan repaid. Your NFT has been returned to you.");
 
         queryClient.setQueryData(
@@ -320,7 +352,12 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
           }
         );
 
-        setLoanState(queryClient, variables.mint, LoanStateEnum.Repaid);
+        const loanAddress = await query.findLoanAddress(
+          variables.mint,
+          variables.borrower
+        );
+
+        setBorrowingState(queryClient, loanAddress, LoanStateEnum.Repaid);
 
         onSuccess();
       },
@@ -328,13 +365,13 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
   );
 };
 
-function setLoanState(
+function setBorrowingState(
   queryClient: QueryClient,
   loan: anchor.web3.PublicKey,
   state: LoanStateEnum
 ) {
   queryClient.setQueryData<LoanPretty | undefined>(
-    getLoanQueryKey(loan),
+    getBorrowingsQueryKey(loan),
     (item) => {
       if (item) {
         return {
