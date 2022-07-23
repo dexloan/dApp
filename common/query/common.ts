@@ -103,10 +103,6 @@ export async function fetchNFTs(
     )
   );
 
-  console.log(
-    tokenAccounts.map((t) => [t.pubkey.toBase58(), t.data.delegate.toBase58()])
-  );
-
   const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {
     method: "POST",
     body: JSON.stringify({

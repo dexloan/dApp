@@ -3,7 +3,8 @@ import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 import { getProgram, getProvider } from "../provider";
-import { findEscrowAddress, findListingAddress } from "../query";
+import { findListingAddress } from "../query";
+import { LISTINGS_PROGRAM_ID } from "../constants";
 
 /**
  * Deprecated methods
@@ -18,7 +19,10 @@ export async function cancelListing(
   const program = getProgram(provider);
 
   const listingAccount = await findListingAddress(mint, wallet.publicKey);
-  const escrowAccount = await findEscrowAddress(mint);
+  const [escrowAccount] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("escrow"), mint.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
 
   await program.methods
     .cancelListing()

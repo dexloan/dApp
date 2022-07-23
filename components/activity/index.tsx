@@ -146,7 +146,19 @@ function mapTransaction(
       };
     }
 
-    if (txn.meta.logMessages.some((log) => log.includes("InitListing"))) {
+    let isCallOption;
+
+    if (
+      txn.meta.logMessages.some((log) => {
+        isCallOption = log.includes("InitCallOption");
+
+        return (
+          log.includes("InitListing") ||
+          log.includes("InitLoan") ||
+          isCallOption
+        );
+      })
+    ) {
       if ("data" in txn.transaction.message.instructions[0]) {
         const data = txn.transaction.message.instructions[0].data;
         const layout = borsh.u64("amount");
@@ -156,12 +168,20 @@ function mapTransaction(
           key: txn.transaction.signatures[0],
           type: "listing",
           blockTime: txn.blockTime,
-          lamports: layout.decode(Buffer.from(decoded.slice(8, 16))),
+          lamports: layout.decode(
+            Buffer.from(
+              isCallOption ? decoded.slice(16, 24) : decoded.slice(8, 16)
+            )
+          ),
         };
       }
     }
 
-    if (txn.meta.logMessages.some((log) => log.includes("MakeLoan"))) {
+    if (
+      txn.meta.logMessages.some(
+        (log) => log.includes("MakeLoan") || log.includes("GiveLoan")
+      )
+    ) {
       if ("data" in txn.transaction.message.instructions[0]) {
         return {
           key: txn.transaction.signatures[0],

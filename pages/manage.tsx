@@ -257,7 +257,7 @@ const Loans = () => {
       {deprecatedListings.length ? (
         <>
           <SectionHeader
-            title="Deprecated V1 Listings"
+            title="Deprecated v1 Listings"
             subtitle="Please close the following accounts"
           />
           <CardList>

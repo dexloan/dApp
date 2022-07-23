@@ -18,10 +18,8 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import { RPC_ENDPOINT } from "../../common/constants";
 import { ListingState } from "../../common/types";
-import { Loan, LoanPretty } from "../../common/model";
-import { fetchListing } from "../../common/query";
+import { Listing } from "../../common/model";
 import { useFloorPriceQuery, useListingQuery } from "../../hooks/query";
 import { useCloseListingMutation } from "../../hooks/mutation";
 import { CloseAccountDialog } from "../../components/dialog";
@@ -31,56 +29,22 @@ import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
 import { EllipsisProgress } from "../../components/progress";
 
-interface ListingProps {
-  initialData: {
-    listing: LoanPretty;
-    jsonMetadata: any;
-  } | null;
-}
-
-const ListingPage: NextPage<ListingProps> = () => {
+const ListingPage: NextPage = () => {
   return <ListingLayout />;
-};
-
-ListingPage.getInitialProps = async (ctx) => {
-  if (typeof window === "undefined") {
-    try {
-      const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const pubkey = new anchor.web3.PublicKey(ctx.query.listingId as string);
-      const listing = await fetchListing(connection, pubkey);
-      const jsonMetadata = await fetch(listing.metadata.data.uri).then(
-        (response) => {
-          return response.json().then((data) => data);
-        }
-      );
-
-      return {
-        initialData: {
-          listing,
-          jsonMetadata,
-        },
-      };
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  return {
-    initialData: null,
-  };
 };
 
 function usePageParam() {
   const router = useRouter();
   return useMemo(
-    () => new anchor.web3.PublicKey(router.query.listingId as string),
+    () =>
+      router.query.listingId
+        ? new anchor.web3.PublicKey(router.query.listingId as string)
+        : undefined,
     [router]
   );
 }
 
 const ListingLayout = () => {
-  const router = useRouter();
-  const { listingId } = router.query;
   const anchorWallet = useAnchorWallet();
 
   const listingAddress = usePageParam();
@@ -91,7 +55,7 @@ const ListingLayout = () => {
 
   const listing = useMemo(() => {
     if (listingQuery.data) {
-      return Loan.fromJSON(listingQuery.data);
+      return Listing.fromJSON(listingQuery.data);
     }
   }, [listingQuery.data]);
 
@@ -329,7 +293,7 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
 
   return (
     <>
-      <Button w="100%" onClick={onClose}>
+      <Button w="100%" colorScheme="blue" onClick={onClose}>
         Close listing account
       </Button>
       <CloseAccountDialog

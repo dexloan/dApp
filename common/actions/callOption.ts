@@ -105,14 +105,7 @@ export async function exerciseCallOption(
     isSigner: false,
     isWritable: true,
   }));
-  console.log(
-    "creatorAccounts: ",
-    creatorAccounts?.map((c) => c.pubkey.toBase58())
-  );
-  console.log(
-    "system program: ",
-    anchor.web3.SystemProgram.programId.toBase58()
-  );
+
   const method = program.methods.exerciseCallOption().accounts({
     buyerTokenAccount,
     depositTokenAccount,
