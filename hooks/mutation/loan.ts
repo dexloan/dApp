@@ -202,7 +202,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
           variables.borrower
         );
 
-        setBorrowingState(queryClient, loanAddress, LoanStateEnum.Cancelled);
+        setLoanState(queryClient, loanAddress, LoanStateEnum.Cancelled);
 
         toast.success("Loan closed");
 
@@ -269,30 +269,16 @@ export const useRepossessMutation = (onSuccess: () => void) => {
           }
         );
 
+        queryClient.invalidateQueries(
+          getPersonalLoansQueryKey(anchorWallet?.publicKey)
+        );
+
         const loanAddress = await query.findLoanAddress(
           variables.mint,
           variables.borrower
         );
 
-        queryClient.invalidateQueries(
-          getPersonalLoansQueryKey(anchorWallet?.publicKey)
-        );
-
-        queryClient.setQueryData<LoanPretty | undefined>(
-          getLoanQueryKey(loanAddress),
-          (item) => {
-            if (item) {
-              return {
-                ...item,
-                data: {
-                  ...item.data,
-                  state: LoanStateEnum.Active,
-                  startDate: new anchor.BN(Date.now() / 1000).toNumber(),
-                },
-              };
-            }
-          }
-        );
+        setLoanState(queryClient, loanAddress, LoanStateEnum.Defaulted);
 
         onSuccess();
       },
@@ -357,7 +343,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
           variables.borrower
         );
 
-        setBorrowingState(queryClient, loanAddress, LoanStateEnum.Repaid);
+        setLoanState(queryClient, loanAddress, LoanStateEnum.Repaid);
 
         onSuccess();
       },
@@ -365,13 +351,13 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
   );
 };
 
-function setBorrowingState(
+function setLoanState(
   queryClient: QueryClient,
   loan: anchor.web3.PublicKey,
   state: LoanStateEnum
 ) {
   queryClient.setQueryData<LoanPretty | undefined>(
-    getBorrowingsQueryKey(loan),
+    getLoanQueryKey(loan),
     (item) => {
       if (item) {
         return {

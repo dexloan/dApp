@@ -74,6 +74,7 @@ export async function fetchMetadataAccounts(
 }
 
 function hasDelegate(data: splToken.RawAccount) {
+  console.log("hasDelegate? ", data.delegate.toBase58());
   return !utils.isSystemProgram(data.delegate);
 }
 

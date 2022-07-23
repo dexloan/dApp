@@ -18,8 +18,9 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
-import { IoLeaf, IoAlert } from "react-icons/io5";
+import { IoLeaf, IoAlert, IoCheckmark } from "react-icons/io5";
 
+import * as utils from "../../common/utils";
 import { CallOptionStateEnum } from "../../common/types";
 import { RPC_ENDPOINT } from "../../common/constants";
 import { CallOption } from "../../common/model";
@@ -181,6 +182,14 @@ const CallOptionLayout = () => {
     }
   }, [callOptionQueryResult.data]);
 
+  function renderFloorValue() {
+    if (floorPriceQuery.data?.floorPrice) {
+      return utils.formatAmount(floorPriceQuery.data.floorPrice);
+    }
+
+    return <EllipsisProgress />;
+  }
+
   function renderListedButton() {
     if (callOption && callOption.isSeller(anchorWallet)) {
       return <CloseButton callOption={callOption} />;
@@ -249,9 +258,18 @@ const CallOptionLayout = () => {
       case CallOptionStateEnum.Exercised:
         return (
           <>
+            <Box display="flex" pb="4">
+              <Tag colorScheme="blue">
+                <TagLeftIcon boxSize="12px" as={IoCheckmark} />
+                <TagLabel>Exercised</TagLabel>
+              </Tag>
+            </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
               <Text>
-                Listing has ended. The call option was exercised by the buyer.
+                Listing has ended.{" "}
+                {callOption.isBuyer(anchorWallet)
+                  ? "You exercised the call the option."
+                  : "The call option was exercised by the buyer."}
               </Text>
             </Box>
             <Box marginY="size-200">{renderCloseAccountButton()}</Box>
@@ -345,6 +363,16 @@ const CallOptionLayout = () => {
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
                     {callOption.strikePrice}
+                  </Heading>
+                </Box>
+              </Flex>
+              <Flex direction="row" gap="12" mb="12">
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Loan to Floor Value
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {renderFloorValue()}
                   </Heading>
                 </Box>
               </Flex>

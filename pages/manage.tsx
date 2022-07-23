@@ -135,7 +135,7 @@ const Loans = () => {
   // Deprecated listings
   const listingsQuery = usePersonalListingsQuery();
 
-  const loans = useMemo(
+  const givenLoans = useMemo(
     () => loansQuery.data?.map((l) => Loan.fromJSON(l)) || [],
     [loansQuery.data]
   );
@@ -144,7 +144,7 @@ const Loans = () => {
     () => borrowingsQuery.data?.map((l) => Loan.fromJSON(l)) || [],
     [borrowingsQuery.data]
   );
-  console.log(borrowings);
+
   const listedBorrowings = useMemo(
     () => borrowings.filter((b) => b.state !== LoanStateEnum.Active),
     [borrowings]
@@ -162,13 +162,13 @@ const Loans = () => {
 
   const totalLending = useMemo(
     () =>
-      loans?.reduce((total, item) => {
+      givenLoans?.reduce((total, item) => {
         if (item) {
           return total.add(item.data.amount);
         }
         return total;
       }, new anchor.BN(0)),
-    [loans]
+    [givenLoans]
   );
 
   const totalBorrowing = useMemo(
@@ -217,25 +217,25 @@ const Loans = () => {
         </>
       ) : null}
 
-      {loans.length ? (
+      {givenLoans.length ? (
         <>
           <SectionHeader
             title="Loans given"
             subtitle={
-              loans.length
+              givenLoans.length
                 ? `Lending ${utils.formatAmount(totalLending)}`
                 : null
             }
           />
           <CardList>
-            {loans.map((item) => (
+            {givenLoans.map((item) => (
               <LoanCard key={item.publicKey.toBase58()} loan={item} />
             ))}
           </CardList>
         </>
       ) : null}
 
-      {!loans.length && !borrowings.length && (
+      {!givenLoans.length && !borrowings.length && (
         <>
           <SectionHeader title="My Loans" />
           <Box mb="12">
