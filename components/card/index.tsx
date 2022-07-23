@@ -7,6 +7,8 @@ import * as utils from "../../common/utils";
 import { CallOption, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
+import { CallOptionStateEnum } from "../../common/types";
+import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
 interface CardProps {
   children: React.ReactNode;
@@ -222,6 +224,47 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
     [floorPriceQuery.data]
   );
 
+  function renderBadge() {
+    switch (callOption.state) {
+      case CallOptionStateEnum.Active: {
+        if (callOption.expired) {
+          return (
+            <Badge borderRadius="full" px="1" py="1" colorScheme="red">
+              <IoAlertCircle />
+            </Badge>
+          );
+        }
+        return (
+          <Badge borderRadius="full" px="1" py="1" colorScheme="green">
+            <IoLeaf />
+          </Badge>
+        );
+      }
+
+      case CallOptionStateEnum.Exercised:
+        return (
+          <Badge borderRadius="full" px="1" py="1" colorScheme="blue">
+            <IoCheckmark />
+          </Badge>
+        );
+
+      default: {
+        if (callOption.expired) {
+          return (
+            <Badge borderRadius="full" px="1" py="1" colorScheme="red">
+              <IoAlertCircle />
+            </Badge>
+          );
+        }
+        return (
+          <Badge borderRadius="full" px="2" colorScheme="teal">
+            {callOption.cost}
+          </Badge>
+        );
+      }
+    }
+  }
+
   return (
     <Card
       href={`/option/${callOption.address}`}
@@ -229,10 +272,8 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
       imageAlt={callOption.metadata.data.name}
     >
       <Box p="4">
-        <Box display="flex" alignItems="baseline">
-          <Badge borderRadius="full" px="2" colorScheme="teal">
-            {callOption.cost}
-          </Badge>
+        <Box display="flex" alignItems="center">
+          {renderBadge()}
           <Box
             color="gray.500"
             fontWeight="semibold"

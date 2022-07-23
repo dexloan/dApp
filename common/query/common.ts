@@ -74,7 +74,6 @@ export async function fetchMetadataAccounts(
 }
 
 function hasDelegate(data: splToken.RawAccount) {
-  console.log("hasDelegate? ", data.delegate.toBase58());
   return !utils.isSystemProgram(data.delegate);
 }
 
@@ -102,6 +101,10 @@ export async function fetchNFTs(
       (account) =>
         account.data.amount === BigInt("1") && !hasDelegate(account.data)
     )
+  );
+
+  console.log(
+    tokenAccounts.map((t) => [t.pubkey.toBase58(), t.data.delegate.toBase58()])
   );
 
   const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {

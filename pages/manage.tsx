@@ -23,6 +23,7 @@ import { useCallback, useMemo, useState } from "react";
 import { IoCalendar, IoCash } from "react-icons/io5";
 import * as utils from "../common/utils";
 import {
+  CallOptionStateEnum,
   Collection,
   CollectionMap,
   LoanStateEnum,
@@ -49,6 +50,7 @@ import {
 import { VerifiedCollection } from "../components/collection";
 import { InitCallOptionModal, InitLoanModal } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
+import { option } from "@project-serum/borsh";
 
 const Manage: NextPage = () => {
   const router = useRouter();
@@ -273,19 +275,41 @@ const CallOptions = () => {
   const buyerQueryResult = useBuyerCallOptionsQuery();
   const sellerQueryResult = useSellerCallOptionsQuery();
 
-  const buyerLoans = useMemo(() => {
+  /// Options the user has bought
+  const buyerCallOptions = useMemo(() => {
     if (buyerQueryResult.data) {
       return buyerQueryResult.data.map(CallOption.fromJSON);
     }
     return [];
   }, [buyerQueryResult.data]);
 
-  const sellerLoans = useMemo(() => {
+  /// Options the user has listed or sold
+  const sellerCallOptions = useMemo(() => {
     if (sellerQueryResult.data) {
       return sellerQueryResult.data.map(CallOption.fromJSON);
     }
     return [];
   }, [sellerQueryResult.data]);
+
+  const listedSellerCallOptions = useMemo(() => {
+    return sellerCallOptions.filter(
+      (option) => option.state === CallOptionStateEnum.Listed
+    );
+  }, [sellerCallOptions]);
+
+  const activeSellerCallOptions = useMemo(() => {
+    return sellerCallOptions.filter(
+      (option) => option.state === CallOptionStateEnum.Active
+    );
+  }, [sellerCallOptions]);
+
+  const otherSellerCallOptions = useMemo(() => {
+    return sellerCallOptions.filter(
+      (option) =>
+        option.state !== CallOptionStateEnum.Active &&
+        option.state !== CallOptionStateEnum.Listed
+    );
+  }, [sellerCallOptions]);
 
   if (buyerQueryResult.isLoading || sellerQueryResult.isLoading) {
     return <LoadingSpinner />;
@@ -293,11 +317,11 @@ const CallOptions = () => {
 
   return (
     <>
-      {buyerLoans.length ? (
+      {listedSellerCallOptions.length ? (
         <>
-          <SectionHeader title="Your Call Options" />
+          <SectionHeader title="Listed Items" />
           <CardList>
-            {buyerLoans.map((item) => (
+            {listedSellerCallOptions.map((item) => (
               <CallOptionCard
                 key={item.publicKey.toBase58()}
                 callOption={item}
@@ -307,11 +331,14 @@ const CallOptions = () => {
         </>
       ) : null}
 
-      {sellerLoans.length ? (
+      {activeSellerCallOptions.length ? (
         <>
-          <SectionHeader title="Sold" />
+          <SectionHeader
+            title="Sold Options"
+            subtitle="Options you have sold"
+          />
           <CardList>
-            {sellerLoans.map((item) => (
+            {activeSellerCallOptions.map((item) => (
               <CallOptionCard
                 key={item.publicKey.toBase58()}
                 callOption={item}
@@ -321,7 +348,24 @@ const CallOptions = () => {
         </>
       ) : null}
 
-      {!buyerLoans.length && !sellerLoans.length && (
+      {buyerCallOptions.length ? (
+        <>
+          <SectionHeader
+            title="Bought Options"
+            subtitle="Options you have a right to exercise"
+          />
+          <CardList>
+            {buyerCallOptions.map((item) => (
+              <CallOptionCard
+                key={item.publicKey.toBase58()}
+                callOption={item}
+              />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {!buyerCallOptions.length && !sellerCallOptions.length && (
         <>
           <SectionHeader title="Your Call Options" />
           <Box>
