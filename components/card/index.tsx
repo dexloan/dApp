@@ -229,13 +229,13 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
       case CallOptionStateEnum.Active: {
         if (callOption.expired) {
           return (
-            <Badge borderRadius="full" px="1" py="1" colorScheme="red">
+            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
               <IoAlertCircle />
             </Badge>
           );
         }
         return (
-          <Badge borderRadius="full" px="1" py="1" colorScheme="green">
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
             <IoLeaf />
           </Badge>
         );
@@ -243,7 +243,7 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
 
       case CallOptionStateEnum.Exercised:
         return (
-          <Badge borderRadius="full" px="1" py="1" colorScheme="blue">
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
             <IoCheckmark />
           </Badge>
         );
@@ -251,16 +251,12 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
       default: {
         if (callOption.expired) {
           return (
-            <Badge borderRadius="full" px="1" py="1" colorScheme="red">
+            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
               <IoAlertCircle />
             </Badge>
           );
         }
-        return (
-          <Badge borderRadius="full" px="2" colorScheme="teal">
-            {callOption.cost}
-          </Badge>
-        );
+        return null;
       }
     }
   }
@@ -280,7 +276,6 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
             letterSpacing="wide"
             fontSize="xs"
             textTransform="uppercase"
-            ml="2"
           >
             {callOption.expiry}
           </Box>
@@ -300,7 +295,7 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
           {callOption.strikePrice}{" "}
         </Box>
         <Text fontSize="xs" fontWeight="medium">
-          Floor Price {floorPrice ?? <EllipsisProgress />}
+          Cost {callOption.cost}
         </Text>
       </Box>
     </Card>
