@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import * as utils from "../../common/utils";
-import { CallOption, Loan } from "../../common/model";
+import { CallOption, Listing, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
 import { CallOptionStateEnum } from "../../common/types";
@@ -97,7 +97,7 @@ export const CardList = ({ children }: CardListProps) => {
  */
 
 interface ListingCardProps {
-  listing: Loan;
+  listing: Listing;
 }
 
 export const ListingCard = ({ listing }: ListingCardProps) => {

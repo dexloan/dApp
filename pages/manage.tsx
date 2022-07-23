@@ -29,7 +29,7 @@ import {
   LoanStateEnum,
   NFTResult,
 } from "../common/types";
-import { Loan, CallOption } from "../common/model";
+import { Listing, Loan, CallOption } from "../common/model";
 import {
   useNFTByOwnerQuery,
   useFloorPriceQuery,
@@ -50,7 +50,6 @@ import {
 import { VerifiedCollection } from "../components/collection";
 import { InitCallOptionModal, InitLoanModal } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
-import { option } from "@project-serum/borsh";
 
 const Manage: NextPage = () => {
   const router = useRouter();
@@ -100,6 +99,7 @@ const Manage: NextPage = () => {
             Call Options
           </Button>
         </NextLink>
+        <Button disabled>Hires</Button>
       </ButtonGroup>
       {renderContent()}
     </Container>
@@ -158,7 +158,7 @@ const Loans = () => {
   );
 
   const deprecatedListings = useMemo(
-    () => listingsQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    () => listingsQuery.data?.map((l) => Listing.fromJSON(l)) || [],
     [listingsQuery.data]
   );
 
