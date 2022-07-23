@@ -1,7 +1,4 @@
 import * as anchor from "@project-serum/anchor";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import { Controller, useForm } from "react-hook-form";
 import {
   Box,
@@ -18,12 +15,11 @@ import {
   ModalBody,
   Select,
 } from "@chakra-ui/react";
+
+import dayjs from "../../common/lib/dayjs";
 import { NFTResult } from "../../common/types";
 import { useInitCallOptionMutation } from "../../hooks/mutation";
 import { useMemo } from "react";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 interface FormFields {
   amount: number;

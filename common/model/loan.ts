@@ -2,8 +2,8 @@ import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
-import type { LoanData, LoanStateEnum } from "../types";
 import * as utils from "../utils";
+import { LoanData, LoanStateEnum } from "../types";
 
 export type LoanArgs = {
   data: LoanData;
@@ -49,6 +49,13 @@ export class Loan implements LoanArgs {
   }
 
   get dueDate() {
+    if (this.state === LoanStateEnum.Listed) {
+      return utils.formatDueDate(
+        new BN(Date.now() / 1000),
+        this.data.duration,
+        false
+      );
+    }
     return utils.formatDueDate(this.data.startDate, this.data.duration, false);
   }
 

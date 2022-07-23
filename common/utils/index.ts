@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
-import dayjs from "dayjs";
+
+import dayjs from "../../common/lib/dayjs";
 
 const SECONDS_PER_YEAR = 31_536_000;
 const LAMPORTS_PER_SOL = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
@@ -33,7 +34,7 @@ export function formatDueDate(
   const date = dayjs.unix(startDate.add(duration).toNumber());
   return (
     date.format("MMM D, YYYY") +
-    (showTime ? ` at ${date.format("h:mm A")}` : "")
+    (showTime ? ` at ${date.format("h:mm A z")}` : "")
   );
 }
 

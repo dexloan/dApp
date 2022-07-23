@@ -1,10 +1,10 @@
 import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import dayjs from "dayjs";
 
-import type { CallOptionData, CallOptionStateEnum } from "../types";
 import * as utils from "../utils";
+import dayjs from "../../common/lib/dayjs";
+import type { CallOptionData, CallOptionStateEnum } from "../types";
 
 export type CallOptionArgs = {
   data: CallOptionData;
@@ -44,8 +44,8 @@ export class CallOption implements CallOptionArgs {
   }
 
   get expiryLongFormat() {
-    const date = dayjs.unix(this.data.expiry.toNumber());
-    return date.format("MMM D, YYYY") + " at " + date.format("h:mm A");
+    const date = dayjs.unix(this.data.expiry.toNumber()).tz("America/New_York");
+    return date.format("MMM D, YYYY") + " at " + date.format("h:mm A z");
   }
 
   get expired() {

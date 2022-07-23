@@ -9,7 +9,6 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import * as utils from "../../common/utils";
 import { CallOption, Loan } from "../../common/model";
 
 interface MutationDialogProps {
@@ -91,12 +90,12 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
             </Badge>{" "}
             <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>
           </Text>
-          <Text mb="4">Loan will expire on {loan.dueDate}</Text>
+          <Text mb="4">Loan will mature on {loan.dueDate}.</Text>
           <Text fontSize="sm">
             This loan may be repaid in full at any time. Interest will be
-            calculated on a pro-rata basis. If the borrower fails to repay the
-            loan before the expiry date, you may exercise the right to repossess
-            the NFT.
+            calculated on a pro-rata basis at the time of repayment. If the
+            borrower fails to repay the loan before the expiry date, you may
+            exercise the right to repossess the NFT.
           </Text>
         </>
       }
@@ -231,14 +230,15 @@ export const BuyCallOptionDialog = ({
             <Badge borderRadius="md" fontSize="md" mr="2">
               {callOption.cost}
             </Badge>
-            <Badge colorScheme="blue" borderRadius="md" fontSize="md">
-              {callOption.expiry}
-            </Badge>
           </Text>
           <Text mb="4">
-            Purchase option to buy {callOption.metadata.data.name} at strike
-            price of {callOption.strikePrice} for a cost of {callOption.cost}.
-            Expires on {callOption.expiryLongFormat}.
+            Option will expire on {callOption.expiryLongFormat}
+          </Text>
+          <Text mb="4" fontSize="sm">
+            This option gives you the right to purchase{" "}
+            {callOption.metadata.data.name} at the price of{" "}
+            {callOption.strikePrice} anytime before the expiry time. The cost to
+            purchase this option is {callOption.cost}.
           </Text>
         </>
       }
