@@ -73,10 +73,6 @@ export async function fetchMetadataAccounts(
   );
 }
 
-function hasDelegate(data: splToken.RawAccount) {
-  return !utils.isSystemProgram(data.delegate);
-}
-
 export async function fetchNFTs(
   connection: anchor.web3.Connection,
   publicKey: anchor.web3.PublicKey
