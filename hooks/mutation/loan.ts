@@ -12,10 +12,10 @@ import * as query from "../../common/query";
 import { NFTResult, LoanStateEnum } from "../../common/types";
 import { LoanPretty } from "../../common/model";
 import {
-  getBorrowingsQueryKey,
+  getLoansTakenCacheKey,
   getLoanQueryKey,
   getLoansQueryKey,
-  getPersonalLoansQueryKey,
+  getLoansGivenCacheKey,
 } from "../query/loan";
 
 interface InitLoanMutationVariables {
@@ -106,7 +106,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.invalidateQueries(
-          getPersonalLoansQueryKey(anchorWallet?.publicKey)
+          getLoansGivenCacheKey(anchorWallet?.publicKey)
         );
 
         const loanAddress = await query.findLoanAddress(
@@ -176,7 +176,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
     {
       async onSuccess(_, variables) {
         queryClient.setQueryData<LoanPretty[] | undefined>(
-          getBorrowingsQueryKey(anchorWallet?.publicKey),
+          getLoansTakenCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (data) {
               return data?.filter(
@@ -259,7 +259,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
         toast.success("NFT repossessed.");
 
         queryClient.setQueryData(
-          getPersonalLoansQueryKey(anchorWallet?.publicKey),
+          getLoansGivenCacheKey(anchorWallet?.publicKey),
           (loans: LoanPretty[] | undefined) => {
             if (!loans) return [];
 
@@ -270,7 +270,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
         );
 
         queryClient.invalidateQueries(
-          getPersonalLoansQueryKey(anchorWallet?.publicKey)
+          getLoansGivenCacheKey(anchorWallet?.publicKey)
         );
 
         const loanAddress = await query.findLoanAddress(
@@ -328,7 +328,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
         toast.success("Loan repaid. Your NFT has been returned to you.");
 
         queryClient.setQueryData(
-          getBorrowingsQueryKey(anchorWallet?.publicKey),
+          getLoansTakenCacheKey(anchorWallet?.publicKey),
           (borrowings: LoanPretty[] | undefined) => {
             if (!borrowings) return [];
 

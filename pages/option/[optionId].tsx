@@ -18,7 +18,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
-import { IoLeaf, IoAlert, IoCheckmark } from "react-icons/io5";
+import { IoLeaf, IoAlert, IoList, IoCheckmark } from "react-icons/io5";
 
 import * as utils from "../../common/utils";
 import { CallOptionStateEnum } from "../../common/types";
@@ -227,6 +227,30 @@ const CallOptionLayout = () => {
       case CallOptionStateEnum.Listed:
         return (
           <>
+            <Box display="flex" pb="4">
+              {callOption?.expired ? (
+                <Tag colorScheme="red" ml="2">
+                  <TagLeftIcon boxSize="12px" as={IoAlert} />
+                  <TagLabel>Expired</TagLabel>
+                </Tag>
+              ) : (
+                <Tag colorScheme="blue">
+                  <TagLeftIcon boxSize="12px" as={IoList} />
+                  <TagLabel>Listed</TagLabel>
+                </Tag>
+              )}
+            </Box>
+            <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
+              <Text>
+                {callOption?.expired
+                  ? `This call option has now expired.${
+                      callOption?.isSeller(anchorWallet)
+                        ? " You may close the account to unlock the NFT."
+                        : ""
+                    }`
+                  : `This NFT will remain locked until expiry on ${callOption.expiryLongFormat}, unless exercised.`}
+              </Text>
+            </Box>
             <Box mt="4" mb="4">
               {renderListedButton()}
             </Box>
@@ -248,6 +272,19 @@ const CallOptionLayout = () => {
                   <TagLabel>Active</TagLabel>
                 </Tag>
               )}
+            </Box>
+            <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
+              <Text>
+                {callOption?.expired
+                  ? `This call option has now expired.${
+                      callOption?.isSeller(anchorWallet)
+                        ? " You may close the account to unlock the NFT."
+                        : ""
+                    }`
+                  : callOption.isBuyer(anchorWallet)
+                  ? `You may excersie this call option until expiry on ${callOption.expiryLongFormat}.`
+                  : `This NFT will remain locked until expiry on ${callOption.expiryLongFormat}, unless exercised.`}
+              </Text>
             </Box>
             <Box mt="4" mb="4">
               {renderActiveButton()}
@@ -369,7 +406,7 @@ const CallOptionLayout = () => {
               <Flex direction="row" gap="12" mb="12">
                 <Box>
                   <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Loan to Floor Value
+                    Floor Value
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
                     {renderFloorValue()}

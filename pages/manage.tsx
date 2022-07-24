@@ -33,8 +33,8 @@ import { Listing, Loan, CallOption } from "../common/model";
 import {
   useNFTByOwnerQuery,
   useFloorPriceQuery,
-  useBorrowingsQuery,
-  usePersonalLoansQuery,
+  useLoansTakeQuery,
+  useLoansGivenQuery,
   useBuyerCallOptionsQuery,
   useSellerCallOptionsQuery,
   // Deprecated
@@ -132,19 +132,19 @@ const LoadingSpinner = () => (
 );
 
 const Loans = () => {
-  const loansQuery = usePersonalLoansQuery();
-  const borrowingsQuery = useBorrowingsQuery();
+  const loansGivenQuery = useLoansGivenQuery();
+  const loansTakenQuery = useLoansTakeQuery();
   // Deprecated listings
   const listingsQuery = usePersonalListingsQuery();
 
   const givenLoans = useMemo(
-    () => loansQuery.data?.map((l) => Loan.fromJSON(l)) || [],
-    [loansQuery.data]
+    () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    [loansGivenQuery.data]
   );
 
   const borrowings = useMemo(
-    () => borrowingsQuery.data?.map((l) => Loan.fromJSON(l)) || [],
-    [borrowingsQuery.data]
+    () => loansTakenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    [loansTakenQuery.data]
   );
 
   const listedBorrowings = useMemo(
@@ -184,7 +184,7 @@ const Loans = () => {
     [activeBorrowings]
   );
 
-  if (loansQuery.isLoading) {
+  if (loansTakenQuery.isLoading) {
     return <LoadingSpinner />;
   }
 

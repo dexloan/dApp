@@ -67,10 +67,12 @@ export class Loan implements LoanArgs {
   }
 
   get interestDue() {
-    return utils.formatInterestDue(
-      this.data.amount,
-      this.data.startDate,
-      this.data.basisPoints
+    return utils.formatAmount(
+      utils.calculateInterestOnMaturity(
+        this.data.amount,
+        this.data.duration,
+        this.data.basisPoints
+      )
     );
   }
 

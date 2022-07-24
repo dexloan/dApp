@@ -240,7 +240,7 @@ const ListingForecast = ({ control, floorPrice }: ListingForecastProps) => {
           color="gray.500"
           whiteSpace="nowrap"
         >
-          Interest on maturity
+          Interest
         </Text>
         <Heading size="md" fontWeight="bold" mb="6" whiteSpace="nowrap">
           {utils.formatAmount(interest)}

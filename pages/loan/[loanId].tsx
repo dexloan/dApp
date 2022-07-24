@@ -238,10 +238,12 @@ const LoanLayout = () => {
             </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
               <Text>
-                Total amount due on {loan.dueDate} will be&nbsp;
+                Total amount due for repayment by {loan.dueDate} is&nbsp;
                 <Text as="span" fontWeight="semibold">
                   {loan.amountOnMaturity}
                 </Text>
+                . Failure to repay the loan by this date may result in
+                repossession of the NFT by the lender.
               </Text>
             </Box>
             <Box mt="4" mb="4">
@@ -304,7 +306,7 @@ const LoanLayout = () => {
           <>
             <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
               <Text>
-                Loan has ended. The NFT was repossessed by the lender.
+                Listing has ended. The NFT was repossessed by the lender.
               </Text>
             </Box>
             <Box marginY="size-200">{renderCloseAccountButton()}</Box>
@@ -393,6 +395,14 @@ const LoanLayout = () => {
                 </Box>
               </Flex>
               <Flex direction="row" gap="12" mb="12">
+                <Box>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Interest
+                  </Text>
+                  <Heading size="md" fontWeight="bold" mb="6">
+                    {loan.interestDue}
+                  </Heading>
+                </Box>
                 <Box>
                   <Text fontSize="sm" fontWeight="medium" color="gray.500">
                     Loan to Floor Value

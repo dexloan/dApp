@@ -48,16 +48,16 @@ export function useLoansQuery() {
   );
 }
 
-export const getBorrowingsQueryKey = (
+export const getLoansTakenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["borrowings", walletAddress?.toBase58()];
+) => ["loans_taken", walletAddress?.toBase58()];
 
-export function useBorrowingsQuery() {
+export function useLoansTakeQuery() {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
 
   return useQuery(
-    getBorrowingsQueryKey(anchorWallet?.publicKey),
+    getLoansTakenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
         return query.fetchMultipleLoans(connection, [
@@ -78,23 +78,23 @@ export function useBorrowingsQuery() {
   );
 }
 
-export const getPersonalLoansQueryKey = (
+export const getLoansGivenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["loans", walletAddress?.toBase58()];
+) => ["loans_given", walletAddress?.toBase58()];
 
-export function usePersonalLoansQuery() {
+export function useLoansGivenQuery() {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
 
   return useQuery(
-    getPersonalLoansQueryKey(anchorWallet?.publicKey),
+    getLoansGivenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
         return query.fetchMultipleLoans(connection, [
           {
             memcmp: {
               // filter lender
-              offset: 8 + 1 + 32 + 1,
+              offset: 8 + 1 + 8 + 32,
               bytes: anchorWallet?.publicKey.toBase58(),
             },
           },
