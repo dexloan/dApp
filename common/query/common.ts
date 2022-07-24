@@ -96,12 +96,12 @@ export async function fetchNFTs(
         data: decodedInfo,
       };
     })
-  ).then((accounts) =>
-    accounts.filter(
+  ).then((accounts) => {
+    return accounts.filter(
       (account) =>
-        account.data.amount === BigInt("1") && !hasDelegate(account.data)
-    )
-  );
+        account.data.amount === BigInt("1") && account.data.state !== 2
+    );
+  });
 
   const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {
     method: "POST",
