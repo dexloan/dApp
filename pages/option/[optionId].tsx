@@ -182,13 +182,12 @@ const CallOptionLayout = () => {
     }
   }, [callOptionQueryResult.data]);
 
-  function renderFloorValue() {
+  const floorValue = useMemo(() => {
     if (floorPriceQuery.data?.floorPrice) {
-      return utils.formatAmount(floorPriceQuery.data.floorPrice);
+      return utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice));
     }
-
     return <EllipsisProgress />;
-  }
+  }, [floorPriceQuery.data]);
 
   function renderListedButton() {
     if (callOption && callOption.isSeller(anchorWallet)) {
@@ -409,7 +408,7 @@ const CallOptionLayout = () => {
                     Floor Value
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
-                    {renderFloorValue()}
+                    {floorValue}
                   </Heading>
                 </Box>
               </Flex>

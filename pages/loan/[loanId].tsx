@@ -212,8 +212,8 @@ const LoanLayout = () => {
     return null;
   }
 
-  function renderLTV() {
-    if (loan?.amount && floorPriceQuery.data?.floorPrice) {
+  const ltv = useMemo(() => {
+    if (loan?.data && floorPriceQuery.data?.floorPrice) {
       const percentage = Number(
         (loan.data.amount.toNumber() / floorPriceQuery.data.floorPrice) * 100
       ).toFixed(2);
@@ -221,7 +221,7 @@ const LoanLayout = () => {
     }
 
     return <EllipsisProgress />;
-  }
+  }, [loan?.data, floorPriceQuery.data]);
 
   function renderByState() {
     if (loan === undefined) return null;
@@ -408,7 +408,7 @@ const LoanLayout = () => {
                     Loan to Floor Value
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
-                    {renderLTV()}
+                    {ltv}
                   </Heading>
                 </Box>
               </Flex>
