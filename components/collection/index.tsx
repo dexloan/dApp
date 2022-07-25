@@ -1,7 +1,7 @@
 import { Icon, Flex, Text } from "@chakra-ui/react";
 import { IoShieldCheckmark } from "react-icons/io5";
 
-import * as utils from "../../utils";
+import * as utils from "../../common/utils";
 
 interface VerifiedCollectionProps {
   symbol?: string;

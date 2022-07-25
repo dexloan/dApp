@@ -10,27 +10,45 @@ import {
   Flex,
   Heading,
   Link,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   Spinner,
   Text,
 } from "@chakra-ui/react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
-import * as utils from "../utils";
+import { IoCalendar, IoCash } from "react-icons/io5";
+import * as utils from "../common/utils";
 import {
-  ListingState,
+  CallOptionStateEnum,
   Collection,
   CollectionMap,
+  LoanStateEnum,
   NFTResult,
 } from "../common/types";
+import { Listing, Loan, CallOption } from "../common/model";
 import {
-  useBorrowingsQuery,
-  useLoansQuery,
   useNFTByOwnerQuery,
   useFloorPriceQuery,
+  useLoansTakeQuery,
+  useLoansGivenQuery,
+  useBuyerCallOptionsQuery,
+  useSellerCallOptionsQuery,
+  // Deprecated
+  usePersonalListingsQuery,
 } from "../hooks/query";
-import { Card, CardList, ListedCard } from "../components/card";
+import {
+  Card,
+  CardList,
+  LoanCard,
+  ListingCard,
+  CallOptionCard,
+} from "../components/card";
 import { VerifiedCollection } from "../components/collection";
-import { ListingModal } from "../components/form";
+import { InitCallOptionModal, InitLoanModal } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
 
 const Manage: NextPage = () => {
@@ -38,14 +56,14 @@ const Manage: NextPage = () => {
 
   function renderContent() {
     switch (router.query.tab) {
-      case "listed":
-        return <Listings />;
-
       case "loans":
         return <Loans />;
 
+      case "call_options":
+        return <CallOptions />;
+
       default:
-        return <Borrow />;
+        return <MyItems />;
     }
   }
 
@@ -58,16 +76,7 @@ const Manage: NextPage = () => {
             colorScheme={router.query.tab === undefined ? "green" : undefined}
             cursor="pointer"
           >
-            Borrow
-          </Button>
-        </NextLink>
-        <NextLink href="/manage?tab=listed">
-          <Button
-            as="a"
-            colorScheme={router.query.tab === "listed" ? "green" : undefined}
-            cursor="pointer"
-          >
-            Listings
+            My Items
           </Button>
         </NextLink>
         <NextLink href="/manage?tab=loans">
@@ -79,6 +88,18 @@ const Manage: NextPage = () => {
             Loans
           </Button>
         </NextLink>
+        <NextLink href="/manage?tab=call_options">
+          <Button
+            as="a"
+            colorScheme={
+              router.query.tab === "call_options" ? "green" : undefined
+            }
+            cursor="pointer"
+          >
+            Call Options
+          </Button>
+        </NextLink>
+        <Button disabled>Hires</Button>
       </ButtonGroup>
       {renderContent()}
     </Container>
@@ -111,219 +132,264 @@ const LoadingSpinner = () => (
 );
 
 const Loans = () => {
-  const { connection } = useConnection();
-  const anchorWallet = useAnchorWallet();
-  const loansQuery = useLoansQuery(connection, anchorWallet);
+  const loansGivenQuery = useLoansGivenQuery();
+  const loansTakenQuery = useLoansTakeQuery();
+  // Deprecated listings
+  const listingsQuery = usePersonalListingsQuery();
 
-  const activeLoans = useMemo(
-    () =>
-      loansQuery.data?.filter((l) => l?.listing.state === ListingState.Active),
-    [loansQuery.data]
+  const givenLoans = useMemo(
+    () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    [loansGivenQuery.data]
+  );
+
+  const borrowings = useMemo(
+    () => loansTakenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
+    [loansTakenQuery.data]
+  );
+
+  const listedBorrowings = useMemo(
+    () => borrowings.filter((b) => b.state !== LoanStateEnum.Active),
+    [borrowings]
+  );
+
+  const activeBorrowings = useMemo(
+    () => borrowings.filter((b) => b.state === LoanStateEnum.Active),
+    [borrowings]
+  );
+
+  const deprecatedListings = useMemo(
+    () => listingsQuery.data?.map((l) => Listing.fromJSON(l)) || [],
+    [listingsQuery.data]
   );
 
   const totalLending = useMemo(
     () =>
-      activeLoans?.reduce((total, item) => {
+      givenLoans?.reduce((total, item) => {
         if (item) {
-          return total.add(item.listing.amount);
+          return total.add(item.data.amount);
         }
         return total;
       }, new anchor.BN(0)),
-    [activeLoans]
+    [givenLoans]
   );
 
-  if (loansQuery.isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  return (
-    <>
-      <SectionHeader
-        title="My Active Loans"
-        subtitle={
-          activeLoans?.length
-            ? `Lending ${utils.formatAmount(totalLending)}`
-            : null
-        }
-      />
-      {activeLoans?.length ? (
-        <CardList>
-          {activeLoans?.map(
-            (item) =>
-              item && (
-                <ListedCard
-                  key={item.publicKey.toBase58()}
-                  listing={item.publicKey}
-                  amount={item.listing.amount}
-                  basisPoints={item.listing.basisPoints}
-                  duration={item.listing.duration}
-                  uri={item.metadata.data.uri}
-                  name={item.metadata.data.name}
-                  symbol={item.metadata.data.symbol}
-                />
-              )
-          )}
-        </CardList>
-      ) : (
-        <Box>
-          <Text>
-            Why not check out our{" "}
-            <NextLink href="/#listings" scroll={false}>
-              <Link color="green.600" fontWeight="semibold">
-                current listings
-              </Link>
-            </NextLink>{" "}
-            to start lending?
-          </Text>
-        </Box>
-      )}
-    </>
-  );
-};
-
-const Listings = () => {
-  const { connection } = useConnection();
-  const anchorWallet = useAnchorWallet();
-  const borrowingsQuery = useBorrowingsQuery(connection, anchorWallet);
-
-  const [activeBorrowings, listedBorrowings, completedBorrowings] = useMemo(
-    () => [
-      borrowingsQuery.data?.filter(
-        (b) => b?.listing.state === ListingState.Active
-      ),
-      borrowingsQuery.data?.filter(
-        (b) => b?.listing.state === ListingState.Listed
-      ),
-      borrowingsQuery.data?.filter(
-        (b) =>
-          b?.listing.state === ListingState.Defaulted ||
-          b?.listing.state === ListingState.Cancelled ||
-          b?.listing.state === ListingState.Repaid
-      ),
-    ],
-    [borrowingsQuery.data]
-  );
-
-  const totalBorrowings = useMemo(
+  const totalBorrowing = useMemo(
     () =>
       activeBorrowings?.reduce((total, item) => {
         if (item) {
-          return total.add(item.listing.amount);
+          return total.add(item.data.amount);
         }
         return total;
       }, new anchor.BN(0)),
     [activeBorrowings]
   );
 
-  if (borrowingsQuery.isLoading) {
+  if (loansTakenQuery.isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (
-    !activeBorrowings?.length &&
-    !listedBorrowings?.length &&
-    !completedBorrowings?.length
-  ) {
-    return (
-      <>
-        <SectionHeader
-          title="My Active Listings"
-          subtitle={
-            activeBorrowings?.length && totalBorrowings
-              ? `Borrowing ${utils.formatAmount(totalBorrowings)}`
-              : null
-          }
-        />
-        <Text mb="6">You do not currently have any active listings.</Text>
-      </>
-    );
-  }
-
   return (
-    <Box>
-      {activeBorrowings && activeBorrowings.length > 0 && (
+    <>
+      {listedBorrowings.length ? (
+        <>
+          <SectionHeader title="Listed items" />
+          <CardList>
+            {listedBorrowings.map((item) => (
+              <LoanCard key={item.publicKey.toBase58()} loan={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {activeBorrowings.length ? (
         <>
           <SectionHeader
-            title="My Active Listings"
+            title="Loans taken"
             subtitle={
-              activeBorrowings?.length && totalBorrowings
-                ? `Borrowing ${utils.formatAmount(totalBorrowings)}`
+              activeBorrowings.length
+                ? `Borrowing ${utils.formatAmount(totalBorrowing)}`
                 : null
             }
           />
           <CardList>
-            {activeBorrowings?.map(
-              (item) =>
-                item && (
-                  <ListedCard
-                    key={item.publicKey.toBase58()}
-                    listing={item.publicKey}
-                    amount={item.listing.amount}
-                    basisPoints={item.listing.basisPoints}
-                    duration={item.listing.duration}
-                    uri={item.metadata.data.uri}
-                    name={item.metadata.data.name}
-                    symbol={item.metadata.data.symbol}
-                  />
-                )
-            )}
+            {activeBorrowings.map((item) => (
+              <LoanCard key={item.publicKey.toBase58()} loan={item} />
+            ))}
           </CardList>
+        </>
+      ) : null}
+
+      {givenLoans.length ? (
+        <>
+          <SectionHeader
+            title="Loans given"
+            subtitle={
+              givenLoans.length
+                ? `Lending ${utils.formatAmount(totalLending)}`
+                : null
+            }
+          />
+          <CardList>
+            {givenLoans.map((item) => (
+              <LoanCard key={item.publicKey.toBase58()} loan={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {!givenLoans.length && !borrowings.length && (
+        <>
+          <SectionHeader title="My Loans" />
+          <Box mb="12">
+            <Text>
+              Why not check out our{" "}
+              <NextLink href="/#listings" scroll={false}>
+                <Link color="green.600" fontWeight="semibold">
+                  current listings
+                </Link>
+              </NextLink>{" "}
+              to start lending?
+            </Text>
+          </Box>
         </>
       )}
 
-      {listedBorrowings && listedBorrowings.length > 0 && (
+      {deprecatedListings.length ? (
         <>
-          <SectionHeader title="My Listed NFTs" />
+          <SectionHeader
+            title="Deprecated v1 Listings"
+            subtitle="Please close the following accounts"
+          />
           <CardList>
-            {listedBorrowings?.map(
-              (item) =>
-                item && (
-                  <ListedCard
-                    key={item.publicKey.toBase58()}
-                    listing={item.publicKey}
-                    amount={item.listing.amount}
-                    basisPoints={item.listing.basisPoints}
-                    duration={item.listing.duration}
-                    uri={item.metadata.data.uri}
-                    name={item.metadata.data.name}
-                    symbol={item.metadata.data.symbol}
-                  />
-                )
-            )}
+            {deprecatedListings.map((item) => (
+              <ListingCard key={item.publicKey.toBase58()} listing={item} />
+            ))}
           </CardList>
         </>
-      )}
-
-      {completedBorrowings && completedBorrowings.length > 0 && (
-        <>
-          <SectionHeader title="My Completed Listings" />
-          <CardList>
-            {completedBorrowings?.map(
-              (item) =>
-                item && (
-                  <ListedCard
-                    key={item.publicKey.toBase58()}
-                    listing={item.publicKey}
-                    amount={item.listing.amount}
-                    basisPoints={item.listing.basisPoints}
-                    duration={item.listing.duration}
-                    uri={item.metadata.data.uri}
-                    name={item.metadata.data.name}
-                    symbol={item.metadata.data.symbol}
-                  />
-                )
-            )}
-          </CardList>
-        </>
-      )}
-    </Box>
+      ) : null}
+    </>
   );
 };
 
-const Borrow = () => {
+const CallOptions = () => {
+  const buyerQueryResult = useBuyerCallOptionsQuery();
+  const sellerQueryResult = useSellerCallOptionsQuery();
+
+  /// Options the user has bought
+  const buyerCallOptions = useMemo(() => {
+    if (buyerQueryResult.data) {
+      return buyerQueryResult.data.map(CallOption.fromJSON);
+    }
+    return [];
+  }, [buyerQueryResult.data]);
+
+  /// Options the user has listed or sold
+  const sellerCallOptions = useMemo(() => {
+    if (sellerQueryResult.data) {
+      return sellerQueryResult.data.map(CallOption.fromJSON);
+    }
+    return [];
+  }, [sellerQueryResult.data]);
+
+  const listedSellerCallOptions = useMemo(() => {
+    return sellerCallOptions.filter(
+      (option) => option.state === CallOptionStateEnum.Listed
+    );
+  }, [sellerCallOptions]);
+
+  const activeSellerCallOptions = useMemo(() => {
+    return sellerCallOptions.filter(
+      (option) => option.state === CallOptionStateEnum.Active
+    );
+  }, [sellerCallOptions]);
+
+  const otherSellerCallOptions = useMemo(() => {
+    return sellerCallOptions.filter(
+      (option) =>
+        option.state !== CallOptionStateEnum.Active &&
+        option.state !== CallOptionStateEnum.Listed
+    );
+  }, [sellerCallOptions]);
+
+  if (buyerQueryResult.isLoading || sellerQueryResult.isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <>
+      {listedSellerCallOptions.length ? (
+        <>
+          <SectionHeader title="Listed Items" />
+          <CardList>
+            {listedSellerCallOptions.map((item) => (
+              <CallOptionCard
+                key={item.publicKey.toBase58()}
+                callOption={item}
+              />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {activeSellerCallOptions.length ? (
+        <>
+          <SectionHeader
+            title="Sold Options"
+            subtitle="Options you have sold"
+          />
+          <CardList>
+            {activeSellerCallOptions.map((item) => (
+              <CallOptionCard
+                key={item.publicKey.toBase58()}
+                callOption={item}
+              />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {buyerCallOptions.length ? (
+        <>
+          <SectionHeader
+            title="Bought Options"
+            subtitle="Options you have bought"
+          />
+          <CardList>
+            {buyerCallOptions.map((item) => (
+              <CallOptionCard
+                key={item.publicKey.toBase58()}
+                callOption={item}
+              />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {!buyerCallOptions.length && !sellerCallOptions.length && (
+        <>
+          <SectionHeader title="Your Call Options" />
+          <Box>
+            <Text>
+              Why not check out our{" "}
+              <NextLink href="/#listings" scroll={false}>
+                <Link color="green.600" fontWeight="semibold">
+                  current listings
+                </Link>
+              </NextLink>{" "}
+              to start buying?
+            </Text>
+          </Box>
+        </>
+      )}
+    </>
+  );
+};
+
+const MyItems = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
+  const [type, setType] = useState<"loan" | "callOption" | null>(null);
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
   const collections = useMemo(() => {
@@ -353,32 +419,81 @@ const Borrow = () => {
     });
   }, [nftQuery.data]);
 
+  const renderedCollections = useMemo(() => {
+    return collections?.length ? (
+      collections.map((collection) => {
+        return (
+          <Collection
+            key={collection.symbol}
+            collection={collection}
+            onSelectItem={setSelected}
+          />
+        );
+      })
+    ) : (
+      <Box>
+        <SectionHeader title="My Items" />
+        <Text>You do not currently hold any NFTs approved for lending.</Text>
+      </Box>
+    );
+  }, [collections]);
+
   if (!nftQuery.isFetched) {
     return <LoadingSpinner />;
   }
 
   return (
     <>
-      {collections?.length ? (
-        collections.map((collection) => {
-          return (
-            <Collection
-              key={collection.symbol}
-              collection={collection}
-              onSelectItem={setSelected}
-            />
-          );
-        })
-      ) : (
-        <Box>
-          <SectionHeader title="My Items" />
-          <Text>You do not currently hold any NFTs approved for lending.</Text>
-        </Box>
-      )}
+      {renderedCollections}
 
-      <ListingModal
-        selected={selected}
-        onRequestClose={() => setSelected(null)}
+      <Modal
+        isCentered
+        size="xl"
+        isOpen={Boolean(selected && type === null)}
+        onClose={() => setSelected(null)}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader fontSize="2xl" fontWeight="black">
+            Select listing type
+          </ModalHeader>
+          <ModalBody>
+            <Button
+              w="100%"
+              mb="4"
+              colorScheme="green"
+              rightIcon={<IoCash />}
+              onClick={() => setType("loan")}
+            >
+              Borrow against
+            </Button>
+            <Button
+              w="100%"
+              mb="4"
+              colorScheme="teal"
+              rightIcon={<IoCalendar />}
+              onClick={() => setType("callOption")}
+            >
+              Sell call option
+            </Button>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <InitLoanModal
+        selected={selected && type === "loan" ? selected : null}
+        onRequestClose={() => {
+          setSelected(null);
+          setType(null);
+        }}
+      />
+
+      <InitCallOptionModal
+        selected={selected && type === "callOption" ? selected : null}
+        onRequestClose={() => {
+          setSelected(null);
+          setType(null);
+        }}
       />
     </>
   );
@@ -395,31 +510,29 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
   const renderItem = useCallback(
     (item: NFTResult) => {
       return (
-        item?.metadata.data.uri &&
-        item?.metadata.data.name && (
-          <Card
-            key={item?.tokenAccount.pubkey.toBase58()}
-            uri={item?.metadata.data.uri}
-            imageAlt={item?.metadata.data.name}
-            onClick={() => onSelectItem(item)}
-          >
-            <Box p="4" pb="6">
-              <Box
-                mt="1"
-                fontWeight="semibold"
-                as="h4"
-                textAlign="left"
-                isTruncated
-              >
-                {item?.metadata.data.name}
-              </Box>
-              <VerifiedCollection
-                size="xs"
-                symbol={item?.metadata.data.symbol}
-              />
+        <Card
+          key={item?.tokenAccount.pubkey.toBase58()}
+          uri={item?.metadata.data.uri}
+          imageAlt={item?.metadata.data.name}
+        >
+          <Box p="4" pb="6">
+            <Box
+              mt="1"
+              fontWeight="semibold"
+              as="h4"
+              textAlign="left"
+              isTruncated
+            >
+              {item?.metadata.data.name}
             </Box>
-          </Card>
-        )
+            <VerifiedCollection size="xs" symbol={item?.metadata.data.symbol} />
+          </Box>
+          <Box m="2">
+            <Button w="100%" onClick={() => onSelectItem(item)}>
+              Select
+            </Button>
+          </Box>
+        </Card>
       );
     },
     [onSelectItem]

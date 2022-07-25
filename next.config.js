@@ -4,6 +4,9 @@ const nextConfig = {
     optimizeFonts: true,
     modern: true,
   },
+  images: {
+    domains: ["www.arweave.net"],
+  },
   reactStrictMode: true,
   webpack(config) {
     config.module.rules.push({

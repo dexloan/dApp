@@ -1,8 +1,13 @@
 import * as anchor from "@project-serum/anchor";
-import dayjs from "dayjs";
+
+import dayjs from "../../common/lib/dayjs";
 
 const SECONDS_PER_YEAR = 31_536_000;
 const LAMPORTS_PER_SOL = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
+
+export function isSystemProgram(pubkey: anchor.web3.PublicKey) {
+  return pubkey.equals(anchor.web3.SystemProgram.programId);
+}
 
 export function toMonths(seconds: number): number {
   return Math.abs(seconds / 60 / 60 / 24 / 30);
@@ -26,10 +31,12 @@ export function formatDueDate(
   duration: anchor.BN,
   showTime: boolean = true
 ) {
-  const date = dayjs.unix(startDate.add(duration).toNumber());
+  const date = dayjs
+    .unix(startDate.add(duration).toNumber())
+    .tz("America/New_York");
   return (
     date.format("MMM D, YYYY") +
-    (showTime ? ` at ${date.format("h:mm A")}` : "")
+    (showTime ? ` at ${date.format("h:mm A z")}` : "")
   );
 }
 

@@ -5,3 +5,15 @@ export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
 );
 
 export const RPC_ENDPOINT = "https://ssc-dao.genesysgo.net/";
+
+export const SerializedLoanState = {
+  Listed: 0,
+  Active: 1,
+  Defaulted: 2,
+};
+
+export const SerializedCallOptionState = {
+  Listed: 0,
+  Active: 1,
+  Exercised: 2,
+};

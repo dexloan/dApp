@@ -1,15 +1,26 @@
 import type { NextPage } from "next";
 import { Container, Heading } from "@chakra-ui/react";
-import { useConnection } from "@solana/wallet-adapter-react";
 import Head from "next/head";
+import { useMemo } from "react";
 
-import { CardList, ListedCard } from "../components/card";
+import { CallOption, Loan } from "../common/model";
+import { CallOptionCard, CardList, LoanCard } from "../components/card";
 import { Masthead } from "../components/masthead";
-import { useListingsQuery } from "../hooks/query";
+import { useCallOptionsQuery, useLoansQuery } from "../hooks/query";
 
 const Home: NextPage = () => {
-  const { connection } = useConnection();
-  const listingsQuery = useListingsQuery(connection);
+  const loansQuery = useLoansQuery();
+  const callOptionsQuery = useCallOptionsQuery();
+
+  const loans = useMemo(
+    () => loansQuery.data?.map(Loan.fromJSON) || [],
+    [loansQuery.data]
+  );
+
+  const callOptions = useMemo(
+    () => callOptionsQuery.data?.map(CallOption.fromJSON) || [],
+    [callOptionsQuery.data]
+  );
 
   return (
     <>
@@ -20,33 +31,31 @@ const Home: NextPage = () => {
 
       <Container maxW="container.xl">
         <Masthead />
-        <Heading id="#listings" as="h2" color="gray.700" size="md" mb="4">
+        <Heading id="#listings" as="h2" color="gray.700" size="md" mb="6">
           Current listings
         </Heading>
+        <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
+          Loans
+        </Heading>
         <CardList>
-          {listingsQuery.data?.map((item) => {
-            if (
-              item?.publicKey &&
-              item?.listing.basisPoints &&
-              item?.metadata.data.uri &&
-              item?.metadata.data.name
-            ) {
-              return (
-                <ListedCard
-                  key={item?.publicKey.toBase58()}
-                  amount={item?.listing.amount}
-                  basisPoints={item?.listing.basisPoints}
-                  duration={item?.listing.duration}
-                  uri={item?.metadata.data.uri}
-                  name={item?.metadata.data.name}
-                  symbol={item?.metadata.data.symbol}
-                  listing={item?.publicKey}
-                />
-              );
-            }
-            return null;
+          {loans.map((l) => {
+            return <LoanCard key={l.publicKey.toBase58()} loan={l} />;
           })}
         </CardList>
+        {callOptions.length ? (
+          <>
+            <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
+              Call Options
+            </Heading>
+            <CardList>
+              {callOptions.map((c) => {
+                return (
+                  <CallOptionCard key={c.publicKey.toBase58()} callOption={c} />
+                );
+              })}
+            </CardList>
+          </>
+        ) : null}
       </Container>
     </>
   );
