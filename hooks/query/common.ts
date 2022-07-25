@@ -4,16 +4,16 @@ import { useQuery } from "react-query";
 
 import { fetchNFTs } from "../../common/query";
 
-export const getNFTByOwnerQueryKey = (
+export const getNFTByOwnerCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["wallet-nfts", walletAddress?.toBase58()];
+) => ["wallet_nfts", walletAddress?.toBase58()];
 
 export function useNFTByOwnerQuery(
   connection: anchor.web3.Connection,
   wallet?: AnchorWallet
 ) {
   return useQuery(
-    getNFTByOwnerQueryKey(wallet?.publicKey),
+    getNFTByOwnerCacheKey(wallet?.publicKey),
     () => {
       if (wallet) {
         return fetchNFTs(connection, wallet.publicKey);
@@ -26,11 +26,11 @@ export function useNFTByOwnerQuery(
   );
 }
 
-export const getMetadataFileQueryKey = (uri?: string) => ["metadataFile", uri];
+export const getMetadataFileCacheKey = (uri?: string) => ["metadata_file", uri];
 
 export function useMetadataFileQuery(uri?: string) {
   return useQuery(
-    getMetadataFileQueryKey(uri),
+    getMetadataFileCacheKey(uri),
     () => {
       if (uri) {
         return fetch(uri).then((response) => {

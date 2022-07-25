@@ -26,7 +26,7 @@ import { fetchLoan } from "../../common/query";
 import { Loan } from "../../common/model";
 import {
   getLoanQueryKey,
-  getMetadataFileQueryKey,
+  getMetadataFileCacheKey,
   useFloorPriceQuery,
   useLoanQuery,
   useMetadataFileQuery,
@@ -77,7 +77,7 @@ LoanPage.getInitialProps = async (ctx) => {
       );
 
       await queryClient.prefetchQuery(
-        getMetadataFileQueryKey(loan.metadata.data.uri),
+        getMetadataFileCacheKey(loan.metadata.data.uri),
         () =>
           fetch(loan.metadata.data.uri).then((response) => {
             return response.json().then((data) => data);

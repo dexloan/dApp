@@ -27,7 +27,7 @@ import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
   getCallOptionQueryKey,
-  getMetadataFileQueryKey,
+  getMetadataFileCacheKey,
   useCallOptionQuery,
   useFloorPriceQuery,
   useMetadataFileQuery,
@@ -75,7 +75,7 @@ CallOptionPage.getInitialProps = async (ctx) => {
       );
 
       await queryClient.prefetchQuery(
-        getMetadataFileQueryKey(callOption.metadata.data.uri),
+        getMetadataFileCacheKey(callOption.metadata.data.uri),
         () =>
           fetch(callOption.metadata.data.uri).then((response) => {
             return response.json().then((data) => data);

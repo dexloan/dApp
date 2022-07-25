@@ -5,8 +5,6 @@ import {
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
 
-import * as utils from "../utils";
-
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
     [
