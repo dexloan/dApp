@@ -5,34 +5,31 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
-export const getCallOptionQueryKey = (
-  callOptionAddress: anchor.web3.PublicKey | undefined
-) => ["callOption", callOptionAddress?.toBase58()];
+export const getHireQueryKey = (
+  hireAddress: anchor.web3.PublicKey | undefined
+) => ["hire", hireAddress?.toBase58()];
 
-export function useCallOptionQuery(
-  callOptionAddress: anchor.web3.PublicKey | undefined
-) {
+export function useHireQuery(hireAddress: anchor.web3.PublicKey | undefined) {
   const { connection } = useConnection();
 
   return useQuery(
-    getCallOptionQueryKey(callOptionAddress),
+    getHireQueryKey(hireAddress),
     () => {
-      if (callOptionAddress)
-        return query.fetchCallOption(connection, callOptionAddress);
+      if (hireAddress) return query.fetchHire(connection, hireAddress);
     },
-    { enabled: Boolean(callOptionAddress) }
+    { enabled: Boolean(hireAddress) }
   );
 }
 
-export const getCallOptionsQueryKey = () => ["callOptions"];
+export const getHiresQueryKey = () => ["hires"];
 
-export function useCallOptionsQuery() {
+export function useHiresQuery() {
   const { connection } = useConnection();
 
   return useQuery(
-    getCallOptionsQueryKey(),
+    getHiresQueryKey(),
     () => {
-      return query.fetchMultipleCallOptions(connection, [
+      return query.fetchMultipleHires(connection, [
         {
           memcmp: {
             // filter listed
@@ -48,22 +45,22 @@ export function useCallOptionsQuery() {
   );
 }
 
-export const getSellerCallOptionsQueryKey = (
+export const getLenderHiresQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["sellerCallOptions", walletAddress?.toBase58()];
+) => ["lenderHires", walletAddress?.toBase58()];
 
-export function useSellerCallOptionsQuery() {
+export function useLenderHiresQuery() {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
 
   return useQuery(
-    getSellerCallOptionsQueryKey(anchorWallet?.publicKey),
+    getLenderHiresQueryKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
-        return query.fetchMultipleCallOptions(connection, [
+        return query.fetchMultipleHires(connection, [
           {
             memcmp: {
-              // filter seller
+              // filter lender
               offset: 8 + 1 + 8,
               bytes: anchorWallet.publicKey.toBase58(),
             },
@@ -78,23 +75,23 @@ export function useSellerCallOptionsQuery() {
   );
 }
 
-export const getBuyerCallOptionsQueryKey = (
+export const getBorrowerHiresQueryKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["buyerCallOptions", walletAddress?.toBase58()];
+) => ["borrowerHires", walletAddress?.toBase58()];
 
-export function useBuyerCallOptionsQuery() {
+export function useBorrowerHiresQuery() {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
 
   return useQuery(
-    getBuyerCallOptionsQueryKey(anchorWallet?.publicKey),
+    getBorrowerHiresQueryKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
-        return query.fetchMultipleCallOptions(connection, [
+        return query.fetchMultipleHires(connection, [
           {
             memcmp: {
-              // filter lender
-              offset: 8 + 1 + 8 + 32,
+              // filter borrower
+              offset: 8 + 1 + 8 + 32 + 1,
               bytes: anchorWallet?.publicKey.toBase58(),
             },
           },

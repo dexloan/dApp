@@ -63,7 +63,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
             }
             return data.filter(
               (item: NFTResult) =>
-                item?.tokenAccount.pubkey !== variables.depositTokenAccount
+                !item?.tokenAccount.pubkey.equals(variables.depositTokenAccount)
             );
           }
         );

@@ -90,7 +90,7 @@ export async function takeHire(
     method.remainingAccounts(creatorAccounts);
   }
 
-  return method.rpc();
+  await method.rpc();
 }
 
 export async function recoverHire(
