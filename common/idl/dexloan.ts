@@ -523,6 +523,268 @@ export type DexloanListings = {
       args: [];
     },
     {
+      name: "initHire";
+      accounts: [
+        {
+          name: "lender";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "hireAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "args";
+          type: {
+            defined: "HireArgs";
+          };
+        }
+      ];
+    },
+    {
+      name: "takeHire";
+      accounts: [
+        {
+          name: "lender";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "borrower";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "hireAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "hireTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "days";
+          type: "u16";
+        }
+      ];
+    },
+    {
+      name: "recoverHire";
+      accounts: [
+        {
+          name: "lender";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "borrower";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "hireTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "hireAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "closeHire";
+      accounts: [
+        {
+          name: "lender";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "hireAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "depositTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "edition";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadataProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "closeListing";
+      accounts: [
+        {
+          name: "borrower";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "listingAccount";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "cancelListing";
       accounts: [
         {
@@ -562,22 +824,6 @@ export type DexloanListings = {
         }
       ];
       args: [];
-    },
-    {
-      name: "closeListing";
-      accounts: [
-        {
-          name: "borrower";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "listingAccount";
-          isMut: true;
-          isSigner: false;
-        }
-      ];
-      args: [];
     }
   ];
   accounts: [
@@ -611,6 +857,58 @@ export type DexloanListings = {
           {
             name: "strikePrice";
             type: "u64";
+          },
+          {
+            name: "mint";
+            type: "publicKey";
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u8", 64];
+            };
+          },
+          {
+            name: "bump";
+            type: "u8";
+          }
+        ];
+      };
+    },
+    {
+      name: "hire";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "state";
+            type: {
+              defined: "HireState";
+            };
+          },
+          {
+            name: "amount";
+            type: "u64";
+          },
+          {
+            name: "lender";
+            type: "publicKey";
+          },
+          {
+            name: "borrower";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "expiry";
+            type: "i64";
+          },
+          {
+            name: "currentExpiry";
+            type: {
+              option: "i64";
+            };
           },
           {
             name: "mint";
@@ -715,6 +1013,12 @@ export type DexloanListings = {
             type: "publicKey";
           },
           {
+            name: "padding";
+            type: {
+              array: ["u8", 64];
+            };
+          },
+          {
             name: "bump";
             type: "u8";
           }
@@ -723,6 +1027,28 @@ export type DexloanListings = {
     }
   ];
   types: [
+    {
+      name: "HireArgs";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "amount";
+            type: "u64";
+          },
+          {
+            name: "expiry";
+            type: "i64";
+          },
+          {
+            name: "borrower";
+            type: {
+              option: "publicKey";
+            };
+          }
+        ];
+      };
+    },
     {
       name: "ErrorCode";
       type: {
@@ -747,6 +1073,20 @@ export type DexloanListings = {
           },
           {
             name: "Exercised";
+          }
+        ];
+      };
+    },
+    {
+      name: "HireState";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Listed";
+          },
+          {
+            name: "Hired";
           }
         ];
       };
@@ -794,48 +1134,58 @@ export type DexloanListings = {
     },
     {
       code: 6001;
+      name: "NotExpired";
+      msg: "Not expired";
+    },
+    {
+      code: 6002;
       name: "InvalidExpiry";
       msg: "Invalid expiry";
     },
     {
-      code: 6002;
+      code: 6003;
       name: "InvalidState";
       msg: "Invalid state";
     },
     {
-      code: 6003;
+      code: 6004;
       name: "InvalidListingType";
       msg: "Invalid listing type";
     },
     {
-      code: 6004;
+      code: 6005;
       name: "OptionExpired";
       msg: "Option expired";
     },
     {
-      code: 6005;
+      code: 6006;
       name: "InvalidMint";
       msg: "Invalid mint";
     },
     {
-      code: 6006;
+      code: 6007;
       name: "MetadataDoesntExist";
       msg: "Metadata doesnt exist";
     },
     {
-      code: 6007;
+      code: 6008;
       name: "DerivedKeyInvalid";
       msg: "Derived key invalid";
     },
     {
-      code: 6008;
+      code: 6009;
       name: "OptionNotExpired";
       msg: "Option not expired";
     },
     {
-      code: 6009;
+      code: 6010;
       name: "NumericalOverflow";
-      msg: "NumericalOverflow";
+      msg: "Numerical overflow";
+    },
+    {
+      code: 6011;
+      name: "BorrowerNotSpecified";
+      msg: "Borrower not specified";
     }
   ];
 };
@@ -1365,6 +1715,268 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
+      name: "initHire",
+      accounts: [
+        {
+          name: "lender",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "hireAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "args",
+          type: {
+            defined: "HireArgs",
+          },
+        },
+      ],
+    },
+    {
+      name: "takeHire",
+      accounts: [
+        {
+          name: "lender",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "borrower",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "hireAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "hireTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "days",
+          type: "u16",
+        },
+      ],
+    },
+    {
+      name: "recoverHire",
+      accounts: [
+        {
+          name: "lender",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "borrower",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "hireTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "hireAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "closeHire",
+      accounts: [
+        {
+          name: "lender",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "hireAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "depositTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "edition",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadataProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "closeListing",
+      accounts: [
+        {
+          name: "borrower",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "listingAccount",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
       name: "cancelListing",
       accounts: [
         {
@@ -1405,22 +2017,6 @@ export const IDL: DexloanListings = {
       ],
       args: [],
     },
-    {
-      name: "closeListing",
-      accounts: [
-        {
-          name: "borrower",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "listingAccount",
-          isMut: true,
-          isSigner: false,
-        },
-      ],
-      args: [],
-    },
   ],
   accounts: [
     {
@@ -1453,6 +2049,58 @@ export const IDL: DexloanListings = {
           {
             name: "strikePrice",
             type: "u64",
+          },
+          {
+            name: "mint",
+            type: "publicKey",
+          },
+          {
+            name: "padding",
+            type: {
+              array: ["u8", 64],
+            },
+          },
+          {
+            name: "bump",
+            type: "u8",
+          },
+        ],
+      },
+    },
+    {
+      name: "hire",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "state",
+            type: {
+              defined: "HireState",
+            },
+          },
+          {
+            name: "amount",
+            type: "u64",
+          },
+          {
+            name: "lender",
+            type: "publicKey",
+          },
+          {
+            name: "borrower",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "expiry",
+            type: "i64",
+          },
+          {
+            name: "currentExpiry",
+            type: {
+              option: "i64",
+            },
           },
           {
             name: "mint",
@@ -1557,6 +2205,12 @@ export const IDL: DexloanListings = {
             type: "publicKey",
           },
           {
+            name: "padding",
+            type: {
+              array: ["u8", 64],
+            },
+          },
+          {
             name: "bump",
             type: "u8",
           },
@@ -1565,6 +2219,28 @@ export const IDL: DexloanListings = {
     },
   ],
   types: [
+    {
+      name: "HireArgs",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "amount",
+            type: "u64",
+          },
+          {
+            name: "expiry",
+            type: "i64",
+          },
+          {
+            name: "borrower",
+            type: {
+              option: "publicKey",
+            },
+          },
+        ],
+      },
+    },
     {
       name: "ErrorCode",
       type: {
@@ -1589,6 +2265,20 @@ export const IDL: DexloanListings = {
           },
           {
             name: "Exercised",
+          },
+        ],
+      },
+    },
+    {
+      name: "HireState",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Listed",
+          },
+          {
+            name: "Hired",
           },
         ],
       },
@@ -1636,48 +2326,58 @@ export const IDL: DexloanListings = {
     },
     {
       code: 6001,
+      name: "NotExpired",
+      msg: "Not expired",
+    },
+    {
+      code: 6002,
       name: "InvalidExpiry",
       msg: "Invalid expiry",
     },
     {
-      code: 6002,
+      code: 6003,
       name: "InvalidState",
       msg: "Invalid state",
     },
     {
-      code: 6003,
+      code: 6004,
       name: "InvalidListingType",
       msg: "Invalid listing type",
     },
     {
-      code: 6004,
+      code: 6005,
       name: "OptionExpired",
       msg: "Option expired",
     },
     {
-      code: 6005,
+      code: 6006,
       name: "InvalidMint",
       msg: "Invalid mint",
     },
     {
-      code: 6006,
+      code: 6007,
       name: "MetadataDoesntExist",
       msg: "Metadata doesnt exist",
     },
     {
-      code: 6007,
+      code: 6008,
       name: "DerivedKeyInvalid",
       msg: "Derived key invalid",
     },
     {
-      code: 6008,
+      code: 6009,
       name: "OptionNotExpired",
       msg: "Option not expired",
     },
     {
-      code: 6009,
+      code: 6010,
       name: "NumericalOverflow",
-      msg: "NumericalOverflow",
+      msg: "Numerical overflow",
+    },
+    {
+      code: 6011,
+      name: "BorrowerNotSpecified",
+      msg: "Borrower not specified",
     },
   ],
 };
