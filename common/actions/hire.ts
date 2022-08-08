@@ -93,6 +93,44 @@ export async function takeHire(
   await method.rpc();
 }
 
+export async function extendHire(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  lender: anchor.web3.PublicKey,
+  metadata: Metadata,
+  days: number
+) {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const hireAccount = await query.findHireAddress(mint, lender);
+  const [metadataAddress] = await query.findMetadataAddress(mint);
+
+  const creatorAccounts = metadata.data.creators?.map((creator) => ({
+    pubkey: creator.address,
+    isSigner: false,
+    isWritable: true,
+  }));
+
+  const method = program.methods.extendHire(days).accounts({
+    lender,
+    mint,
+    hireAccount,
+    metadata: metadataAddress,
+    borrower: wallet.publicKey,
+    systemProgram: anchor.web3.SystemProgram.programId,
+    tokenProgram: splToken.TOKEN_PROGRAM_ID,
+    clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+  });
+
+  if (creatorAccounts?.length) {
+    method.remainingAccounts(creatorAccounts);
+  }
+
+  await method.rpc();
+}
+
 export async function recoverHire(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,

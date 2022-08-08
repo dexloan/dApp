@@ -37,8 +37,13 @@ import {
 import {
   useTakeHireMutation,
   useRecoverHireMutation,
+  useExtendHireMutation,
 } from "../../hooks/mutation";
-import { HireDialog } from "../../components/dialog";
+import {
+  TakeHireDialog,
+  RecoverHireDialog,
+  ExtendHireDialog,
+} from "../../components/dialog";
 import { Activity } from "../../components/activity";
 import { DocumentHead } from "../../components/document";
 import { ExternalLinks } from "../../components/link";
@@ -171,7 +176,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 
   function renderListedButton() {
     if (hire && anchorWallet && hire.isLender(anchorWallet)) {
-      return <CancelButton hire={hire} />;
+      return <CloseButton hire={hire} />;
     } else if (hire) {
       return <HireButton hire={hire} />;
     }
@@ -302,32 +307,96 @@ interface HireButtonProps {
   hire: Hire;
 }
 
-interface TakeHireFormFields {
-  days: number;
-}
-
 const HireButton = ({ hire }: HireButtonProps) => {
-  const [open, setDialog] = useState(false);
-  const mutation = useTakeHireMutation(() => setDialog(false));
+  const [days, setDialog] = useState<number | null>(null);
+  const mutation = useTakeHireMutation(() => setDialog(null));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
-  async function onLend() {
-    handleSubmit((data) => {
-      if (anchorWallet) {
-        setDialog(true);
-      } else {
-        setVisible(true);
-      }
-    })();
+  async function onLend(data: { days: number }) {
+    if (anchorWallet) {
+      setDialog(data.days);
+    } else {
+      setVisible(true);
+    }
   }
 
+  return (
+    <>
+      <HireForm hire={hire} onSubmit={onLend} />
+      <TakeHireDialog
+        hire={hire}
+        days={days ?? 0}
+        open={Boolean(open)}
+        loading={mutation.isLoading}
+        onRequestClose={() => setDialog(null)}
+        onConfirm={() => {
+          if (days) {
+            mutation.mutate({
+              ...hire.data,
+              metadata: hire.metadata,
+              days,
+            });
+          }
+        }}
+      />
+    </>
+  );
+};
+
+interface ExtendButtonProps {
+  hire: Hire;
+}
+
+const ExtendButton = ({ hire }: ExtendButtonProps) => {
+  const [days, setDialog] = useState<number | null>(null);
+  const mutation = useExtendHireMutation(() => setDialog(null));
+  const anchorWallet = useAnchorWallet();
+  const { setVisible } = useWalletModal();
+
+  async function onLend(data: { days: number }) {
+    if (anchorWallet) {
+      setDialog(data.days);
+    } else {
+      setVisible(true);
+    }
+  }
+
+  return (
+    <>
+      <HireForm hire={hire} onSubmit={onLend} />
+      <ExtendHireDialog
+        hire={hire}
+        days={days ?? 0}
+        open={Boolean(open)}
+        loading={mutation.isLoading}
+        onRequestClose={() => setDialog(null)}
+        onConfirm={() => {
+          if (days) {
+            mutation.mutate({
+              ...hire.data,
+              metadata: hire.metadata,
+              days,
+            });
+          }
+        }}
+      />
+    </>
+  );
+};
+
+interface HireFormProps {
+  label?: string;
+  hire: Hire;
+  onSubmit: (data: { days: number }) => void;
+}
+
+const HireForm = ({ label = "Hire", hire, onSubmit }: HireFormProps) => {
   const {
     control,
     handleSubmit,
     formState: { isValid },
-    watch,
-  } = useForm<TakeHireFormFields>({
+  } = useForm<{ days: number }>({
     mode: "onChange",
     defaultValues: {
       days: 1,
@@ -335,7 +404,6 @@ const HireButton = ({ hire }: HireButtonProps) => {
   });
 
   const maxDays = useMemo(() => hire.maxDays, [hire]);
-  const days = watch("days");
 
   return (
     <>
@@ -367,32 +435,18 @@ const HireButton = ({ hire }: HireButtonProps) => {
           />
         </Box>
       </FormControl>
-      <Button colorScheme="green" w="100%" onClick={onLend}>
-        Hire
+      <Button colorScheme="green" w="100%" onClick={handleSubmit(onSubmit)}>
+        {label}
       </Button>
-      <HireDialog
-        hire={hire}
-        days={days}
-        open={open}
-        loading={mutation.isLoading}
-        onRequestClose={() => setDialog(false)}
-        onConfirm={() =>
-          mutation.mutate({
-            ...hire.data,
-            metadata: hire.metadata,
-            days,
-          })
-        }
-      />
     </>
   );
 };
 
-interface CancelButtonProps {
+interface CloseButtonProps {
   hire: Hire;
 }
 
-const CloseButton = ({ hire }: CancelButtonProps) => {
+const CloseButton = ({ hire }: CloseButtonProps) => {
   const [dialog, setDialog] = useState(false);
   // const mutation = useCloseHireMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
@@ -451,12 +505,20 @@ const RecoverButton = ({ hire }: RecoverButtonProps) => {
       <Button colorScheme="blue" w="100%" onClick={onRepay}>
         Recover NFT
       </Button>
-      <RecoverDialog
+      <RecoverHireDialog
         open={dialog}
         loading={mutation.isLoading}
-        loan={hire}
+        hire={hire}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(hire.data)}
+        onConfirm={() => {
+          const data = hire.data;
+          if (data.borrower) {
+            mutation.mutate({
+              mint: data.mint,
+              borrower: data.borrower,
+            });
+          }
+        }}
       />
     </>
   );

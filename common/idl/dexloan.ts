@@ -657,6 +657,57 @@ export type DexloanListings = {
       ];
     },
     {
+      name: "extendHire";
+      accounts: [
+        {
+          name: "lender";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "borrower";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "hireAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "clock";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "days";
+          type: "u16";
+        }
+      ];
+    },
+    {
       name: "recoverHire";
       accounts: [
         {
@@ -1822,6 +1873,57 @@ export const IDL: DexloanListings = {
         },
         {
           name: "metadataProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "days",
+          type: "u16",
+        },
+      ],
+    },
+    {
+      name: "extendHire",
+      accounts: [
+        {
+          name: "lender",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "borrower",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "hireAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },

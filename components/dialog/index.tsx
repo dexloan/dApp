@@ -1,6 +1,5 @@
 import {
   Badge,
-  Box,
   Button,
   Modal,
   ModalOverlay,
@@ -302,18 +301,19 @@ interface HireDialogProps
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  days: number;
   hire: Hire;
 }
 
-export const HireDialog = ({
+export const TakeHireDialog = ({
   hire,
   days,
   open,
   loading,
   onConfirm,
   onRequestClose,
-}: HireDialogProps) => {
+}: HireDialogProps & {
+  days: number;
+}) => {
   return (
     <MutationDialog
       open={open}
@@ -323,6 +323,59 @@ export const HireDialog = ({
         <Text>
           Hire ${hire.metadata.data.name} for ${days} day${days > 1 ? "s" : ""}{" "}
           at a cost of ${hire.getFullAmount(days)}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+export const ExtendHireDialog = ({
+  hire,
+  days,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: HireDialogProps & {
+  days: number;
+}) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header={`Hire for ${days} day${days > 1 ? "s" : ""}`}
+      content={
+        <Text>
+          Extend your hire of ${hire.metadata.data.name} for an additional $
+          {days} day${days > 1 ? "s" : ""} at a cost of $
+          {hire.getFullAmount(days)}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+export const RecoverHireDialog = ({
+  hire,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: HireDialogProps) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header={`Recover NFT`}
+      content={
+        <Text>
+          The current hire period expired on ${hire.currentExpiry}. Do you wish
+          to take back possession of the NFT? The listing will remain active
+          until closed or another user choses to take the hire.
         </Text>
       }
       onConfirm={onConfirm}
