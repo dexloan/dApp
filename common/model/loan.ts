@@ -127,6 +127,7 @@ export class Loan implements LoanArgs {
         duration: new BN(args.data.duration),
         startDate: new BN(args.data.startDate),
         mint: new web3.PublicKey(args.data.mint),
+        padding: [],
         bump: args.data.bump,
       },
       Metadata.fromArgs({
