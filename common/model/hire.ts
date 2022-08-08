@@ -6,6 +6,8 @@ import * as utils from "../utils";
 import dayjs from "../../common/lib/dayjs";
 import type { HireData, HireStateEnum } from "../types";
 
+const SECONDS_PER_DAY = new BN(86_400);
+
 export type HireArgs = {
   data: HireData;
   metadata: Metadata;
@@ -35,8 +37,30 @@ export class Hire implements HireArgs {
     return false;
   }
 
+  public getFullAmount(days: number) {
+    return utils.formatAmount(this.data.amount.mul(new BN(days)));
+  }
+
   get address() {
     return this.publicKey.toBase58();
+  }
+
+  get amount() {
+    return utils.formatAmount(this.data.amount);
+  }
+
+  get currentExpiry() {
+    return this.data.currentExpiry
+      ? dayjs.unix(this.data.currentExpiry.toNumber()).format("DD/MM/YYYY")
+      : null;
+  }
+
+  get currentExpiryLongFormat() {
+    if (this.data.currentExpiry) {
+      const date = dayjs.unix(this.data.currentExpiry.toNumber());
+      return date.format("MMM D, YYYY") + " at " + date.format("h:mm A z");
+    }
+    return null;
   }
 
   get expiry() {
@@ -44,16 +68,12 @@ export class Hire implements HireArgs {
   }
 
   get expiryLongFormat() {
-    const date = dayjs.unix(this.data.expiry.toNumber()).tz("America/New_York");
-    return date.format("MMM D, YYYY") + " at " + date.format("h:mm A z");
+    const date = dayjs.unix(this.data.expiry.toNumber());
+    return date.format("MMM D, YYYY");
   }
 
   get expired() {
     return Date.now() / 1000 > this.data.expiry.toNumber();
-  }
-
-  get cost() {
-    return utils.formatAmount(this.data.amount);
   }
 
   get borrower() {
@@ -68,6 +88,13 @@ export class Hire implements HireArgs {
     if (typeof this.data.state === "object" && this.data.state !== null) {
       return Object.keys(this.data.state)[0] as HireStateEnum;
     }
+  }
+
+  get maxDays(): number {
+    const ts = Date.now() / 1000;
+    return Math.floor(
+      this.data.expiry.sub(new BN(ts)).div(SECONDS_PER_DAY).toNumber()
+    );
   }
 
   pretty() {

@@ -1,5 +1,6 @@
 import {
   Badge,
+  Box,
   Button,
   Modal,
   ModalOverlay,
@@ -9,7 +10,7 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import { CallOption, Loan } from "../../common/model";
+import { CallOption, Loan, Hire } from "../../common/model";
 
 interface MutationDialogProps {
   open: boolean;
@@ -288,6 +289,40 @@ export const CloseCallOptionDialog = ({
         <Text>
           Close call option listing
           {callOption.hasBuyer ? " and recover NFT from escrow" : ""}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+interface HireDialogProps
+  extends Pick<
+    MutationDialogProps,
+    "open" | "loading" | "onConfirm" | "onRequestClose"
+  > {
+  days: number;
+  hire: Hire;
+}
+
+export const HireDialog = ({
+  hire,
+  days,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: HireDialogProps) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header={`Hire for ${days} day${days > 1 ? "s" : ""}`}
+      content={
+        <Text>
+          Hire ${hire.metadata.data.name} for ${days} day${days > 1 ? "s" : ""}{" "}
+          at a cost of ${hire.getFullAmount(days)}?
         </Text>
       }
       onConfirm={onConfirm}

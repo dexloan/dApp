@@ -9,15 +9,14 @@ import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
+import * as query from "../../common/query";
 import { HireStateEnum, NFTResult } from "../../common/types";
-import { CallOptionPretty } from "../../common/model";
-import { findHireAddress } from "../../common/query";
-import { HirePretty } from "../../common/model/hire";
+import { HirePretty } from "../../common/model";
 import {
-  getHireQueryKey,
-  getHiresQueryKey,
-  getLenderHiresQueryKey,
-  getBorrowerHiresQueryKey,
+  getHireCacheKey,
+  getHiresCacheKey,
+  getHiresGivenCacheKey,
+  getHiresTakenCacheKey,
 } from "../query/hire";
 
 interface InitHireMutationVariables {
@@ -69,7 +68,7 @@ export const useInitHireMutation = (onSuccess: () => void) => {
           }
         );
 
-        toast.success("Listing created");
+        toast.success("Hire listing created");
 
         onSuccess();
       },
@@ -113,13 +112,13 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const hireAddress = await findHireAddress(
+        const hireAddress = await query.findHireAddress(
           variables.mint,
           variables.lender
         );
 
         queryClient.setQueryData<HirePretty[] | undefined>(
-          getHiresQueryKey(),
+          getHiresCacheKey(),
           (data) => {
             if (data) {
               return data?.filter(
@@ -130,11 +129,11 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
         );
 
         queryClient.invalidateQueries(
-          getBorrowerHiresQueryKey(anchorWallet?.publicKey)
+          getHiresTakenCacheKey(anchorWallet?.publicKey)
         );
 
         queryClient.setQueryData<HirePretty | undefined>(
-          getHireQueryKey(hireAddress),
+          getHireCacheKey(hireAddress),
           (item) => {
             if (item && anchorWallet) {
               return {
@@ -149,7 +148,7 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
           }
         );
 
-        toast.success("Call option bought");
+        toast.success("NFT hired");
 
         onSuccess();
       },
@@ -162,3 +161,88 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
     }
   );
 };
+
+interface RecoverHireMutation {
+  mint: anchor.web3.PublicKey;
+  borrower: anchor.web3.PublicKey;
+}
+
+export const useRecoverHireMutation = (onSuccess: () => void) => {
+  const { connection } = useConnection();
+  const wallet = useWallet();
+  const anchorWallet = useAnchorWallet();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, RecoverHireMutation>(
+    async ({ mint, borrower }) => {
+      if (anchorWallet) {
+        const depositTokenAccount = await actions.getOrCreateTokenAccount(
+          connection,
+          wallet,
+          mint
+        );
+
+        return actions.recoverHire(
+          connection,
+          anchorWallet,
+          mint,
+          borrower,
+          depositTokenAccount
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+      async onSuccess(_, variables) {
+        toast.success("Your NFT has been returned to you.");
+
+        queryClient.setQueryData(
+          getHiresGivenCacheKey(anchorWallet?.publicKey),
+          (items: HirePretty[] | undefined) => {
+            if (!items) return [];
+
+            return items.filter(
+              (item) => item.data.mint !== variables.mint.toBase58()
+            );
+          }
+        );
+
+        const loanAddress = await query.findHireAddress(
+          variables.mint,
+          variables.borrower
+        );
+
+        setHireState(queryClient, loanAddress, HireStateEnum.Listed);
+
+        onSuccess();
+      },
+    }
+  );
+};
+
+function setHireState(
+  queryClient: QueryClient,
+  hireAddress: anchor.web3.PublicKey,
+  state: HireStateEnum
+) {
+  queryClient.setQueryData<HirePretty | undefined>(
+    getHireCacheKey(hireAddress),
+    (item) => {
+      if (item) {
+        return {
+          ...item,
+          data: {
+            ...item.data,
+            state,
+          },
+        };
+      }
+    }
+  );
+}

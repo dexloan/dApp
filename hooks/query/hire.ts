@@ -5,7 +5,7 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
-export const getHireQueryKey = (
+export const getHireCacheKey = (
   hireAddress: anchor.web3.PublicKey | undefined
 ) => ["hire", hireAddress?.toBase58()];
 
@@ -13,7 +13,7 @@ export function useHireQuery(hireAddress: anchor.web3.PublicKey | undefined) {
   const { connection } = useConnection();
 
   return useQuery(
-    getHireQueryKey(hireAddress),
+    getHireCacheKey(hireAddress),
     () => {
       if (hireAddress) return query.fetchHire(connection, hireAddress);
     },
@@ -21,13 +21,13 @@ export function useHireQuery(hireAddress: anchor.web3.PublicKey | undefined) {
   );
 }
 
-export const getHiresQueryKey = () => ["hires"];
+export const getHiresCacheKey = () => ["hires"];
 
 export function useHiresQuery() {
   const { connection } = useConnection();
 
   return useQuery(
-    getHiresQueryKey(),
+    getHiresCacheKey(),
     () => {
       return query.fetchMultipleHires(connection, [
         {
@@ -45,16 +45,16 @@ export function useHiresQuery() {
   );
 }
 
-export const getLenderHiresQueryKey = (
+export const getHiresGivenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["lenderHires", walletAddress?.toBase58()];
+) => ["hires_given", walletAddress?.toBase58()];
 
 export function useLenderHiresQuery() {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
 
   return useQuery(
-    getLenderHiresQueryKey(anchorWallet?.publicKey),
+    getHiresGivenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
         return query.fetchMultipleHires(connection, [
@@ -75,16 +75,16 @@ export function useLenderHiresQuery() {
   );
 }
 
-export const getBorrowerHiresQueryKey = (
+export const getHiresTakenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["borrowerHires", walletAddress?.toBase58()];
+) => ["hiresTaken", walletAddress?.toBase58()];
 
 export function useBorrowerHiresQuery() {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
 
   return useQuery(
-    getBorrowerHiresQueryKey(anchorWallet?.publicKey),
+    getHiresTakenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
         return query.fetchMultipleHires(connection, [
