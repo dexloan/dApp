@@ -53,8 +53,8 @@ import {
 import { VerifiedCollection } from "../components/collection";
 import {
   InitCallOptionModal,
-  InitLoanModal,
   InitHireModal,
+  InitLoanModal,
 } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
 
@@ -615,16 +615,10 @@ const MyItems = () => {
         </ModalContent>
       </Modal>
 
-      <InitLoanModal
-        selected={selected && type === "loan" ? selected : null}
-        onRequestClose={() => {
-          setSelected(null);
-          setType(null);
-        }}
-      />
-
       <InitCallOptionModal
-        selected={selected && type === "callOption" ? selected : null}
+        open={type === "callOption"}
+        mint={selected?.tokenAccount.data.mint}
+        depositTokenAccount={selected?.tokenAccount.pubkey}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
@@ -632,7 +626,20 @@ const MyItems = () => {
       />
 
       <InitHireModal
-        selected={selected && type === "hire" ? selected : null}
+        open={type === "hire"}
+        mint={selected?.tokenAccount.data.mint}
+        depositTokenAccount={selected?.tokenAccount.pubkey}
+        onRequestClose={() => {
+          setSelected(null);
+          setType(null);
+        }}
+      />
+
+      <InitLoanModal
+        open={type === "hire"}
+        mint={selected?.tokenAccount.data.mint}
+        depositTokenAccount={selected?.tokenAccount.pubkey}
+        symbol={selected?.metadata.data.symbol}
         onRequestClose={() => {
           setSelected(null);
           setType(null);

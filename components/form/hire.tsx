@@ -18,7 +18,6 @@ import {
 import { useMemo } from "react";
 
 import dayjs from "../../common/lib/dayjs";
-import { NFTResult } from "../../common/types";
 import { useInitHireMutation } from "../../hooks/mutation";
 
 interface FormFields {
@@ -29,12 +28,16 @@ interface FormFields {
 }
 
 interface ListingFormProps {
-  selected: NFTResult | null;
+  open: boolean;
+  mint: anchor.web3.PublicKey | undefined;
+  depositTokenAccount: anchor.web3.PublicKey | undefined;
   onRequestClose: () => void;
 }
 
 export const InitHireModal = ({
-  selected,
+  open,
+  mint,
+  depositTokenAccount,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -54,16 +57,16 @@ export const InitHireModal = ({
 
   function onSubmit() {
     handleSubmit((data) => {
-      if (selected) {
-        const options = {
-          amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
-          expiry: data.expiry,
-        };
+      const options = {
+        amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
+        expiry: data.expiry,
+      };
 
+      if (mint && depositTokenAccount) {
         mutation.mutate({
           options,
-          mint: selected.tokenAccount.data.mint,
-          depositTokenAccount: selected.tokenAccount.pubkey,
+          mint,
+          depositTokenAccount,
         });
       }
     })();
@@ -86,7 +89,7 @@ export const InitHireModal = ({
     <Modal
       isCentered
       size="3xl"
-      isOpen={Boolean(selected)}
+      isOpen={open}
       onClose={() => {
         if (!mutation.isLoading) {
           onRequestClose();

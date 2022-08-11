@@ -33,6 +33,7 @@ import {
   getMetadataFileCacheKey,
   useMetadataFileQuery,
   useTokenManagerQuery,
+  useTokenAccountQuery,
 } from "../../hooks/query";
 import {
   useTakeHireMutation,
@@ -50,6 +51,7 @@ import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
 import { useHireQuery } from "../../hooks/query";
+import { CallOptionButton, LoanButton } from "../../components/buttons";
 
 interface HireProps {
   dehydratedState: DehydratedState | undefined;
@@ -161,6 +163,10 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
     hire.data.mint,
     hire.data.lender
   );
+  const tokenAccountQuery = useTokenAccountQuery(
+    hire.data.lender,
+    hire.data.mint
+  );
 
   function renderActiveButton() {
     if (hire && anchorWallet && hire.isBorrower(anchorWallet)) {
@@ -188,7 +194,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 
   function renderByState() {
     if (hire === undefined) return null;
-    console.log("state ", hire.state);
+
     switch (hire.state) {
       case HireStateEnum.Listed:
         return (
@@ -248,17 +254,26 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 
   function renderSecondaryButtons() {
     if (
+      hire.isLender(anchorWallet) &&
       tokenManagerQuery.data &&
       tokenManagerQuery.data.accounts?.callOption === false &&
-      tokenManagerQuery.data.accounts?.loan === false
+      tokenManagerQuery.data.accounts?.loan === false &&
+      tokenAccountQuery.data
     ) {
       return (
         <Flex direction="row" gap="2">
           <Box flex={1}>
-            <Button width="100%">Sell Call Option</Button>
+            <CallOptionButton
+              mint={hire.data.mint}
+              depositTokenAccount={tokenAccountQuery.data}
+            />
           </Box>
           <Box flex={1}>
-            <Button width="100%">Borrow Against</Button>
+            <LoanButton
+              mint={hire.data.mint}
+              depositTokenAccount={tokenAccountQuery.data}
+              symbol={hire.metadata.data.symbol}
+            />
           </Box>
         </Flex>
       );

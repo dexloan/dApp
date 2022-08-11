@@ -17,7 +17,6 @@ import {
 } from "@chakra-ui/react";
 
 import dayjs from "../../common/lib/dayjs";
-import { NFTResult } from "../../common/types";
 import { useInitCallOptionMutation } from "../../hooks/mutation";
 import { useMemo } from "react";
 
@@ -28,12 +27,16 @@ interface FormFields {
 }
 
 interface ListingFormProps {
-  selected: NFTResult | null;
+  open: boolean;
+  mint: anchor.web3.PublicKey | undefined;
+  depositTokenAccount: anchor.web3.PublicKey | undefined;
   onRequestClose: () => void;
 }
 
 export const InitCallOptionModal = ({
-  selected,
+  open,
+  mint,
+  depositTokenAccount,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -53,17 +56,17 @@ export const InitCallOptionModal = ({
 
   function onSubmit() {
     handleSubmit((data) => {
-      if (selected) {
-        const options = {
-          amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
-          strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
-          expiry: data.expiry,
-        };
+      const options = {
+        amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
+        strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
+        expiry: data.expiry,
+      };
 
+      if (mint && depositTokenAccount) {
         mutation.mutate({
           options,
-          mint: selected.tokenAccount.data.mint,
-          depositTokenAccount: selected.tokenAccount.pubkey,
+          mint,
+          depositTokenAccount,
         });
       }
     })();
@@ -88,7 +91,7 @@ export const InitCallOptionModal = ({
     <Modal
       isCentered
       size="3xl"
-      isOpen={Boolean(selected)}
+      isOpen={open}
       onClose={() => {
         if (!mutation.isLoading) {
           onRequestClose();

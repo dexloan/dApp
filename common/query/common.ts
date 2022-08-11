@@ -138,6 +138,18 @@ export async function fetchNFTs(
   return combinedAccounts.filter(Boolean);
 }
 
+export async function fetchTokenAccountAddress(
+  connection: anchor.web3.Connection,
+  wallet: anchor.web3.PublicKey,
+  mint: anchor.web3.PublicKey
+) {
+  return (
+    await connection.getTokenAccountsByOwner(wallet, {
+      mint,
+    })
+  ).value?.[0].pubkey;
+}
+
 export async function fetchParsedTransactions(
   connection: anchor.web3.Connection,
   mint: anchor.web3.PublicKey,

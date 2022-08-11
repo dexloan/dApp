@@ -30,7 +30,6 @@ import {
 } from "react-icons/io5";
 import { IconType } from "react-icons";
 import * as utils from "../../common/utils";
-import { NFTResult } from "../../common/types";
 import { useFloorPriceQuery } from "../../hooks/query";
 import { useInitLoanMutation } from "../../hooks/mutation/loan";
 
@@ -41,12 +40,18 @@ interface FormFields {
 }
 
 interface ListingFormProps {
-  selected: NFTResult | null;
+  open: boolean;
+  mint: anchor.web3.PublicKey | undefined;
+  depositTokenAccount: anchor.web3.PublicKey | undefined;
+  symbol: string | undefined;
   onRequestClose: () => void;
 }
 
 export const InitLoanModal = ({
-  selected,
+  open,
+  mint,
+  depositTokenAccount,
+  symbol,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -62,24 +67,26 @@ export const InitLoanModal = ({
     },
   });
 
-  const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
+  const floorPriceQuery = useFloorPriceQuery(symbol);
 
   const mutation = useInitLoanMutation(() => onRequestClose());
 
   function onSubmit() {
     handleSubmit((data) => {
-      if (selected && floorPriceQuery.data) {
+      if (floorPriceQuery.data) {
         const options = {
           amount: (data.ltv / 100) * floorPriceQuery.data.floorPrice,
           basisPoints: data.apy * 100,
           duration: data.duration * 24 * 60 * 60,
         };
 
-        mutation.mutate({
-          options,
-          mint: selected.tokenAccount.data.mint,
-          depositTokenAccount: selected.tokenAccount.pubkey,
-        });
+        if (mint && depositTokenAccount && symbol) {
+          mutation.mutate({
+            options,
+            mint,
+            depositTokenAccount,
+          });
+        }
       }
     })();
   }
@@ -88,7 +95,7 @@ export const InitLoanModal = ({
     <Modal
       isCentered
       size="3xl"
-      isOpen={Boolean(selected)}
+      isOpen={open}
       onClose={() => {
         if (!mutation.isLoading) {
           onRequestClose();
