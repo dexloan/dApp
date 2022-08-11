@@ -155,6 +155,8 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
       },
       onError(err) {
         console.error(err);
+        // @ts-ignore
+        console.log(err.logs);
         if (err instanceof Error) {
           toast.error("Error: " + err.message);
         }

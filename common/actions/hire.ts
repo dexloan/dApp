@@ -63,12 +63,9 @@ export async function takeHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
-  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
-  const tokenManager = await query.findTokenManagerAddress(
-    mint,
-    wallet.publicKey
-  );
+  const hire = await query.findHireAddress(mint, lender);
+  const hireEscrow = await query.findHireEscrowAddress(mint, lender);
+  const tokenManager = await query.findTokenManagerAddress(mint, lender);
   const [edition] = await query.findEditionAddress(mint);
   const [metadataAddress] = await query.findMetadataAddress(mint);
 
