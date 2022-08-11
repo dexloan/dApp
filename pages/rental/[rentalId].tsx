@@ -37,7 +37,7 @@ import {
 import {
   useTakeHireMutation,
   useRecoverHireMutation,
-  useExtendHireMutation,
+  // useExtendHireMutation,
 } from "../../hooks/mutation";
 import {
   TakeHireDialog,
@@ -113,7 +113,9 @@ HirePage.getInitialProps = async (ctx) => {
       const queryClient = new QueryClient();
 
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
+      const loanAddress = new anchor.web3.PublicKey(
+        ctx.query.rentalId as string
+      );
 
       const loan = await queryClient.fetchQuery(
         getLoanQueryKey(loanAddress),
@@ -144,7 +146,7 @@ HirePage.getInitialProps = async (ctx) => {
 function usePageParam() {
   const router = useRouter();
   return useMemo(
-    () => new anchor.web3.PublicKey(router.query.loanId as string),
+    () => new anchor.web3.PublicKey(router.query.rentalId as string),
     [router]
   );
 }
@@ -197,7 +199,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
               </Tag>
             </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
-              <Text>Available for hire until {hire.expiry}.</Text>
+              <Text>Available for rent until {hire.expiry}.</Text>
             </Box>
             <Box mt="4" mb="4">
               {renderListedButton()}
@@ -211,9 +213,9 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
             <Box display="flex" pb="4">
               <Tag colorScheme="green">
                 <TagLeftIcon boxSize="12px" as={IoLeaf} />
-                <TagLabel>Loan Active</TagLabel>
+                <TagLabel>Rental Active</TagLabel>
               </Tag>
-              {hire.isLender(anchorWallet) && hire.expired && (
+              {hire.expired && (
                 <Tag colorScheme="red" ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Expired</TagLabel>
@@ -262,7 +264,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
         </Box>
         <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
           <Badge colorScheme="green" mb="2">
-            Hire
+            Rental
           </Badge>
           <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
             {hire?.metadata.data.name}
@@ -308,14 +310,16 @@ interface HireButtonProps {
 }
 
 const HireButton = ({ hire }: HireButtonProps) => {
-  const [days, setDialog] = useState<number | null>(null);
-  const mutation = useTakeHireMutation(() => setDialog(null));
+  const [dialog, setDialog] = useState<boolean>(false);
+  const [days, setDays] = useState<number>(1);
+  const mutation = useTakeHireMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
   async function onLend(data: { days: number }) {
     if (anchorWallet) {
-      setDialog(data.days);
+      setDays(data.days);
+      setDialog(true);
     } else {
       setVisible(true);
     }
@@ -326,10 +330,10 @@ const HireButton = ({ hire }: HireButtonProps) => {
       <HireForm hire={hire} onSubmit={onLend} />
       <TakeHireDialog
         hire={hire}
-        days={days ?? 0}
-        open={Boolean(open)}
+        days={days}
+        open={dialog}
         loading={mutation.isLoading}
-        onRequestClose={() => setDialog(null)}
+        onRequestClose={() => setDialog(false)}
         onConfirm={() => {
           if (days) {
             mutation.mutate({
@@ -350,7 +354,7 @@ interface ExtendButtonProps {
 
 const ExtendButton = ({ hire }: ExtendButtonProps) => {
   const [days, setDialog] = useState<number | null>(null);
-  const mutation = useExtendHireMutation(() => setDialog(null));
+  // const mutation = useExtendHireMutation(() => setDialog(null));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
@@ -365,7 +369,7 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
   return (
     <>
       <HireForm hire={hire} onSubmit={onLend} />
-      <ExtendHireDialog
+      {/* <ExtendHireDialog
         hire={hire}
         days={days ?? 0}
         open={Boolean(open)}
@@ -380,7 +384,7 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
             });
           }
         }}
-      />
+      /> */}
     </>
   );
 };
@@ -391,7 +395,7 @@ interface HireFormProps {
   onSubmit: (data: { days: number }) => void;
 }
 
-const HireForm = ({ label = "Hire", hire, onSubmit }: HireFormProps) => {
+const HireForm = ({ label = "Rent", hire, onSubmit }: HireFormProps) => {
   const {
     control,
     handleSubmit,
@@ -422,14 +426,16 @@ const HireForm = ({ label = "Hire", hire, onSubmit }: HireFormProps) => {
             }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <FormControl isInvalid={Boolean(error)}>
-                <FormLabel htmlFor="cost">Cost</FormLabel>
+                <FormLabel htmlFor="cost">Days</FormLabel>
                 <Input
                   name="days"
                   placeholder="0.00◎"
                   value={value}
                   onChange={onChange}
                 />
-                <FormHelperText>The cost of the call option</FormHelperText>
+                <FormHelperText>
+                  The number of days you wish to rent
+                </FormHelperText>
               </FormControl>
             )}
           />

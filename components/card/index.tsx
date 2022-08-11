@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import * as utils from "../../common/utils";
-import { CallOption, Listing, Loan } from "../../common/model";
+import { CallOption, Hire, Listing, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
-import { CallOptionStateEnum } from "../../common/types";
+import { CallOptionStateEnum, HireStateEnum } from "../../common/types";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
 interface CardProps {
@@ -296,6 +296,84 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
         </Box>
         <Text fontSize="xs" fontWeight="medium">
           Cost {callOption.cost}
+        </Text>
+      </Box>
+    </Card>
+  );
+};
+
+interface HireCardProps {
+  hire: Hire;
+}
+
+export const HireCard = ({ hire }: HireCardProps) => {
+  function renderBadge() {
+    if (hire.expired) {
+      return (
+        <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
+          <IoAlertCircle />
+        </Badge>
+      );
+    }
+
+    switch (hire.state) {
+      case HireStateEnum.Listed: {
+        return (
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
+            <IoLeaf />
+          </Badge>
+        );
+      }
+
+      case HireStateEnum.Hired: {
+        return (
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
+            <IoCheckmark />
+          </Badge>
+        );
+      }
+
+      default: {
+        return null;
+      }
+    }
+  }
+
+  return (
+    <Card
+      href={`/rental/${hire.address}`}
+      uri={hire.metadata.data.uri}
+      imageAlt={hire.metadata.data.name}
+    >
+      <Box p="4">
+        <Box display="flex" alignItems="center">
+          {renderBadge()}
+          <Box
+            color="gray.500"
+            fontWeight="semibold"
+            letterSpacing="wide"
+            fontSize="xs"
+            textTransform="uppercase"
+          >
+            Expires {hire.expiry}
+          </Box>
+        </Box>
+        <Box
+          mt="1"
+          fontWeight="semibold"
+          as="h4"
+          lineHeight="tight"
+          isTruncated
+        >
+          {hire.metadata.data.name}
+        </Box>
+      </Box>
+      <Box p="4" bgColor="blue.50">
+        <Box fontWeight="bold" as="h3">
+          {hire.amount}
+        </Box>
+        <Text fontSize="xs" fontWeight="medium">
+          Daily cost
         </Text>
       </Box>
     </Card>

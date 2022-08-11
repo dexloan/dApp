@@ -4,6 +4,19 @@ import {
   Metadata,
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
+import { LISTINGS_PROGRAM_ID } from "../constants";
+
+export async function findTokenManagerAddress(
+  mint: anchor.web3.PublicKey,
+  issuer: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [tokenManagerAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("token_manager"), mint.toBuffer(), issuer.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return tokenManagerAddress;
+}
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
@@ -32,7 +45,7 @@ export async function assertMintIsWhitelisted(mint: anchor.web3.PublicKey) {
 
   if (response.ok === false) {
     const message = await response.json();
-    throw new Error(message);
+    // throw new Error(message);
   }
 }
 
@@ -104,8 +117,8 @@ export async function fetchNFTs(
     }),
   }).then((response) => response.json());
 
-  const filteredTokenAccounts = tokenAccounts.filter((account) =>
-    whitelist.mints.includes(account.data.mint.toBase58())
+  const filteredTokenAccounts = tokenAccounts.filter(
+    (account) => true // whitelist.mints.includes(account.data.mint.toBase58())
   );
 
   const metadataAccounts = await fetchMetadataAccounts(

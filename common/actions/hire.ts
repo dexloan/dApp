@@ -27,15 +27,20 @@ export async function initHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hireAccount = await query.findHireAddress(mint, wallet.publicKey);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
   const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .initHire({ amount, expiry, borrower })
     .accounts({
+      hire,
+      tokenManager,
       mint,
       edition,
-      hireAccount,
       lender: wallet.publicKey,
       depositTokenAccount: depositTokenAccount,
       metadataProgram: METADATA_PROGRAM_ID,
@@ -58,7 +63,12 @@ export async function takeHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hireAccount = await query.findHireAddress(mint, lender);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
   const [edition] = await query.findEditionAddress(mint);
   const [metadataAddress] = await query.findMetadataAddress(mint);
 
@@ -75,7 +85,9 @@ export async function takeHire(
     lender,
     mint,
     edition,
-    hireAccount,
+    hire,
+    hireEscrow,
+    tokenManager,
     hireTokenAccount,
     depositTokenAccount,
     metadata: metadataAddress,
@@ -104,7 +116,12 @@ export async function extendHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hireAccount = await query.findHireAddress(mint, lender);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
   const [metadataAddress] = await query.findMetadataAddress(mint);
 
   const creatorAccounts = metadata.data.creators?.map((creator) => ({
@@ -116,7 +133,9 @@ export async function extendHire(
   const method = program.methods.extendHire(days).accounts({
     lender,
     mint,
-    hireAccount,
+    hire,
+    hireEscrow,
+    tokenManager,
     metadata: metadataAddress,
     borrower: wallet.publicKey,
     systemProgram: anchor.web3.SystemProgram.programId,
@@ -141,7 +160,12 @@ export async function recoverHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hireAccount = await query.findHireAddress(mint, wallet.publicKey);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
   const [edition] = await query.findEditionAddress(mint);
 
   const hireTokenAccount = (await connection.getTokenLargestAccounts(mint))
@@ -152,7 +176,9 @@ export async function recoverHire(
     .accounts({
       borrower,
       mint,
-      hireAccount,
+      hire,
+      hireEscrow,
+      tokenManager,
       edition,
       depositTokenAccount,
       hireTokenAccount,

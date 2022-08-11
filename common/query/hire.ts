@@ -13,12 +13,24 @@ export async function findHireAddress(
   mint: anchor.web3.PublicKey,
   lender: anchor.web3.PublicKey
 ): Promise<anchor.web3.PublicKey> {
-  const [callOptionAccount] = await anchor.web3.PublicKey.findProgramAddress(
+  const [hireAddress] = await anchor.web3.PublicKey.findProgramAddress(
     [Buffer.from("hire"), mint.toBuffer(), lender.toBuffer()],
     LISTINGS_PROGRAM_ID
   );
 
-  return callOptionAccount;
+  return hireAddress;
+}
+
+export async function findHireEscrowAddress(
+  mint: anchor.web3.PublicKey,
+  lender: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [hireEscrowAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("hire_escrow"), mint.toBuffer(), lender.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return hireEscrowAddress;
 }
 
 export async function fetchHire(

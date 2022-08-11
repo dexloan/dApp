@@ -7,6 +7,7 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
+import { HireData } from "../types";
 import { getProgram, getProvider } from "../provider";
 
 export async function initCallOption(
@@ -28,7 +29,8 @@ export async function initCallOption(
   const program = getProgram(provider);
 
   const [edition] = await query.findEditionAddress(mint);
-  const callOptionAccount = await query.findCallOptionAddress(
+  const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
   );
@@ -38,7 +40,8 @@ export async function initCallOption(
     .accounts({
       mint,
       edition,
-      callOptionAccount,
+      callOption,
+      tokenManager,
       seller: wallet.publicKey,
       depositTokenAccount,
       metadataProgram: METADATA_PROGRAM_ID,
@@ -60,7 +63,8 @@ export async function buyCallOption(
   const program = getProgram(provider);
 
   const [edition] = await query.findEditionAddress(mint);
-  const callOptionAccount = await query.findCallOptionAddress(mint, seller);
+  const callOption = await query.findCallOptionAddress(mint, seller);
+  const tokenManager = await query.findTokenManagerAddress(mint, seller);
 
   const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
     .value[0].address;
@@ -68,7 +72,8 @@ export async function buyCallOption(
   await program.methods
     .buyCallOption()
     .accounts({
-      callOptionAccount,
+      callOption,
+      tokenManager,
       depositTokenAccount,
       mint,
       edition,
@@ -93,12 +98,15 @@ export async function exerciseCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const callOptionAccount = await query.findCallOptionAddress(mint, seller);
+  const callOption = await query.findCallOptionAddress(mint, seller);
+  const tokenManager = await query.findTokenManagerAddress(mint, seller);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
   const [metadataAddress] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
 
-  const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
-    .value[0].address;
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
 
   const creatorAccounts = metadata.data.creators?.map((creator) => ({
     pubkey: creator.address,
@@ -106,27 +114,77 @@ export async function exerciseCallOption(
     isWritable: true,
   }));
 
-  const method = program.methods.exerciseCallOption().accounts({
-    buyerTokenAccount,
-    depositTokenAccount,
-    callOptionAccount,
-    mint,
-    edition,
-    seller,
-    buyer: wallet.publicKey,
-    metadata: metadataAddress,
-    metadataProgram: METADATA_PROGRAM_ID,
-    systemProgram: anchor.web3.SystemProgram.programId,
-    tokenProgram: splToken.TOKEN_PROGRAM_ID,
-    clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-  });
+  let hireAccount: HireData | null = null;
 
-  if (creatorAccounts?.length) {
-    method.remainingAccounts(creatorAccounts);
+  try {
+    hireAccount = await program.account.hire.fetch(hire);
+  } catch (err) {
+    // account does not exist
   }
 
-  await method.rpc();
+  if (hireAccount) {
+    const method = program.methods.exerciseCallOptionWithHire().accounts({
+      buyerTokenAccount,
+      callOption,
+      tokenManager,
+      hire,
+      hireEscrow,
+      mint,
+      edition,
+      seller,
+      buyer: wallet.publicKey,
+      hireTokenAccount: tokenAccount,
+      metadata: metadataAddress,
+      metadataProgram: METADATA_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    });
+
+    const remainingAccounts = [];
+
+    if (hireAccount.borrower) {
+      remainingAccounts.push({
+        isSigner: false,
+        isWritable: true,
+        pubkey: hireAccount.borrower,
+      });
+    }
+
+    if (creatorAccounts?.length) {
+      remainingAccounts.push(...creatorAccounts);
+    }
+
+    if (remainingAccounts.length) {
+      method.remainingAccounts(remainingAccounts);
+    }
+
+    await method.rpc();
+  } else {
+    const method = program.methods.exerciseCallOption().accounts({
+      buyerTokenAccount,
+      callOption,
+      tokenManager,
+      mint,
+      edition,
+      seller,
+      buyer: wallet.publicKey,
+      depositTokenAccount: tokenAccount,
+      metadata: metadataAddress,
+      metadataProgram: METADATA_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    });
+
+    if (creatorAccounts?.length) {
+      method.remainingAccounts(creatorAccounts);
+    }
+
+    await method.rpc();
+  }
 }
 
 export async function closeCallOption(
@@ -138,17 +196,20 @@ export async function closeCallOption(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const callOptionAccount = await query.findCallOptionAddress(
+  const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
   );
+
   const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .closeCallOption()
     .accounts({
       depositTokenAccount,
-      callOptionAccount,
+      callOption,
+      tokenManager,
       mint,
       edition,
       metadataProgram: METADATA_PROGRAM_ID,

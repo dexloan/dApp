@@ -318,11 +318,11 @@ export const TakeHireDialog = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={`Hire for ${days} day${days > 1 ? "s" : ""}`}
+      header="Rental"
       content={
         <Text>
-          Hire ${hire.metadata.data.name} for ${days} day${days > 1 ? "s" : ""}{" "}
-          at a cost of ${hire.getFullAmount(days)}?
+          Rent {hire.metadata.data.name} for {days} day{days > 1 ? "s" : ""} at
+          a cost of {hire.getFullAmount(days)}?
         </Text>
       }
       onConfirm={onConfirm}

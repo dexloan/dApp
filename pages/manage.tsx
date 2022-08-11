@@ -20,16 +20,17 @@ import {
 } from "@chakra-ui/react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
-import { IoCalendar, IoCash } from "react-icons/io5";
+import { IoBicycle, IoCalendar, IoCash } from "react-icons/io5";
 import * as utils from "../common/utils";
 import {
   CallOptionStateEnum,
   Collection,
   CollectionMap,
+  HireStateEnum,
   LoanStateEnum,
   NFTResult,
 } from "../common/types";
-import { Listing, Loan, CallOption } from "../common/model";
+import { Loan, CallOption, Hire } from "../common/model";
 import {
   useNFTByOwnerQuery,
   useFloorPriceQuery,
@@ -37,18 +38,24 @@ import {
   useLoansGivenQuery,
   useBuyerCallOptionsQuery,
   useSellerCallOptionsQuery,
+  useLenderHiresQuery,
+  useBorrowerHiresQuery,
   // Deprecated
-  usePersonalListingsQuery,
+  // usePersonalListingsQuery,
 } from "../hooks/query";
 import {
   Card,
   CardList,
+  HireCard,
   LoanCard,
-  ListingCard,
   CallOptionCard,
 } from "../components/card";
 import { VerifiedCollection } from "../components/collection";
-import { InitCallOptionModal, InitLoanModal } from "../components/form";
+import {
+  InitCallOptionModal,
+  InitLoanModal,
+  InitHireModal,
+} from "../components/form";
 import { EllipsisProgress } from "../components/progress";
 
 const Manage: NextPage = () => {
@@ -61,6 +68,9 @@ const Manage: NextPage = () => {
 
       case "call_options":
         return <CallOptions />;
+
+      case "rentals":
+        return <Hires />;
 
       default:
         return <MyItems />;
@@ -99,7 +109,15 @@ const Manage: NextPage = () => {
             Call Options
           </Button>
         </NextLink>
-        <Button disabled>Hires</Button>
+        <NextLink href="/manage?tab=rentals">
+          <Button
+            as="a"
+            colorScheme={router.query.tab === "rentals" ? "green" : undefined}
+            cursor="pointer"
+          >
+            Rentals
+          </Button>
+        </NextLink>
       </ButtonGroup>
       {renderContent()}
     </Container>
@@ -135,7 +153,7 @@ const Loans = () => {
   const loansGivenQuery = useLoansGivenQuery();
   const loansTakenQuery = useLoansTakeQuery();
   // Deprecated listings
-  const listingsQuery = usePersonalListingsQuery();
+  // const listingsQuery = usePersonalListingsQuery();
 
   const givenLoans = useMemo(
     () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
@@ -157,10 +175,10 @@ const Loans = () => {
     [borrowings]
   );
 
-  const deprecatedListings = useMemo(
-    () => listingsQuery.data?.map((l) => Listing.fromJSON(l)) || [],
-    [listingsQuery.data]
-  );
+  // const deprecatedListings = useMemo(
+  //   () => listingsQuery.data?.map((l) => Listing.fromJSON(l)) || [],
+  //   [listingsQuery.data]
+  // );
 
   const totalLending = useMemo(
     () =>
@@ -254,7 +272,7 @@ const Loans = () => {
         </>
       )}
 
-      {deprecatedListings.length ? (
+      {/* {deprecatedListings.length ? (
         <>
           <SectionHeader
             title="Deprecated v1 Listings"
@@ -266,7 +284,7 @@ const Loans = () => {
             ))}
           </CardList>
         </>
-      ) : null}
+      ) : null} */}
     </>
   );
 };
@@ -385,11 +403,119 @@ const CallOptions = () => {
   );
 };
 
+const Hires = () => {
+  const lenderHiresQuery = useLenderHiresQuery();
+  const borrowerHiresQuery = useBorrowerHiresQuery();
+  // Deprecated listings
+  // const listingsQuery = usePersonalListingsQuery();
+
+  const lenderHires = useMemo(
+    () => lenderHiresQuery.data?.map((l) => Hire.fromJSON(l)) || [],
+    [lenderHiresQuery.data]
+  );
+
+  const listedHires = useMemo(
+    () => lenderHires.filter((b) => b.state !== HireStateEnum.Hired),
+    [lenderHires]
+  );
+
+  const activeHires = useMemo(
+    () => lenderHires.filter((b) => b.state === HireStateEnum.Hired),
+    [lenderHires]
+  );
+
+  const borrowerHires = useMemo(
+    () => borrowerHiresQuery.data?.map((l) => Hire.fromJSON(l)) || [],
+    [borrowerHiresQuery.data]
+  );
+
+  if (lenderHiresQuery.isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <>
+      {listedHires.length ? (
+        <>
+          <SectionHeader
+            title="Listed items"
+            subtitle="Your NFTs listed for rental"
+          />
+          <CardList>
+            {listedHires.map((item) => (
+              <HireCard key={item.publicKey.toBase58()} hire={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {activeHires.length ? (
+        <>
+          <SectionHeader
+            title="Active rentals"
+            subtitle="NFTs you are actively renting out"
+          />
+          <CardList>
+            {activeHires.map((item) => (
+              <HireCard key={item.publicKey.toBase58()} hire={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {borrowerHires.length ? (
+        <>
+          <SectionHeader
+            title="Your rentals"
+            subtitle="NFTs you are currently renting"
+          />
+          <CardList>
+            {borrowerHires.map((item) => (
+              <HireCard key={item.publicKey.toBase58()} hire={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {!lenderHires.length && !borrowerHires.length && (
+        <>
+          <SectionHeader title="My Loans" />
+          <Box mb="12">
+            <Text>
+              Why not check out our{" "}
+              <NextLink href="/#rentals" scroll={false}>
+                <Link color="green.600" fontWeight="semibold">
+                  current listings
+                </Link>
+              </NextLink>{" "}
+              to start renting?
+            </Text>
+          </Box>
+        </>
+      )}
+
+      {/* {deprecatedListings.length ? (
+        <>
+          <SectionHeader
+            title="Deprecated v1 Listings"
+            subtitle="Please close the following accounts"
+          />
+          <CardList>
+            {deprecatedListings.map((item) => (
+              <ListingCard key={item.publicKey.toBase58()} listing={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null} */}
+    </>
+  );
+};
+
 const MyItems = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
-  const [type, setType] = useState<"loan" | "callOption" | null>(null);
+  const [type, setType] = useState<"loan" | "callOption" | "hire" | null>(null);
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
   const collections = useMemo(() => {
@@ -476,6 +602,15 @@ const MyItems = () => {
             >
               Sell call option
             </Button>
+            <Button
+              w="100%"
+              mb="4"
+              colorScheme="blue"
+              rightIcon={<IoBicycle />}
+              onClick={() => setType("hire")}
+            >
+              Rent
+            </Button>
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -490,6 +625,14 @@ const MyItems = () => {
 
       <InitCallOptionModal
         selected={selected && type === "callOption" ? selected : null}
+        onRequestClose={() => {
+          setSelected(null);
+          setType(null);
+        }}
+      />
+
+      <InitHireModal
+        selected={selected && type === "hire" ? selected : null}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
