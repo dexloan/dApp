@@ -7,6 +7,8 @@ export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
 export const RPC_ENDPOINT = "https://devnet.genesysgo.net/";
 // "https://ssc-dao.genesysgo.net/";
 
+export const SECONDS_PER_DAY = new anchor.BN(86_400);
+
 export const SerializedLoanState = {
   Listed: 0,
   Active: 1,

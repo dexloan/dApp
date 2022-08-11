@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
+import { SECONDS_PER_DAY } from "../../common/constants";
 import { HireStateEnum, NFTResult } from "../../common/types";
 import { HirePretty } from "../../common/model";
 import {
@@ -142,6 +143,75 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
                   ...item.data,
                   state: HireStateEnum.Hired,
                   buyer: anchorWallet.publicKey.toBase58(),
+                },
+              };
+            }
+          }
+        );
+
+        toast.success("NFT hired");
+
+        onSuccess();
+      },
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+    }
+  );
+};
+
+interface ExtendHireVariables {
+  mint: anchor.web3.PublicKey;
+  lender: anchor.web3.PublicKey;
+  metadata: Metadata;
+  days: number;
+}
+
+export const useExtendHireMutation = (onSuccess: () => void) => {
+  const anchorWallet = useAnchorWallet();
+  const wallet = useWallet();
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, ExtendHireVariables>(
+    async ({ mint, lender, metadata, days }) => {
+      if (anchorWallet && wallet.publicKey) {
+        return actions.extendHire(
+          connection,
+          anchorWallet,
+          mint,
+          lender,
+          metadata,
+          days
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      async onSuccess(_, variables) {
+        const hireAddress = await query.findHireAddress(
+          variables.mint,
+          variables.lender
+        );
+
+        queryClient.invalidateQueries(
+          getHiresTakenCacheKey(anchorWallet?.publicKey)
+        );
+
+        queryClient.setQueryData<HirePretty | undefined>(
+          getHireCacheKey(hireAddress),
+          (item) => {
+            if (item && anchorWallet) {
+              return {
+                ...item,
+                data: {
+                  ...item.data,
+                  currentExpiry:
+                    (item.data.currentExpiry ?? Date.now() / 1000) +
+                    SECONDS_PER_DAY.toNumber() * variables.days,
                 },
               };
             }

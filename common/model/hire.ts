@@ -2,11 +2,10 @@ import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
-import * as utils from "../utils";
-import dayjs from "../../common/lib/dayjs";
 import type { HireData, HireStateEnum } from "../types";
-
-const SECONDS_PER_DAY = new BN(86_400);
+import * as utils from "../utils";
+import { SECONDS_PER_DAY } from "../constants";
+import dayjs from "../../common/lib/dayjs";
 
 export type HireArgs = {
   data: HireData;
