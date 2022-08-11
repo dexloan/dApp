@@ -31,13 +31,13 @@ import { Hire } from "../../common/model";
 import {
   getLoanQueryKey,
   getMetadataFileCacheKey,
-  useFloorPriceQuery,
   useMetadataFileQuery,
+  useTokenManagerQuery,
 } from "../../hooks/query";
 import {
   useTakeHireMutation,
   useRecoverHireMutation,
-  // useExtendHireMutation,
+  useExtendHireMutation,
 } from "../../hooks/mutation";
 import {
   TakeHireDialog,
@@ -49,7 +49,6 @@ import { DocumentHead } from "../../components/document";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
-import { EllipsisProgress } from "../../components/progress";
 import { useHireQuery } from "../../hooks/query";
 
 interface HireProps {
@@ -158,8 +157,10 @@ interface HireLayoutProps {
 const HireLayout = ({ hire }: HireLayoutProps) => {
   const anchorWallet = useAnchorWallet();
 
-  const symbol = hire.metadata?.data?.symbol;
-  const floorPriceQuery = useFloorPriceQuery(symbol);
+  const tokenManagerQuery = useTokenManagerQuery(
+    hire.data.mint,
+    hire.data.lender
+  );
 
   function renderActiveButton() {
     if (hire && anchorWallet && hire.isBorrower(anchorWallet)) {
@@ -187,7 +188,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 
   function renderByState() {
     if (hire === undefined) return null;
-
+    console.log("state ", hire.state);
     switch (hire.state) {
       case HireStateEnum.Listed:
         return (
@@ -245,6 +246,27 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
     }
   }
 
+  function renderSecondaryButtons() {
+    if (
+      tokenManagerQuery.data &&
+      tokenManagerQuery.data.accounts?.callOption === false &&
+      tokenManagerQuery.data.accounts?.loan === false
+    ) {
+      return (
+        <Flex direction="row" gap="2">
+          <Box flex={1}>
+            <Button width="100%">Sell Call Option</Button>
+          </Box>
+          <Box flex={1}>
+            <Button width="100%">Borrow Against</Button>
+          </Box>
+        </Flex>
+      );
+    }
+
+    return null;
+  }
+
   return (
     <Container maxW={{ md: "container.md", lg: "container.xl" }}>
       <Flex
@@ -297,6 +319,8 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
           )}
 
           {renderByState()}
+
+          {renderSecondaryButtons()}
 
           <Activity mint={hire?.data.mint} />
         </Box>
@@ -353,14 +377,16 @@ interface ExtendButtonProps {
 }
 
 const ExtendButton = ({ hire }: ExtendButtonProps) => {
-  const [days, setDialog] = useState<number | null>(null);
-  // const mutation = useExtendHireMutation(() => setDialog(null));
+  const [dialog, setDialog] = useState<boolean>(false);
+  const [days, setDays] = useState<number>(1);
+  const mutation = useExtendHireMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
   async function onLend(data: { days: number }) {
     if (anchorWallet) {
-      setDialog(data.days);
+      setDays(data.days);
+      setDialog(true);
     } else {
       setVisible(true);
     }
@@ -368,13 +394,13 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
 
   return (
     <>
-      <HireForm hire={hire} onSubmit={onLend} />
-      {/* <ExtendHireDialog
+      <HireForm label="Extend Rental" hire={hire} onSubmit={onLend} />
+      <ExtendHireDialog
         hire={hire}
         days={days ?? 0}
-        open={Boolean(open)}
+        open={Boolean(dialog)}
         loading={mutation.isLoading}
-        onRequestClose={() => setDialog(null)}
+        onRequestClose={() => setDialog(false)}
         onConfirm={() => {
           if (days) {
             mutation.mutate({
@@ -384,7 +410,7 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
             });
           }
         }}
-      /> */}
+      />
     </>
   );
 };

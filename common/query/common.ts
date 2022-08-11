@@ -6,18 +6,6 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 
-export async function findTokenManagerAddress(
-  mint: anchor.web3.PublicKey,
-  issuer: anchor.web3.PublicKey
-): Promise<anchor.web3.PublicKey> {
-  const [tokenManagerAddress] = await anchor.web3.PublicKey.findProgramAddress(
-    [Buffer.from("token_manager"), mint.toBuffer(), issuer.toBuffer()],
-    LISTINGS_PROGRAM_ID
-  );
-
-  return tokenManagerAddress;
-}
-
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
     [

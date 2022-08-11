@@ -1,9 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import {
-  AnchorWallet,
-  useAnchorWallet,
-  useConnection,
-} from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
 import bs58 from "bs58";
 

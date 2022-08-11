@@ -259,7 +259,7 @@ export const ExerciseDialog = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={"Exercise call option"}
+      header="Exercise call option"
       content={
         <Text>
           Exercise option to buy {callOption.metadata.data.name} for{" "}
@@ -345,12 +345,12 @@ export const ExtendHireDialog = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={`Hire for ${days} day${days > 1 ? "s" : ""}`}
+      header="Extend rental"
       content={
         <Text>
-          Extend your hire of ${hire.metadata.data.name} for an additional $
-          {days} day${days > 1 ? "s" : ""} at a cost of $
-          {hire.getFullAmount(days)}?
+          Extend rental of <strong>{hire.metadata.data.name}</strong> for {days}{" "}
+          day
+          {days > 1 ? "s" : ""} at a cost of {hire.getFullAmount(days)}?
         </Text>
       }
       onConfirm={onConfirm}

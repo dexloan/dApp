@@ -113,12 +113,9 @@ export async function extendHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
-  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
-  const tokenManager = await query.findTokenManagerAddress(
-    mint,
-    wallet.publicKey
-  );
+  const hire = await query.findHireAddress(mint, lender);
+  const hireEscrow = await query.findHireEscrowAddress(mint, lender);
+  const tokenManager = await query.findTokenManagerAddress(mint, lender);
   const [metadataAddress] = await query.findMetadataAddress(mint);
 
   const creatorAccounts = metadata.data.creators?.map((creator) => ({
