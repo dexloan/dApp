@@ -47,7 +47,7 @@ export const InitHireModal = ({
     defaultValues: {
       amount: undefined,
       expiry: undefined,
-      // borrower: null,
+      // TODO borrower: null,
     },
   });
 

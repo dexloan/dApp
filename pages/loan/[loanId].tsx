@@ -422,10 +422,12 @@ const LoanLayout = () => {
             loan.isBorrower(anchorWallet) &&
             loan.expired !== false &&
             loan.state !== LoanStateEnum.Defaulted && (
-              <SecondaryHireButton
-                mint={loan?.data.mint}
-                issuer={loan?.data.borrower}
-              />
+              <Box mt="2" mb="2">
+                <SecondaryHireButton
+                  mint={loan?.data.mint}
+                  issuer={loan?.data.borrower}
+                />
+              </Box>
             )}
 
           <Activity mint={loan?.data.mint} />

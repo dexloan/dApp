@@ -65,13 +65,7 @@ export const InitLoanModal = ({
     },
   });
 
-  // const floorPriceQuery = useFloorPriceQuery(symbol);
-  const floorPriceQuery = {
-    isLoading: false,
-    data: {
-      floorPrice: 1_000_000_000,
-    },
-  };
+  const floorPriceQuery = useFloorPriceQuery(symbol);
   const mutation = useInitLoanMutation(() => onRequestClose());
 
   function onSubmit() {
@@ -80,7 +74,7 @@ export const InitLoanModal = ({
         const options = {
           amount: (data.ltv / 100) * floorPriceQuery.data.floorPrice,
           basisPoints: data.apy * 100,
-          duration: 1, // data.duration * 24 * 60 * 60,
+          duration: data.duration * 24 * 60 * 60,
         };
 
         if (mint) {

@@ -419,7 +419,7 @@ const CallOptionLayout = () => {
             callOption.expired === false &&
             callOption.state !== CallOptionStateEnum.Exercised &&
             callOption.state !== CallOptionStateEnum.Cancelled && (
-              <Box mt="4" mb="4">
+              <Box mt="2" mb="2">
                 <SecondaryHireButton
                   mint={callOption?.data.mint}
                   issuer={callOption?.data.seller}
