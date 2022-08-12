@@ -13,7 +13,7 @@ import { NFTResult, LoanStateEnum } from "../../common/types";
 import { LoanPretty } from "../../common/model";
 import {
   getLoansTakenCacheKey,
-  getLoanQueryKey,
+  getLoanCacheKey,
   getLoansQueryKey,
   getLoansGivenCacheKey,
 } from "../query";
@@ -51,7 +51,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
           ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
           (data) => {
@@ -64,6 +64,15 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
             );
           }
         );
+
+        if (anchorWallet) {
+          const loanAddress = await query.findLoanAddress(
+            variables.mint,
+            anchorWallet.publicKey
+          );
+          console.log("invalidating: ", getLoanCacheKey(loanAddress));
+          await queryClient.invalidateQueries(getLoanCacheKey(loanAddress));
+        }
 
         toast.success("Listing created");
 
@@ -113,7 +122,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<LoanPretty | undefined>(
-          getLoanQueryKey(loanAddress),
+          getLoanCacheKey(loanAddress),
           (item) => {
             if (item) {
               return {
@@ -355,7 +364,7 @@ function setLoanState(
   state: LoanStateEnum
 ) {
   queryClient.setQueryData<LoanPretty | undefined>(
-    getLoanQueryKey(loan),
+    getLoanCacheKey(loan),
     (item) => {
       if (item) {
         return {

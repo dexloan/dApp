@@ -9,10 +9,10 @@ import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
+import * as query from "../../common/query";
 import { CallOptionStateEnum, NFTResult } from "../../common/types";
-import { findCallOptionAddress } from "../../common/query/callOption";
 import {
-  getCallOptionQueryKey,
+  getCallOptionCacheKey,
   getCallOptionsQueryKey,
   getBuyerCallOptionsQueryKey,
   getSellerCallOptionsQueryKey,
@@ -52,7 +52,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
           ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
           (data) => {
@@ -65,6 +65,17 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
             );
           }
         );
+
+        if (anchorWallet) {
+          const callOptionAddress = await query.findCallOptionAddress(
+            variables.mint,
+            anchorWallet.publicKey
+          );
+
+          await queryClient.invalidateQueries(
+            getCallOptionCacheKey(callOptionAddress)
+          );
+        }
 
         toast.success("Listing created");
 
@@ -127,7 +138,7 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
           }
         );
 
-        const callOptionAddress = await findCallOptionAddress(
+        const callOptionAddress = await query.findCallOptionAddress(
           variables.mint,
           variables.seller
         );
@@ -171,7 +182,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const callOptionAddress = await findCallOptionAddress(
+        const callOptionAddress = await query.findCallOptionAddress(
           variables.mint,
           variables.seller
         );
@@ -192,7 +203,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<CallOptionPretty | undefined>(
-          getCallOptionQueryKey(callOptionAddress),
+          getCallOptionCacheKey(callOptionAddress),
           (item) => {
             if (item && anchorWallet) {
               return {
@@ -292,7 +303,7 @@ function setCallOptionState(
   state: CallOptionStateEnum
 ) {
   queryClient.setQueryData<CallOptionPretty | undefined>(
-    getCallOptionQueryKey(callOption),
+    getCallOptionCacheKey(callOption),
     (item) => {
       if (item) {
         return {

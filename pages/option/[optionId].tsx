@@ -26,7 +26,7 @@ import { RPC_ENDPOINT } from "../../common/constants";
 import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
-  getCallOptionQueryKey,
+  getCallOptionCacheKey,
   getMetadataFileCacheKey,
   useCallOptionQuery,
   useFloorPriceQuery,
@@ -70,7 +70,7 @@ CallOptionPage.getInitialProps = async (ctx) => {
       const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
 
       const callOption = await queryClient.fetchQuery(
-        getCallOptionQueryKey(loanAddress),
+        getCallOptionCacheKey(loanAddress),
         () => fetchCallOption(connection, loanAddress)
       );
 

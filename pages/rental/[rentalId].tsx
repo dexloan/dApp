@@ -26,11 +26,15 @@ import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 import { Controller, useForm } from "react-hook-form";
 
 import { RPC_ENDPOINT } from "../../common/constants";
-import { HireStateEnum } from "../../common/types";
-import { fetchLoan } from "../../common/query";
-import { Hire } from "../../common/model";
 import {
-  getLoanQueryKey,
+  CallOptionStateEnum,
+  HireStateEnum,
+  LoanStateEnum,
+} from "../../common/types";
+import { fetchLoan } from "../../common/query";
+import { CallOption, Hire, Loan } from "../../common/model";
+import {
+  getLoanCacheKey,
   getMetadataFileCacheKey,
   useMetadataFileQuery,
   useCallOptionAddressQuery,
@@ -122,7 +126,7 @@ HirePage.getInitialProps = async (ctx) => {
       );
 
       const loan = await queryClient.fetchQuery(
-        getLoanQueryKey(loanAddress),
+        getLoanCacheKey(loanAddress),
         () => fetchLoan(connection, loanAddress)
       );
 
@@ -328,25 +332,31 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
 
   if (hire.isLender(anchorWallet)) {
     if (callOptionQuery.data) {
-      return (
-        <Box flex={1}>
-          <NextLink
-            href={`/option/${callOptionAddressQuery?.data?.toBase58()}`}
-          >
-            <Button w="100%">View Call Option</Button>
-          </NextLink>
-        </Box>
-      );
+      if (
+        CallOption.fromJSON(callOptionQuery.data).state !==
+        CallOptionStateEnum.Cancelled
+      ) {
+        return (
+          <Box flex={1}>
+            <NextLink
+              href={`/option/${callOptionAddressQuery?.data?.toBase58()}`}
+            >
+              <Button w="100%">View Call Option</Button>
+            </NextLink>
+          </Box>
+        );
+      }
     }
 
     if (loanQuery.data) {
-      return (
-        <Box flex={1}>
-          <NextLink href={`/loan/${loanAddressQuery?.data?.toBase58()}`}>
-            <Button w="100%">View Loan</Button>
-          </NextLink>
-        </Box>
-      );
+      if (Loan.fromJSON(loanQuery.data).state !== LoanStateEnum.Cancelled)
+        return (
+          <Box flex={1}>
+            <NextLink href={`/loan/${loanAddressQuery?.data?.toBase58()}`}>
+              <Button w="100%">View Loan</Button>
+            </NextLink>
+          </Box>
+        );
     }
 
     return (

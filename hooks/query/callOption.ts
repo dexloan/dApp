@@ -20,7 +20,7 @@ export const useCallOptionAddressQuery = (
   );
 };
 
-export const getCallOptionQueryKey = (
+export const getCallOptionCacheKey = (
   callOptionAddress: anchor.web3.PublicKey | undefined
 ) => ["callOption", callOptionAddress?.toBase58()];
 
@@ -30,7 +30,7 @@ export function useCallOptionQuery(
   const { connection } = useConnection();
 
   return useQuery(
-    getCallOptionQueryKey(callOptionAddress),
+    getCallOptionCacheKey(callOptionAddress),
     () => {
       if (callOptionAddress)
         return query.fetchCallOption(connection, callOptionAddress);

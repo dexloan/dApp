@@ -20,7 +20,7 @@ export const useLoanAddressQuery = (
   );
 };
 
-export const getLoanQueryKey = (
+export const getLoanCacheKey = (
   loanAddress: anchor.web3.PublicKey | undefined
 ) => ["loan", loanAddress?.toBase58()];
 
@@ -28,7 +28,7 @@ export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
   const { connection } = useConnection();
 
   return useQuery(
-    getLoanQueryKey(loanAddress),
+    getLoanCacheKey(loanAddress),
     () => {
       if (loanAddress) return query.fetchLoan(connection, loanAddress);
     },

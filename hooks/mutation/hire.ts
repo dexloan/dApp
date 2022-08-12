@@ -19,6 +19,7 @@ import {
   getHiresGivenCacheKey,
   getHiresTakenCacheKey,
 } from "../query/hire";
+import { findHireAddress } from "../../common/query";
 
 interface InitHireMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -53,7 +54,7 @@ export const useInitHireMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
           ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
           (data) => {

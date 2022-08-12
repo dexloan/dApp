@@ -25,7 +25,7 @@ import { LoanStateEnum } from "../../common/types";
 import { fetchLoan } from "../../common/query";
 import { Loan } from "../../common/model";
 import {
-  getLoanQueryKey,
+  getLoanCacheKey,
   getMetadataFileCacheKey,
   useFloorPriceQuery,
   useLoanQuery,
@@ -72,7 +72,7 @@ LoanPage.getInitialProps = async (ctx) => {
       const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
 
       const loan = await queryClient.fetchQuery(
-        getLoanQueryKey(loanAddress),
+        getLoanCacheKey(loanAddress),
         () => fetchLoan(connection, loanAddress)
       );
 
