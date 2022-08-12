@@ -81,21 +81,26 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={<>Create Loan</>}
+      header={<>Give Loan</>}
       content={
         <>
           <Text mb="4">
             <Badge fontSize="md" colorScheme="green">
               {loan.amount}
             </Badge>{" "}
-            <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>
+            <Badge fontSize="md" colorScheme="teal">
+              {loan.interestDue}
+            </Badge>{" "}
+            <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>{" "}
           </Text>
-          <Text mb="4">Loan will mature on {loan.dueDate}.</Text>
+          <Text mb="4">
+            Loan will mature on <strong>{loan.dueDate}</strong>.
+          </Text>
           <Text fontSize="sm">
-            This loan may be repaid in full at any time. Interest will be
-            calculated on a pro-rata basis at the time of repayment. If the
-            borrower fails to repay the loan before the expiry date, you may
-            exercise the right to repossess the NFT.
+            This loan may be repaid in full at any time. Interest will changed
+            at the full maturity amount of <strong>{loan.interestDue}</strong>.
+            If the borrower fails to repay the loan before the expiry date, you
+            may exercise the right to repossess the NFT.
           </Text>
         </>
       }
