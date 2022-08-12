@@ -49,11 +49,11 @@ export function Navbar() {
         </Box>
 
         <Flex align="center">
-          <Flex pr="6">
+          {/* <Flex pr="6">
             <NextLink href="/help">
               <Button variant="link">Help</Button>
             </NextLink>
-          </Flex>
+          </Flex> */}
 
           <ButtonGroup spacing="0">
             {wallet.publicKey && (
