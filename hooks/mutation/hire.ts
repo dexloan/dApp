@@ -334,7 +334,7 @@ export function useWithdrawFromHireEscrowMutation() {
         }
       },
       async onSuccess(_, variables) {
-        toast.success("Withdrawl made.");
+        toast.success("Withdrawl successful");
 
         if (anchorWallet) {
           const hireAddress = await query.findHireAddress(
@@ -344,6 +344,81 @@ export function useWithdrawFromHireEscrowMutation() {
 
           await queryClient.invalidateQueries(getHireCacheKey(hireAddress));
         }
+      },
+    }
+  );
+}
+
+interface CloseHireMutation {
+  mint: anchor.web3.PublicKey;
+}
+
+export function useCloseHireMutation(onSuccess: () => void) {
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+  const wallet = useWallet();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, CloseHireMutation>(
+    async ({ mint }) => {
+      if (anchorWallet) {
+        const lenderTokenAccount = await actions.getOrCreateTokenAccount(
+          connection,
+          wallet,
+          mint
+        );
+
+        return actions.closeHire(
+          connection,
+          anchorWallet,
+          mint,
+          lenderTokenAccount
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+      async onSuccess(_, variables) {
+        queryClient.setQueryData<HirePretty[] | undefined>(
+          getHiresGivenCacheKey(anchorWallet?.publicKey),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) => item.data.mint !== variables.mint.toBase58()
+              );
+            }
+          }
+        );
+
+        queryClient.setQueryData<HirePretty[] | undefined>(
+          getHiresCacheKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) => item.data.mint !== variables.mint.toBase58()
+              );
+            }
+          }
+        );
+
+        if (anchorWallet) {
+          const hireAddress = await query.findHireAddress(
+            variables.mint,
+            anchorWallet?.publicKey
+          );
+
+          setHireState(queryClient, hireAddress, HireStateEnum.Cancelled);
+        }
+
+        toast.success("Call option closed");
+
+        onSuccess();
       },
     }
   );

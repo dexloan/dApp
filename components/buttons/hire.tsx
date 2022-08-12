@@ -1,9 +1,11 @@
 import * as anchor from "@project-serum/anchor";
 import { Button } from "@chakra-ui/react";
 import NextLink from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { IoBicycle } from "react-icons/io5";
 
+import { HireStateEnum } from "../../common/types";
+import { Hire } from "../../common/model";
 import { useHireAddressQuery, useHireQuery } from "../../hooks/query";
 import { InitHireModal } from "../form";
 
@@ -48,10 +50,18 @@ export const SecondaryHireButton = ({
   const hireAddress = useHireAddressQuery(mint, issuer);
   const hireQuery = useHireQuery(hireAddress.data);
 
-  if (hireQuery.data) {
+  const hire = useMemo(() => {
+    if (hireQuery.data) {
+      return Hire.fromJSON(hireQuery.data);
+    }
+  }, [hireQuery.data]);
+
+  if (hire && hire.state !== HireStateEnum.Cancelled) {
     return (
       <NextLink href={`/rental/${hireAddress.data?.toBase58()}`}>
-        <Button w="100%">View Rental</Button>
+        <Button w="100%" mt="4">
+          View Rental
+        </Button>
       </NextLink>
     );
   }

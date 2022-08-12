@@ -31,6 +31,7 @@ export enum CallOptionStateEnum {
 export enum HireStateEnum {
   Listed = "listed",
   Hired = "hired",
+  Cancelled = "cancelled",
 }
 
 export interface NFTResult {

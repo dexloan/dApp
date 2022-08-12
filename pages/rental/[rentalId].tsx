@@ -47,11 +47,13 @@ import {
   useRecoverHireMutation,
   useExtendHireMutation,
   useWithdrawFromHireEscrowMutation,
+  useCloseHireMutation,
 } from "../../hooks/mutation";
 import {
   TakeHireDialog,
   RecoverHireDialog,
   ExtendHireDialog,
+  CancelDialog,
 } from "../../components/dialog";
 import { Activity } from "../../components/activity";
 import { DocumentHead } from "../../components/document";
@@ -368,34 +370,43 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
   );
   const loanQuery = useLoanQuery(loanAddressQuery?.data);
 
-  if (hire.isLender(anchorWallet)) {
+  const loan = useMemo(() => {
+    if (loanQuery.data) {
+      return Loan.fromJSON(loanQuery.data);
+    }
+  }, [loanQuery.data]);
+
+  const callOption = useMemo(() => {
     if (callOptionQuery.data) {
-      if (
-        CallOption.fromJSON(callOptionQuery.data).state !==
-        CallOptionStateEnum.Cancelled
-      ) {
-        return (
-          <Box flex={1}>
-            <NextLink
-              href={`/option/${callOptionAddressQuery?.data?.toBase58()}`}
-            >
-              <Button w="100%">View Call Option</Button>
-            </NextLink>
-          </Box>
-        );
-      }
+      return CallOption.fromJSON(callOptionQuery.data);
+    }
+  }, [callOptionQuery.data]);
+
+  if (hire.isLender(anchorWallet)) {
+    if (callOption && callOption.state !== CallOptionStateEnum.Cancelled) {
+      return (
+        <Box flex={1}>
+          <NextLink
+            href={`/option/${callOptionAddressQuery?.data?.toBase58()}`}
+          >
+            <Button w="100%">View Call Option</Button>
+          </NextLink>
+        </Box>
+      );
     }
 
-    if (loanQuery.data) {
-      if (Loan.fromJSON(loanQuery.data).state !== LoanStateEnum.Cancelled)
-        return (
-          <Box flex={1}>
-            <NextLink href={`/loan/${loanAddressQuery?.data?.toBase58()}`}>
-              <Button w="100%">View Loan</Button>
-            </NextLink>
-          </Box>
-        );
-    }
+    if (
+      loan &&
+      loan.state !== LoanStateEnum.Cancelled &&
+      loan.state !== LoanStateEnum.Repaid
+    )
+      return (
+        <Box flex={1}>
+          <NextLink href={`/loan/${loanAddressQuery?.data?.toBase58()}`}>
+            <Button w="100%">View Loan</Button>
+          </NextLink>
+        </Box>
+      );
 
     return (
       <Flex direction="row" gap="2">
@@ -566,7 +577,7 @@ interface CloseButtonProps {
 
 const CloseButton = ({ hire }: CloseButtonProps) => {
   const [dialog, setDialog] = useState(false);
-  // const mutation = useCloseHireMutation(() => setDialog(false));
+  const mutation = useCloseHireMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
@@ -583,12 +594,12 @@ const CloseButton = ({ hire }: CloseButtonProps) => {
       <Button colorScheme="blue" w="100%" onClick={onCancel}>
         Close Listing
       </Button>
-      {/* <CancelDialog
+      <CancelDialog
         open={dialog}
         loading={mutation.isLoading}
         onRequestClose={() => setDialog(false)}
         onConfirm={() => mutation.mutate(hire.data)}
-      /> */}
+      />
     </>
   );
 };

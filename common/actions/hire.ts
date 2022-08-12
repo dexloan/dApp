@@ -210,3 +210,36 @@ export async function withdrawFromHireEscrow(
     })
     .rpc();
 }
+
+export async function closeHire(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  depositTokenAccount: anchor.web3.PublicKey
+) {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
+  const [edition] = await query.findEditionAddress(mint);
+
+  await program.methods
+    .closeHire()
+    .accounts({
+      hire,
+      tokenManager,
+      depositTokenAccount,
+      mint,
+      edition,
+      lender: wallet.publicKey,
+      metadataProgram: METADATA_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+    })
+    .rpc();
+}
