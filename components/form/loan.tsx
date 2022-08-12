@@ -107,7 +107,7 @@ export const InitLoanModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="2xl" fontWeight="black">
-          Create Listing
+          Borrow Against
         </ModalHeader>
         <ModalBody>
           {floorPriceQuery.data?.floorPrice === undefined ? (

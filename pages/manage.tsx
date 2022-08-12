@@ -634,7 +634,7 @@ const MyItems = () => {
       />
 
       <InitLoanModal
-        open={type === "hire"}
+        open={type === "loan"}
         mint={selected?.tokenAccount.data.mint}
         symbol={selected?.metadata.data.symbol}
         onRequestClose={() => {
