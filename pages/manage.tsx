@@ -152,8 +152,6 @@ const LoadingSpinner = () => (
 const Loans = () => {
   const loansGivenQuery = useLoansGivenQuery();
   const loansTakenQuery = useLoansTakeQuery();
-  // Deprecated listings
-  // const listingsQuery = usePersonalListingsQuery();
 
   const givenLoans = useMemo(
     () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
@@ -174,11 +172,6 @@ const Loans = () => {
     () => borrowings.filter((b) => b.state === LoanStateEnum.Active),
     [borrowings]
   );
-
-  // const deprecatedListings = useMemo(
-  //   () => listingsQuery.data?.map((l) => Listing.fromJSON(l)) || [],
-  //   [listingsQuery.data]
-  // );
 
   const totalLending = useMemo(
     () =>
@@ -210,7 +203,7 @@ const Loans = () => {
     <>
       {listedBorrowings.length ? (
         <>
-          <SectionHeader title="Listed items" />
+          <SectionHeader title="Listed items" subtitle="Your listed loans" />
           <CardList>
             {listedBorrowings.map((item) => (
               <LoanCard key={item.publicKey.toBase58()} loan={item} />
@@ -337,7 +330,10 @@ const CallOptions = () => {
     <>
       {listedSellerCallOptions.length ? (
         <>
-          <SectionHeader title="Listed Items" />
+          <SectionHeader
+            title="Listed Items"
+            subtitle="Your listed call options"
+          />
           <CardList>
             {listedSellerCallOptions.map((item) => (
               <CallOptionCard
@@ -353,7 +349,7 @@ const CallOptions = () => {
         <>
           <SectionHeader
             title="Sold Options"
-            subtitle="Options you have sold"
+            subtitle="Call options you have sold"
           />
           <CardList>
             {activeSellerCallOptions.map((item) => (
@@ -370,7 +366,7 @@ const CallOptions = () => {
         <>
           <SectionHeader
             title="Bought Options"
-            subtitle="Options you have bought"
+            subtitle="Call options you have bought"
           />
           <CardList>
             {buyerCallOptions.map((item) => (

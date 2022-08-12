@@ -80,7 +80,7 @@ export const InitLoanModal = ({
         const options = {
           amount: (data.ltv / 100) * floorPriceQuery.data.floorPrice,
           basisPoints: data.apy * 100,
-          duration: data.duration * 24 * 60 * 60,
+          duration: 1, // data.duration * 24 * 60 * 60,
         };
 
         if (mint) {

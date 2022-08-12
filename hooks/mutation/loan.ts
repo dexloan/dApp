@@ -16,6 +16,7 @@ import {
   getLoanCacheKey,
   getLoansQueryKey,
   getLoansGivenCacheKey,
+  getNFTByOwnerCacheKey,
 } from "../query";
 
 interface InitLoanMutationVariables {
@@ -53,7 +54,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
       },
       async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
-          ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
+          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];

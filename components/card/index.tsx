@@ -26,7 +26,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
 
   const card = (
     <Box
-      as={href ? "a" : "button"}
+      as={href ? "a" : "div"}
       w={{
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
@@ -35,7 +35,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       }}
       borderWidth="1px"
       borderRadius="lg"
-      cursor="pointer"
+      cursor={href || onClick ? "pointer" : undefined}
       overflow="hidden"
       tabIndex={1}
       ref={containerRef}
@@ -47,6 +47,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       }}
       transition="box-shadow 0.2s ease-in"
       onClick={onClick}
+      role={onClick ? "button" : "link"}
     >
       <Box position="relative" width="100%" pb="100%">
         <Box position="absolute" left="0" top="0" right="0" bottom="0">

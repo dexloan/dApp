@@ -16,6 +16,7 @@ import {
   getCallOptionsQueryKey,
   getBuyerCallOptionsQueryKey,
   getSellerCallOptionsQueryKey,
+  getNFTByOwnerCacheKey,
 } from "../query";
 import { CallOptionPretty } from "../../common/model";
 
@@ -54,7 +55,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
       },
       async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
-          ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
+          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];

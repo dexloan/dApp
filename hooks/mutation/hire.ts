@@ -18,7 +18,8 @@ import {
   getHiresCacheKey,
   getHiresGivenCacheKey,
   getHiresTakenCacheKey,
-} from "../query/hire";
+  getNFTByOwnerCacheKey,
+} from "../query";
 
 interface InitHireMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -55,15 +56,20 @@ export const useInitHireMutation = (onSuccess: () => void) => {
       },
       async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
-          ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
+          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];
             }
-            return data.filter(
-              (item: NFTResult) =>
-                !item?.tokenAccount.data.mint.equals(variables.mint)
-            );
+
+            return data.filter((item: NFTResult) => {
+              console.log(
+                "match? ",
+                item?.tokenAccount.data.mint.toBase58(),
+                variables.mint.toBase58()
+              );
+              return !item?.tokenAccount.data.mint.equals(variables.mint);
+            });
           }
         );
 
