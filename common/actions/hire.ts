@@ -185,3 +185,28 @@ export async function recoverHire(
     })
     .rpc();
 }
+
+export async function withdrawFromHireEscrow(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey
+) {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
+
+  await program.methods
+    .withdrawFromHireEscrow()
+    .accounts({
+      mint,
+      hire,
+      hireEscrow,
+      lender: wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+    })
+    .rpc();
+}

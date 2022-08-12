@@ -140,6 +140,10 @@ export function formatAmount(amount?: anchor.BN): string {
 
   let formatted = "~0.001◎";
 
+  if (rounded === 0) {
+    return "0◎";
+  }
+
   if (rounded > 0.001) {
     formatted = rounded.toFixed(3).replace(/0{1,2}$/, "") + "◎";
   }

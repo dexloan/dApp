@@ -297,6 +297,45 @@ export const useRecoverHireMutation = (onSuccess: () => void) => {
   );
 };
 
+interface WithdrawFromHireEscrowMutation {
+  mint: anchor.web3.PublicKey;
+}
+
+export function useWithdrawFromHireEscrowMutation() {
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, WithdrawFromHireEscrowMutation>(
+    async ({ mint }) => {
+      if (anchorWallet) {
+        return actions.withdrawFromHireEscrow(connection, anchorWallet, mint);
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+      async onSuccess(_, variables) {
+        toast.success("Withdrawl made.");
+
+        if (anchorWallet) {
+          const hireAddress = await query.findHireAddress(
+            variables.mint,
+            anchorWallet.publicKey
+          );
+
+          await queryClient.invalidateQueries(getHireCacheKey(hireAddress));
+        }
+      },
+    }
+  );
+}
+
 function setHireState(
   queryClient: QueryClient,
   hireAddress: anchor.web3.PublicKey,

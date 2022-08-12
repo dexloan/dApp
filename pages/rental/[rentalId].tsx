@@ -46,6 +46,7 @@ import {
   useTakeHireMutation,
   useRecoverHireMutation,
   useExtendHireMutation,
+  useWithdrawFromHireEscrowMutation,
 } from "../../hooks/mutation";
 import {
   TakeHireDialog,
@@ -303,12 +304,35 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 
           {renderByState()}
 
+          <EscrowBalance hire={hire} />
+
           <SecondaryButtons hire={hire} />
 
           <Activity mint={hire?.data.mint} />
         </Box>
       </Flex>
     </Container>
+  );
+};
+
+interface EscrowBalanceProps {
+  hire: Hire;
+}
+
+const EscrowBalance = ({ hire }: EscrowBalanceProps) => {
+  const mutation = useWithdrawFromHireEscrowMutation();
+  console.log(hire.data.escrowBalance.toNumber());
+  return (
+    <Box flex={1} mb="2">
+      <Button
+        w="100%"
+        colorScheme="green"
+        isLoading={mutation.isLoading}
+        onClick={() => mutation.mutate(hire.data)}
+      >
+        Withdraw {hire.withdrawlAmount} in rental fees
+      </Button>
+    </Box>
   );
 };
 

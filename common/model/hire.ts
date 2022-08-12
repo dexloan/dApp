@@ -40,12 +40,30 @@ export class Hire implements HireArgs {
     return utils.formatAmount(this.data.amount.mul(new BN(days)));
   }
 
+  public calculateWithdrawlAmount() {
+    if (this.data.currentStart && this.data.currentExpiry) {
+      const now = new BN(Date.now() / 1000);
+      const start = this.data.currentStart;
+      const end = this.data.currentExpiry;
+      // TODO do this with BN
+      const rate = now.sub(start).toNumber() / end.sub(start).toNumber();
+      const amount = this.data.escrowBalance.toNumber() * rate;
+
+      return new BN(amount);
+    }
+    return new BN(0);
+  }
+
   get address() {
     return this.publicKey.toBase58();
   }
 
   get amount() {
     return utils.formatAmount(this.data.amount);
+  }
+
+  get withdrawlAmount() {
+    return utils.formatAmount(this.calculateWithdrawlAmount());
   }
 
   get currentExpiry() {
@@ -104,7 +122,9 @@ export class Hire implements HireArgs {
         lender: this.data.lender.toBase58(),
         borrower: this.data.borrower?.toBase58(),
         expiry: this.data.expiry.toNumber(),
+        currentStart: this.data.currentStart?.toNumber(),
         currentExpiry: this.data.currentExpiry?.toNumber(),
+        escrowBalance: this.data.escrowBalance.toNumber(),
         mint: this.data.mint.toBase58(),
         bump: this.data.bump,
       },
@@ -123,9 +143,13 @@ export class Hire implements HireArgs {
           ? new web3.PublicKey(args.data.borrower)
           : null,
         expiry: new BN(args.data.expiry),
+        currentStart: args.data.currentStart
+          ? new BN(args.data.currentStart)
+          : null,
         currentExpiry: args.data.currentExpiry
           ? new BN(args.data.currentExpiry)
           : null,
+        escrowBalance: new BN(args.data.escrowBalance),
         mint: new web3.PublicKey(args.data.mint),
         bump: args.data.bump,
       },
