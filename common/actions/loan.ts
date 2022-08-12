@@ -187,13 +187,10 @@ export async function repossessCollateral(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loan = await query.findLoanAddress(mint, wallet.publicKey);
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
-  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
-  const tokenManager = await query.findTokenManagerAddress(
-    mint,
-    wallet.publicKey
-  );
+  const loan = await query.findLoanAddress(mint, borrower);
+  const hire = await query.findHireAddress(mint, borrower);
+  const hireEscrow = await query.findHireEscrowAddress(mint, borrower);
+  const tokenManager = await query.findTokenManagerAddress(mint, borrower);
   const [edition] = await query.findEditionAddress(mint);
 
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
@@ -245,8 +242,8 @@ export async function repossessCollateral(
         tokenManager,
         mint,
         edition,
-        lenderTokenAccount,
         borrower,
+        lenderTokenAccount,
         depositTokenAccount: tokenAccount,
         lender: wallet.publicKey,
         metadataProgram: METADATA_PROGRAM_ID,
