@@ -2,16 +2,17 @@ import * as anchor from "@project-serum/anchor";
 import { Button } from "@chakra-ui/react";
 import { useState } from "react";
 import { IoCalendar } from "react-icons/io5";
+
 import { InitCallOptionModal } from "../form";
 
 interface LoanButtonProps {
   mint: anchor.web3.PublicKey;
-  depositTokenAccount: anchor.web3.PublicKey;
+  disabled?: boolean;
 }
 
 export const CallOptionButton = ({
   mint,
-  depositTokenAccount,
+  disabled = false,
 }: LoanButtonProps) => {
   const [modal, setModal] = useState(false);
 
@@ -20,6 +21,7 @@ export const CallOptionButton = ({
       <Button
         w="100%"
         rightIcon={<IoCalendar />}
+        disabled={disabled}
         onClick={() => setModal(true)}
       >
         Sell call option
@@ -27,7 +29,6 @@ export const CallOptionButton = ({
       <InitCallOptionModal
         open={modal}
         mint={mint}
-        depositTokenAccount={depositTokenAccount}
         onRequestClose={() => setModal(false)}
       />
     </>

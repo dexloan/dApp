@@ -14,7 +14,6 @@ export async function initCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  depositTokenAccount: anchor.web3.PublicKey,
   options: {
     amount: number;
     strikePrice: number;
@@ -30,27 +29,59 @@ export async function initCallOption(
 
   const [edition] = await query.findEditionAddress(mint);
   const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
   );
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
 
-  await program.methods
-    .initCallOption(amount, strikePrice, expiry)
-    .accounts({
-      mint,
-      edition,
-      callOption,
-      tokenManager,
-      seller: wallet.publicKey,
-      depositTokenAccount,
-      metadataProgram: METADATA_PROGRAM_ID,
-      tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-    })
-    .rpc();
+  let hireData: HireData | null = null;
+
+  try {
+    hireData = await program.account.hire.fetch(hire);
+  } catch {
+    // Does not exist
+  }
+
+  if (hireData?.borrower) {
+    await program.methods
+      .initCallOptionWithHire(amount, strikePrice, expiry)
+      .accounts({
+        callOption,
+        hire,
+        tokenManager,
+        mint,
+        edition,
+        seller: wallet.publicKey,
+        hireBorrower: hireData?.borrower,
+        hireTokenAccount: tokenAccount,
+        metadataProgram: METADATA_PROGRAM_ID,
+        tokenProgram: splToken.TOKEN_PROGRAM_ID,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      })
+      .rpc();
+  } else {
+    await program.methods
+      .initCallOption(amount, strikePrice, expiry)
+      .accounts({
+        callOption,
+        tokenManager,
+        mint,
+        edition,
+        seller: wallet.publicKey,
+        depositTokenAccount: tokenAccount,
+        metadataProgram: METADATA_PROGRAM_ID,
+        tokenProgram: splToken.TOKEN_PROGRAM_ID,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      })
+      .rpc();
+  }
 }
 
 export async function buyCallOption(

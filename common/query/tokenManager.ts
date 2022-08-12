@@ -1,13 +1,8 @@
 import * as anchor from "@project-serum/anchor";
 
+import { TokenManagerData } from "../types";
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { Loan, LoanPretty } from "../model";
 import { getProgram, getProvider } from "../provider";
-import {
-  fetchMetadata,
-  fetchMetadataAccounts,
-  assertMintIsWhitelisted,
-} from "./common";
 
 export async function findTokenManagerAddress(
   mint: anchor.web3.PublicKey,
@@ -25,7 +20,7 @@ export async function fetchTokenManager(
   connection: anchor.web3.Connection,
   mint: anchor.web3.PublicKey,
   issuer: anchor.web3.PublicKey
-) {
+): Promise<TokenManagerData> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 

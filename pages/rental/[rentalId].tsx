@@ -18,6 +18,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
@@ -32,8 +33,10 @@ import {
   getLoanQueryKey,
   getMetadataFileCacheKey,
   useMetadataFileQuery,
-  useTokenManagerQuery,
-  useTokenAccountQuery,
+  useCallOptionAddressQuery,
+  useCallOptionQuery,
+  useLoanAddressQuery,
+  useLoanQuery,
 } from "../../hooks/query";
 import {
   useTakeHireMutation,
@@ -159,15 +162,6 @@ interface HireLayoutProps {
 const HireLayout = ({ hire }: HireLayoutProps) => {
   const anchorWallet = useAnchorWallet();
 
-  const tokenManagerQuery = useTokenManagerQuery(
-    hire.data.mint,
-    hire.data.lender
-  );
-  const tokenAccountQuery = useTokenAccountQuery(
-    hire.data.lender,
-    hire.data.mint
-  );
-
   function renderActiveButton() {
     if (hire && anchorWallet && hire.isBorrower(anchorWallet)) {
       return <ExtendButton hire={hire} />;
@@ -252,36 +246,6 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
     }
   }
 
-  function renderSecondaryButtons() {
-    if (
-      hire.isLender(anchorWallet) &&
-      tokenManagerQuery.data &&
-      tokenManagerQuery.data.accounts?.callOption === false &&
-      tokenManagerQuery.data.accounts?.loan === false &&
-      tokenAccountQuery.data
-    ) {
-      return (
-        <Flex direction="row" gap="2">
-          <Box flex={1}>
-            <CallOptionButton
-              mint={hire.data.mint}
-              depositTokenAccount={tokenAccountQuery.data}
-            />
-          </Box>
-          <Box flex={1}>
-            <LoanButton
-              mint={hire.data.mint}
-              depositTokenAccount={tokenAccountQuery.data}
-              symbol={hire.metadata.data.symbol}
-            />
-          </Box>
-        </Flex>
-      );
-    }
-
-    return null;
-  }
-
   return (
     <Container maxW={{ md: "container.md", lg: "container.xl" }}>
       <Flex
@@ -335,13 +299,72 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 
           {renderByState()}
 
-          {renderSecondaryButtons()}
+          <SecondaryButtons hire={hire} />
 
           <Activity mint={hire?.data.mint} />
         </Box>
       </Flex>
     </Container>
   );
+};
+
+interface SecondaryButtonProps {
+  hire: Hire;
+}
+
+const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
+  const anchorWallet = useAnchorWallet();
+
+  const callOptionAddressQuery = useCallOptionAddressQuery(
+    hire.data.mint,
+    anchorWallet?.publicKey
+  );
+  const callOptionQuery = useCallOptionQuery(callOptionAddressQuery?.data);
+  const loanAddressQuery = useLoanAddressQuery(
+    hire.data.mint,
+    anchorWallet?.publicKey
+  );
+  const loanQuery = useLoanQuery(loanAddressQuery?.data);
+
+  if (hire.isLender(anchorWallet)) {
+    if (callOptionQuery.data) {
+      return (
+        <Box flex={1}>
+          <NextLink
+            href={`/option/${callOptionAddressQuery?.data?.toBase58()}`}
+          >
+            <Button w="100%">View Call Option</Button>
+          </NextLink>
+        </Box>
+      );
+    }
+
+    if (loanQuery.data) {
+      return (
+        <Box flex={1}>
+          <NextLink href={`/loan/${loanAddressQuery?.data?.toBase58()}`}>
+            <Button w="100%">View Loan</Button>
+          </NextLink>
+        </Box>
+      );
+    }
+
+    return (
+      <Flex direction="row" gap="2">
+        <Box flex={1}>
+          <CallOptionButton mint={hire.data.mint} />
+        </Box>
+        <Box flex={1}>
+          <LoanButton
+            mint={hire.data.mint}
+            symbol={hire.metadata.data.symbol}
+          />
+        </Box>
+      </Flex>
+    );
+  }
+
+  return null;
 };
 
 interface HireButtonProps {

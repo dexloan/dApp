@@ -22,7 +22,6 @@ import {
 
 interface InitHireMutationVariables {
   mint: anchor.web3.PublicKey;
-  depositTokenAccount: anchor.web3.PublicKey;
   options: {
     amount: number;
     expiry: number;
@@ -42,7 +41,6 @@ export const useInitHireMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
-          variables.depositTokenAccount,
           variables.options
         );
       }
@@ -64,7 +62,7 @@ export const useInitHireMutation = (onSuccess: () => void) => {
             }
             return data.filter(
               (item: NFTResult) =>
-                !item?.tokenAccount.pubkey.equals(variables.depositTokenAccount)
+                !item?.tokenAccount.data.mint.equals(variables.mint)
             );
           }
         );

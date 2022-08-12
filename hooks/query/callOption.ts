@@ -5,6 +5,21 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
+export const useCallOptionAddressQuery = (
+  mint?: anchor.web3.PublicKey,
+  seller?: anchor.web3.PublicKey
+) => {
+  return useQuery(
+    ["call_option_address", mint?.toBase58(), seller?.toBase58()],
+    () => {
+      if (mint && seller) {
+        return query.findCallOptionAddress(mint, seller);
+      }
+    },
+    { enabled: Boolean(mint && seller) }
+  );
+};
+
 export const getCallOptionQueryKey = (
   callOptionAddress: anchor.web3.PublicKey | undefined
 ) => ["callOption", callOptionAddress?.toBase58()];

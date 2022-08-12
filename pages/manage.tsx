@@ -618,7 +618,6 @@ const MyItems = () => {
       <InitCallOptionModal
         open={type === "callOption"}
         mint={selected?.tokenAccount.data.mint}
-        depositTokenAccount={selected?.tokenAccount.pubkey}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
@@ -628,7 +627,6 @@ const MyItems = () => {
       <InitHireModal
         open={type === "hire"}
         mint={selected?.tokenAccount.data.mint}
-        depositTokenAccount={selected?.tokenAccount.pubkey}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
@@ -638,7 +636,6 @@ const MyItems = () => {
       <InitLoanModal
         open={type === "hire"}
         mint={selected?.tokenAccount.data.mint}
-        depositTokenAccount={selected?.tokenAccount.pubkey}
         symbol={selected?.metadata.data.symbol}
         onRequestClose={() => {
           setSelected(null);

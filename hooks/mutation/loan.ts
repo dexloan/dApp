@@ -16,11 +16,10 @@ import {
   getLoanQueryKey,
   getLoansQueryKey,
   getLoansGivenCacheKey,
-} from "../query/loan";
+} from "../query";
 
 interface InitLoanMutationVariables {
   mint: anchor.web3.PublicKey;
-  depositTokenAccount: anchor.web3.PublicKey;
   options: {
     amount: number;
     basisPoints: number;
@@ -40,7 +39,6 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
-          variables.depositTokenAccount,
           variables.options
         );
       }
@@ -62,7 +60,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
             }
             return data.filter(
               (item: NFTResult) =>
-                !item?.tokenAccount.pubkey.equals(variables.depositTokenAccount)
+                !item?.tokenAccount.data.mint.equals(variables.mint)
             );
           }
         );

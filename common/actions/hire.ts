@@ -13,7 +13,6 @@ export async function initHire(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  depositTokenAccount: anchor.web3.PublicKey,
   options: {
     amount: number;
     expiry: number;
@@ -32,6 +31,8 @@ export async function initHire(
     mint,
     wallet.publicKey
   );
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
   const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
@@ -42,7 +43,7 @@ export async function initHire(
       mint,
       edition,
       lender: wallet.publicKey,
-      depositTokenAccount: depositTokenAccount,
+      depositTokenAccount: tokenAccount,
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,

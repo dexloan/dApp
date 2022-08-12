@@ -29,14 +29,12 @@ interface FormFields {
 interface ListingFormProps {
   open: boolean;
   mint: anchor.web3.PublicKey | undefined;
-  depositTokenAccount: anchor.web3.PublicKey | undefined;
   onRequestClose: () => void;
 }
 
 export const InitCallOptionModal = ({
   open,
   mint,
-  depositTokenAccount,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -62,11 +60,10 @@ export const InitCallOptionModal = ({
         expiry: data.expiry,
       };
 
-      if (mint && depositTokenAccount) {
+      if (mint) {
         mutation.mutate({
           options,
           mint,
-          depositTokenAccount,
         });
       }
     })();

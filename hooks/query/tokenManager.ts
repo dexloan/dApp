@@ -4,7 +4,7 @@ import { useQuery } from "react-query";
 
 import * as query from "../../common/query";
 
-export const getTokenManagerQueryKey = (
+export const getTokenManagerCacheKey = (
   mint: anchor.web3.PublicKey | undefined,
   issuer: anchor.web3.PublicKey | undefined
 ) => ["token_manager", mint?.toBase58(), issuer?.toBase58()];
@@ -16,7 +16,7 @@ export function useTokenManagerQuery(
   const { connection } = useConnection();
 
   return useQuery(
-    getTokenManagerQueryKey(mint, issuer),
+    getTokenManagerCacheKey(mint, issuer),
     () => {
       if (mint && issuer)
         return query.fetchTokenManager(connection, mint, issuer);

@@ -42,7 +42,6 @@ interface FormFields {
 interface ListingFormProps {
   open: boolean;
   mint: anchor.web3.PublicKey | undefined;
-  depositTokenAccount: anchor.web3.PublicKey | undefined;
   symbol: string | undefined;
   onRequestClose: () => void;
 }
@@ -50,7 +49,6 @@ interface ListingFormProps {
 export const InitLoanModal = ({
   open,
   mint,
-  depositTokenAccount,
   symbol,
   onRequestClose,
 }: ListingFormProps) => {
@@ -80,11 +78,10 @@ export const InitLoanModal = ({
           duration: data.duration * 24 * 60 * 60,
         };
 
-        if (mint && depositTokenAccount && symbol) {
+        if (mint) {
           mutation.mutate({
             options,
             mint,
-            depositTokenAccount,
           });
         }
       }

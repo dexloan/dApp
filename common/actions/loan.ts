@@ -15,7 +15,6 @@ export async function initLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  depositTokenAccount: anchor.web3.PublicKey,
   options: {
     amount: number;
     duration: number;
@@ -30,27 +29,58 @@ export async function initLoan(
   const program = getProgram(provider);
 
   const loan = await query.findLoanAddress(mint, wallet.publicKey);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
   );
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
-    .initLoan(amount, basisPoint, duration)
-    .accounts({
-      loan,
-      tokenManager,
-      mint,
-      edition,
-      depositTokenAccount,
-      borrower: wallet.publicKey,
-      metadataProgram: METADATA_PROGRAM_ID,
-      tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    })
-    .rpc();
+  let hireData: HireData | null = null;
+
+  try {
+    hireData = await program.account.hire.fetch(hire);
+  } catch {
+    // Does not exist
+  }
+
+  if (hireData?.borrower) {
+    await program.methods
+      .initLoanWithHire(amount, basisPoint, duration)
+      .accounts({
+        loan,
+        hire,
+        tokenManager,
+        mint,
+        edition,
+        hireBorrower: hireData.borrower,
+        hireTokenAccount: tokenAccount,
+        borrower: wallet.publicKey,
+        metadataProgram: METADATA_PROGRAM_ID,
+        tokenProgram: splToken.TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+  } else {
+    await program.methods
+      .initLoan(amount, basisPoint, duration)
+      .accounts({
+        loan,
+        tokenManager,
+        mint,
+        edition,
+        depositTokenAccount: tokenAccount,
+        borrower: wallet.publicKey,
+        metadataProgram: METADATA_PROGRAM_ID,
+        tokenProgram: splToken.TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+  }
 }
 
 export async function giveLoan(

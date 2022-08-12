@@ -5,6 +5,21 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
+export const useLoanAddressQuery = (
+  mint?: anchor.web3.PublicKey,
+  borrower?: anchor.web3.PublicKey
+) => {
+  return useQuery(
+    ["loan_address", mint?.toBase58(), borrower?.toBase58()],
+    () => {
+      if (mint && borrower) {
+        return query.findLoanAddress(mint, borrower);
+      }
+    },
+    { enabled: Boolean(mint && borrower) }
+  );
+};
+
 export const getLoanQueryKey = (
   loanAddress: anchor.web3.PublicKey | undefined
 ) => ["loan", loanAddress?.toBase58()];
