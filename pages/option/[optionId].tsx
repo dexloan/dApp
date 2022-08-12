@@ -417,11 +417,14 @@ const CallOptionLayout = () => {
           {callOption &&
             callOption.isSeller(anchorWallet) &&
             callOption.expired === false &&
-            callOption.state !== CallOptionStateEnum.Exercised && (
-              <SecondaryHireButton
-                mint={callOption?.data.mint}
-                issuer={callOption?.data.seller}
-              />
+            callOption.state !== CallOptionStateEnum.Exercised &&
+            callOption.state !== CallOptionStateEnum.Cancelled && (
+              <Box mt="4" mb="4">
+                <SecondaryHireButton
+                  mint={callOption?.data.mint}
+                  issuer={callOption?.data.seller}
+                />
+              </Box>
             )}
 
           <Activity mint={callOption?.data.mint} />

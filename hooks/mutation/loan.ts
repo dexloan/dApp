@@ -71,7 +71,6 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
             variables.mint,
             anchorWallet.publicKey
           );
-          console.log("invalidating: ", getLoanCacheKey(loanAddress));
           await queryClient.invalidateQueries(getLoanCacheKey(loanAddress));
         }
 

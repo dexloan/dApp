@@ -385,7 +385,7 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
   if (hire.isLender(anchorWallet)) {
     if (callOption && callOption.state !== CallOptionStateEnum.Cancelled) {
       return (
-        <Box flex={1}>
+        <Box mt="2" mb="2" flex={1}>
           <NextLink
             href={`/option/${callOptionAddressQuery?.data?.toBase58()}`}
           >
@@ -401,7 +401,7 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
       loan.state !== LoanStateEnum.Repaid
     )
       return (
-        <Box flex={1}>
+        <Box mt="2" mb="2" flex={1}>
           <NextLink href={`/loan/${loanAddressQuery?.data?.toBase58()}`}>
             <Button w="100%">View Loan</Button>
           </NextLink>
@@ -410,10 +410,10 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
 
     return (
       <Flex direction="row" gap="2">
-        <Box flex={1}>
+        <Box mt="2" mb="2" flex={1}>
           <CallOptionButton mint={hire.data.mint} />
         </Box>
-        <Box flex={1}>
+        <Box mt="2" mb="2" flex={1}>
           <LoanButton
             mint={hire.data.mint}
             symbol={hire.metadata.data.symbol}
