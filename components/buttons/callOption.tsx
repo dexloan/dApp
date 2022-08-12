@@ -5,7 +5,7 @@ import { IoCalendar } from "react-icons/io5";
 
 import { InitCallOptionModal } from "../form";
 
-interface LoanButtonProps {
+interface CallOptionButtonProps {
   mint: anchor.web3.PublicKey;
   disabled?: boolean;
 }
@@ -13,7 +13,7 @@ interface LoanButtonProps {
 export const CallOptionButton = ({
   mint,
   disabled = false,
-}: LoanButtonProps) => {
+}: CallOptionButtonProps) => {
   const [modal, setModal] = useState(false);
 
   return (

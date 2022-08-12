@@ -44,6 +44,7 @@ import {
   RepayDialog,
   RepossessDialog,
 } from "../../components/dialog";
+import { SecondaryHireButton } from "../../components/buttons";
 import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
@@ -416,6 +417,16 @@ const LoanLayout = () => {
           )}
 
           {renderByState()}
+
+          {loan &&
+            loan.isBorrower(anchorWallet) &&
+            loan.expired === false &&
+            loan.state !== LoanStateEnum.Defaulted && (
+              <SecondaryHireButton
+                mint={loan?.data.mint}
+                issuer={loan?.data.borrower}
+              />
+            )}
 
           <Activity mint={loan?.data.mint} />
         </Box>

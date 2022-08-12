@@ -42,6 +42,7 @@ import {
   ExerciseDialog,
   CloseCallOptionDialog,
 } from "../../components/dialog";
+import { SecondaryHireButton } from "../../components/buttons";
 import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
@@ -65,18 +66,15 @@ CallOptionPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
-
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      console.log("PARAM: ", ctx.query.optionId);
       const callOptionAddress = new anchor.web3.PublicKey(
         ctx.query.optionId as string
       );
-      console.log("callOptionAddress: ", callOptionAddress);
+
       const callOption = await queryClient.fetchQuery(
         getCallOptionCacheKey(callOptionAddress),
         () => fetchCallOption(connection, callOptionAddress)
       );
-
       await queryClient.prefetchQuery(
         getMetadataFileCacheKey(callOption.metadata.data.uri),
         () =>
@@ -415,6 +413,16 @@ const CallOptionLayout = () => {
           )}
 
           {renderByState()}
+
+          {callOption &&
+            callOption.isSeller(anchorWallet) &&
+            callOption.expired === false &&
+            callOption.state !== CallOptionStateEnum.Exercised && (
+              <SecondaryHireButton
+                mint={callOption?.data.mint}
+                issuer={callOption?.data.seller}
+              />
+            )}
 
           <Activity mint={callOption?.data.mint} />
         </Box>

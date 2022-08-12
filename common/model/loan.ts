@@ -28,8 +28,11 @@ export class Loan implements LoanArgs {
     return this.data.lender.toBase58() === wallet.publicKey.toBase58();
   }
 
-  public isBorrower(wallet: AnchorWallet) {
-    return this.data.borrower.toBase58() === wallet.publicKey.toBase58();
+  public isBorrower(wallet?: AnchorWallet) {
+    if (wallet) {
+      return this.data.borrower.toBase58() === wallet.publicKey.toBase58();
+    }
+    return false;
   }
 
   get amount() {

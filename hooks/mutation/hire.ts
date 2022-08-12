@@ -63,15 +63,19 @@ export const useInitHireMutation = (onSuccess: () => void) => {
             }
 
             return data.filter((item: NFTResult) => {
-              console.log(
-                "match? ",
-                item?.tokenAccount.data.mint.toBase58(),
-                variables.mint.toBase58()
-              );
               return !item?.tokenAccount.data.mint.equals(variables.mint);
             });
           }
         );
+
+        if (anchorWallet) {
+          const hireAddress = await query.findHireAddress(
+            variables.mint,
+            anchorWallet.publicKey
+          );
+
+          await queryClient.invalidateQueries(getHireCacheKey(hireAddress));
+        }
 
         toast.success("Rental listing created");
 

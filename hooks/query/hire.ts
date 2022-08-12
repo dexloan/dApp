@@ -5,6 +5,21 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
+export const useHireAddressQuery = (
+  mint?: anchor.web3.PublicKey,
+  lender?: anchor.web3.PublicKey
+) => {
+  return useQuery(
+    ["hire_address", mint?.toBase58(), lender?.toBase58()],
+    () => {
+      if (mint && lender) {
+        return query.findHireAddress(mint, lender);
+      }
+    },
+    { enabled: Boolean(mint && lender) }
+  );
+};
+
 export const getHireCacheKey = (
   hireAddress: anchor.web3.PublicKey | undefined
 ) => ["hire", hireAddress?.toBase58()];
