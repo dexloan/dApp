@@ -158,10 +158,9 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
             to recover your NFT.
           </Text>
           <Text fontSize="sm">
-            This loan may be repaid in full at any time. Interest will be
-            calculated on a pro-rata basis. If the borrower fails to repay the
-            loan before the expiry date, you may exercise the right to repossess
-            the NFT.
+            This loan may be repaid in full at any time. Failure to repay the
+            loan before the maturity date may result in repossession of the NFT
+            by the lender.
           </Text>
         </>
       }
