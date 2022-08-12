@@ -239,14 +239,14 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
           </>
         );
 
-      // case HireStateEnum.Cancelled:
-      //   return (
-      //     <>
-      //       <Box p="4" borderRadius="lg" bgColor="blue.50">
-      //         <Text>Hire account closed.</Text>
-      //       </Box>
-      //     </>
-      //   );
+      case HireStateEnum.Cancelled:
+        return (
+          <>
+            <Box p="4" borderRadius="lg" bgColor="blue.50">
+              <Text>Rental account closed.</Text>
+            </Box>
+          </>
+        );
 
       default:
         return null;

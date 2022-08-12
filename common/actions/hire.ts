@@ -117,7 +117,6 @@ export async function extendHire(
   const hire = await query.findHireAddress(mint, lender);
   const hireEscrow = await query.findHireEscrowAddress(mint, lender);
   const tokenManager = await query.findTokenManagerAddress(mint, lender);
-  const [metadataAddress] = await query.findMetadataAddress(mint);
 
   const creatorAccounts = metadata.data.creators?.map((creator) => ({
     pubkey: creator.address,
@@ -131,7 +130,6 @@ export async function extendHire(
     hire,
     hireEscrow,
     tokenManager,
-    metadata: metadataAddress,
     borrower: wallet.publicKey,
     systemProgram: anchor.web3.SystemProgram.programId,
     tokenProgram: splToken.TOKEN_PROGRAM_ID,

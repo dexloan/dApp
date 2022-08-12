@@ -1075,11 +1075,6 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "metadata";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
@@ -2686,11 +2681,6 @@ export const IDL: DexloanListings = {
         },
         {
           name: "mint",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "metadata",
           isMut: false,
           isSigner: false,
         },

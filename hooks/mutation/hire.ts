@@ -232,7 +232,7 @@ export const useExtendHireMutation = (onSuccess: () => void) => {
           }
         );
 
-        toast.success("NFT hired");
+        toast.success("Rental extension successful");
 
         onSuccess();
       },

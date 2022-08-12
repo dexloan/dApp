@@ -3,14 +3,24 @@ import { Container, Heading } from "@chakra-ui/react";
 import Head from "next/head";
 import { useMemo } from "react";
 
-import { CallOption, Loan } from "../common/model";
-import { CallOptionCard, CardList, LoanCard } from "../components/card";
+import { CallOption, Hire, Loan } from "../common/model";
+import {
+  CallOptionCard,
+  CardList,
+  HireCard,
+  LoanCard,
+} from "../components/card";
 import { Masthead } from "../components/masthead";
-import { useCallOptionsQuery, useLoansQuery } from "../hooks/query";
+import {
+  useCallOptionsQuery,
+  useHiresQuery,
+  useLoansQuery,
+} from "../hooks/query";
 
 const Home: NextPage = () => {
   const loansQuery = useLoansQuery();
   const callOptionsQuery = useCallOptionsQuery();
+  const hiresQuery = useHiresQuery();
 
   const loans = useMemo(
     () => loansQuery.data?.map(Loan.fromJSON) || [],
@@ -20,6 +30,11 @@ const Home: NextPage = () => {
   const callOptions = useMemo(
     () => callOptionsQuery.data?.map(CallOption.fromJSON) || [],
     [callOptionsQuery.data]
+  );
+
+  const hires = useMemo(
+    () => hiresQuery.data?.map(Hire.fromJSON) || [],
+    [hiresQuery.data]
   );
 
   return (
@@ -37,11 +52,13 @@ const Home: NextPage = () => {
         <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
           Loans
         </Heading>
+
         <CardList>
           {loans.map((l) => {
             return <LoanCard key={l.publicKey.toBase58()} loan={l} />;
           })}
         </CardList>
+
         {callOptions.length ? (
           <>
             <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
@@ -52,6 +69,19 @@ const Home: NextPage = () => {
                 return (
                   <CallOptionCard key={c.publicKey.toBase58()} callOption={c} />
                 );
+              })}
+            </CardList>
+          </>
+        ) : null}
+
+        {hires.length ? (
+          <>
+            <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
+              Rentals
+            </Heading>
+            <CardList>
+              {hires.map((h) => {
+                return <HireCard key={h.publicKey.toBase58()} hire={h} />;
               })}
             </CardList>
           </>
