@@ -420,7 +420,7 @@ const LoanLayout = () => {
 
           {loan &&
             loan.isBorrower(anchorWallet) &&
-            loan.expired === false &&
+            loan.expired !== false &&
             loan.state !== LoanStateEnum.Defaulted && (
               <SecondaryHireButton
                 mint={loan?.data.mint}

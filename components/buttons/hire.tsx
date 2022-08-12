@@ -59,9 +59,7 @@ export const SecondaryHireButton = ({
   if (hire && hire.state !== HireStateEnum.Cancelled) {
     return (
       <NextLink href={`/rental/${hireAddress.data?.toBase58()}`}>
-        <Button w="100%" mt="4">
-          View Rental
-        </Button>
+        <Button w="100%">View Rental</Button>
       </NextLink>
     );
   }
