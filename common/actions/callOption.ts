@@ -97,15 +97,11 @@ export async function buyCallOption(
   const callOption = await query.findCallOptionAddress(mint, seller);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
 
-  const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
-    .value[0].address;
-
   await program.methods
     .buyCallOption()
     .accounts({
       callOption,
       tokenManager,
-      depositTokenAccount,
       mint,
       edition,
       seller,
@@ -131,8 +127,8 @@ export async function exerciseCallOption(
 
   const callOption = await query.findCallOptionAddress(mint, seller);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
-  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
+  const hire = await query.findHireAddress(mint, seller);
+  const hireEscrow = await query.findHireEscrowAddress(mint, seller);
   const [metadataAddress] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
 
@@ -154,6 +150,11 @@ export async function exerciseCallOption(
   }
 
   if (hireAccount) {
+    console.log("borrower", hireAccount.borrower?.toBase58());
+    console.log("escrowBalance", hireAccount.escrowBalance?.toNumber());
+    console.log("tokenManager", tokenManager.toBase58());
+    console.log("tokenAccount", tokenAccount.toBase58());
+
     const method = program.methods.exerciseCallOptionWithHire().accounts({
       buyerTokenAccount,
       callOption,
@@ -163,8 +164,8 @@ export async function exerciseCallOption(
       mint,
       edition,
       seller,
+      tokenAccount,
       buyer: wallet.publicKey,
-      hireTokenAccount: tokenAccount,
       metadata: metadataAddress,
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,

@@ -67,11 +67,14 @@ CallOptionPage.getInitialProps = async (ctx) => {
       const queryClient = new QueryClient();
 
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
-
+      console.log("PARAM: ", ctx.query.optionId);
+      const callOptionAddress = new anchor.web3.PublicKey(
+        ctx.query.optionId as string
+      );
+      console.log("callOptionAddress: ", callOptionAddress);
       const callOption = await queryClient.fetchQuery(
-        getCallOptionCacheKey(loanAddress),
-        () => fetchCallOption(connection, loanAddress)
+        getCallOptionCacheKey(callOptionAddress),
+        () => fetchCallOption(connection, callOptionAddress)
       );
 
       await queryClient.prefetchQuery(
@@ -164,13 +167,9 @@ const CallOptionHead = () => {
 };
 
 const CallOptionLayout = () => {
-  const router = useRouter();
   const anchorWallet = useAnchorWallet();
 
-  const callOptionAddress = new anchor.web3.PublicKey(
-    router.query.optionId as string
-  );
-
+  const callOptionAddress = usePageParam();
   const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
 
   const symbol = callOptionQueryResult.data?.metadata?.data.symbol;

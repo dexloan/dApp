@@ -217,7 +217,7 @@ export async function repossessCollateral(
       borrower,
       hire,
       hireEscrow,
-      hireTokenAccount: tokenAccount,
+      tokenAccount,
       lender: wallet.publicKey,
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,

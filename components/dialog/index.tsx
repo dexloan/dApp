@@ -241,8 +241,9 @@ export const BuyCallOptionDialog = ({
           <Text mb="4" fontSize="sm">
             This option gives you the right to purchase{" "}
             {callOption.metadata.data.name} at the price of{" "}
-            {callOption.strikePrice} anytime before the expiry time. The cost to
-            purchase this option is {callOption.cost}.
+            <strong>{callOption.strikePrice}</strong> anytime before the expiry
+            time. The cost to purchase this option is{" "}
+            <strong>{callOption.cost}</strong>.
           </Text>
         </>
       }

@@ -413,7 +413,7 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "hireTokenAccount";
+          name: "tokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -642,11 +642,6 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "depositTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "mint";
           isMut: false;
           isSigner: false;
@@ -764,11 +759,6 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "borrower";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "buyer";
           isMut: true;
           isSigner: true;
@@ -784,17 +774,12 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "hireBorrower";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "hireEscrow";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hireTokenAccount";
+          name: "tokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -2043,7 +2028,7 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "hireTokenAccount",
+          name: "tokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -2272,11 +2257,6 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "depositTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "mint",
           isMut: false,
           isSigner: false,
@@ -2394,11 +2374,6 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "borrower",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "buyer",
           isMut: true,
           isSigner: true,
@@ -2414,17 +2389,12 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "hireBorrower",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "hireEscrow",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hireTokenAccount",
+          name: "tokenAccount",
           isMut: true,
           isSigner: false,
         },
