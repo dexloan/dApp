@@ -229,7 +229,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
               )}
             </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
-              <Text>Currently hired until {hire.currentExpiry}</Text>
+              <Text>Currently rented until {hire.currentExpiry}</Text>
             </Box>
             <Box mt="4" mb="4">
               {renderActiveButton()}
@@ -320,20 +320,34 @@ interface EscrowBalanceProps {
 }
 
 const EscrowBalance = ({ hire }: EscrowBalanceProps) => {
+  const anchorWallet = useAnchorWallet();
   const mutation = useWithdrawFromHireEscrowMutation();
-  console.log(hire.data.escrowBalance.toNumber());
-  return (
-    <Box flex={1} mb="2">
-      <Button
-        w="100%"
-        colorScheme="green"
-        isLoading={mutation.isLoading}
-        onClick={() => mutation.mutate(hire.data)}
-      >
-        Withdraw {hire.withdrawlAmount} in rental fees
-      </Button>
-    </Box>
-  );
+
+  const amount = useMemo(() => {
+    if (
+      !hire.data.escrowBalance.isZero() &&
+      !hire.calculateWithdrawlAmount().isZero()
+    ) {
+      return hire.withdrawlAmount;
+    }
+  }, [hire]);
+
+  if (hire.isLender(anchorWallet) && amount) {
+    return (
+      <Box flex={1} mb="2">
+        <Button
+          w="100%"
+          colorScheme="green"
+          isLoading={mutation.isLoading}
+          onClick={() => mutation.mutate(hire.data)}
+        >
+          Collect {hire.withdrawlAmount} in rental fees
+        </Button>
+      </Box>
+    );
+  }
+
+  return null;
 };
 
 interface SecondaryButtonProps {

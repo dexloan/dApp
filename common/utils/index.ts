@@ -136,7 +136,7 @@ export function formatAmount(amount?: anchor.BN): string {
   }
 
   const sol = amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL;
-  const rounded = Math.round((sol + Number.EPSILON) * 100) / 100;
+  const rounded = Math.round((sol + Number.EPSILON) * 1000) / 1000;
 
   let formatted = "~0.001◎";
 

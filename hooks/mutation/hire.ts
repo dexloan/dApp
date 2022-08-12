@@ -19,7 +19,6 @@ import {
   getHiresGivenCacheKey,
   getHiresTakenCacheKey,
 } from "../query/hire";
-import { findHireAddress } from "../../common/query";
 
 interface InitHireMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -68,7 +67,7 @@ export const useInitHireMutation = (onSuccess: () => void) => {
           }
         );
 
-        toast.success("Hire listing created");
+        toast.success("Rental listing created");
 
         onSuccess();
       },
@@ -141,14 +140,18 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
                 data: {
                   ...item.data,
                   state: HireStateEnum.Hired,
-                  buyer: anchorWallet.publicKey.toBase58(),
+                  borrower: anchorWallet.publicKey.toBase58(),
+                  currentStart: Date.now() / 1000,
+                  currentExpiry:
+                    Date.now() / 1000 +
+                    SECONDS_PER_DAY.toNumber() * variables.days,
                 },
               };
             }
           }
         );
 
-        toast.success("NFT hired");
+        toast.success("NFT rented");
 
         onSuccess();
       },
