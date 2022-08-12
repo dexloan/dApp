@@ -93,6 +93,7 @@ export async function giveLoan(
   const program = getProgram(provider);
 
   const loan = await query.findLoanAddress(mint, borrower);
+  const tokenManager = await query.findTokenManagerAddress(mint, borrower);
 
   await program.methods
     .giveLoan()
@@ -100,6 +101,7 @@ export async function giveLoan(
       borrower,
       mint,
       loan,
+      tokenManager,
       lender: wallet.publicKey,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
