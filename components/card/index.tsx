@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import * as utils from "../../common/utils";
-import { CallOption, Hire, Listing, Loan } from "../../common/model";
+import { CallOption, Hire, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
 import { CallOptionStateEnum, HireStateEnum } from "../../common/types";
@@ -90,64 +90,6 @@ export const CardList = ({ children }: CardListProps) => {
     <Flex flexDirection="row" wrap="wrap" gap="1.25rem" mb="12">
       {children}
     </Flex>
-  );
-};
-
-/**
- * Deprecated
- */
-
-interface ListingCardProps {
-  listing: Listing;
-}
-
-export const ListingCard = ({ listing }: ListingCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(listing.metadata.data.symbol);
-  const floorPrice = floorPriceQuery.data
-    ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-    : null;
-
-  return (
-    <Card
-      href={`/listing/${listing.publicKey.toBase58()}`}
-      uri={listing.metadata.data.uri}
-      imageAlt={listing.metadata.data.name}
-    >
-      <Box p="4">
-        <Box display="flex" alignItems="baseline">
-          <Badge borderRadius="full" px="2" colorScheme="teal">
-            {listing.data.basisPoints / 100}%
-          </Badge>
-          <Box
-            color="gray.500"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
-            ml="2"
-          >
-            {listing.duration}
-          </Box>
-        </Box>
-        <Box
-          mt="1"
-          fontWeight="semibold"
-          as="h4"
-          lineHeight="tight"
-          isTruncated
-        >
-          {listing.metadata.data.name}
-        </Box>
-      </Box>
-      <Box p="4" bgColor="blue.50">
-        <Box fontWeight="bold" as="h3">
-          {listing.amount}{" "}
-        </Box>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor Price {floorPrice ?? <EllipsisProgress />}
-        </Text>
-      </Box>
-    </Card>
   );
 };
 
