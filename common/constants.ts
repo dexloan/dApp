@@ -3,9 +3,8 @@ import * as anchor from "@project-serum/anchor";
 export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
   "8hSdpqHU7jz4C6C1kHUPQNMqBcC76n1BFXbHaTwd9X4c"
 );
-// "H6FCxCy2KCPJwCoUb9eQCSv41WZBKQaYfB6x5oFajzfj"
-export const RPC_ENDPOINT = "https://devnet.genesysgo.net/";
-// "https://ssc-dao.genesysgo.net/";
+
+export const RPC_ENDPOINT = "https://ssc-dao.genesysgo.net/";
 
 export const SECONDS_PER_DAY = new anchor.BN(86_400);
 
