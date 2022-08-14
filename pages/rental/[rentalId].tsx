@@ -31,10 +31,10 @@ import {
   HireStateEnum,
   LoanStateEnum,
 } from "../../common/types";
-import { fetchLoan } from "../../common/query";
+import { fetchHire } from "../../common/query";
 import { CallOption, Hire, Loan } from "../../common/model";
 import {
-  getLoanCacheKey,
+  getHireCacheKey,
   getMetadataFileCacheKey,
   useMetadataFileQuery,
   useCallOptionAddressQuery,
@@ -124,19 +124,19 @@ HirePage.getInitialProps = async (ctx) => {
       const queryClient = new QueryClient();
 
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const loanAddress = new anchor.web3.PublicKey(
+      const hireAddress = new anchor.web3.PublicKey(
         ctx.query.rentalId as string
       );
 
-      const loan = await queryClient.fetchQuery(
-        getLoanCacheKey(loanAddress),
-        () => fetchLoan(connection, loanAddress)
+      const hire = await queryClient.fetchQuery(
+        getHireCacheKey(hireAddress),
+        () => fetchHire(connection, hireAddress)
       );
 
       await queryClient.prefetchQuery(
-        getMetadataFileCacheKey(loan.metadata.data.uri),
+        getMetadataFileCacheKey(hire.metadata.data.uri),
         () =>
-          fetch(loan.metadata.data.uri).then((response) => {
+          fetch(hire.metadata.data.uri).then((response) => {
             return response.json().then((data) => data);
           })
       );
@@ -207,7 +207,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
               </Tag>
             </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
-              <Text>Available for rent until {hire.expiry}.</Text>
+              <Text>Available for rent until {hire.expiryLongFormat}.</Text>
             </Box>
             <Box mt="4" mb="4">
               {renderListedButton()}
@@ -231,7 +231,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
               )}
             </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
-              <Text>Currently rented until {hire.currentExpiry}</Text>
+              <Text>Currently rented until {hire.currentExpiryLongFormat}</Text>
             </Box>
             <Box mt="4" mb="4">
               {renderActiveButton()}
