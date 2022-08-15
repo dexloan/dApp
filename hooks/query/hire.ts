@@ -45,13 +45,13 @@ export function useHiresQuery() {
     getHiresCacheKey(),
     () => {
       return query.fetchMultipleHires(connection, [
-        {
-          memcmp: {
-            // filter listed
-            offset: 8,
-            bytes: bs58.encode([0]),
-          },
-        },
+        // {
+        //   memcmp: {
+        //     // filter listed
+        //     offset: 8,
+        //     bytes: bs58.encode([0]),
+        //   },
+        // },
       ]);
     },
     {
