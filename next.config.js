@@ -5,7 +5,7 @@ const nextConfig = {
     modern: true,
   },
   images: {
-    domains: ["www.arweave.net"],
+    domains: ["arweave.net", "www.arweave.net"],
   },
   reactStrictMode: true,
   webpack(config) {

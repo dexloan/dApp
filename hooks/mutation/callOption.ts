@@ -9,19 +9,19 @@ import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
+import * as query from "../../common/query";
 import { CallOptionStateEnum, NFTResult } from "../../common/types";
-import { findCallOptionAddress } from "../../common/query/callOption";
 import {
-  getCallOptionQueryKey,
+  getCallOptionCacheKey,
   getCallOptionsQueryKey,
   getBuyerCallOptionsQueryKey,
   getSellerCallOptionsQueryKey,
-} from "../query/callOption";
+  getNFTByOwnerCacheKey,
+} from "../query";
 import { CallOptionPretty } from "../../common/model";
 
 interface InitCallOptionMutationVariables {
   mint: anchor.web3.PublicKey;
-  depositTokenAccount: anchor.web3.PublicKey;
   options: {
     amount: number;
     strikePrice: number;
@@ -41,7 +41,6 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
-          variables.depositTokenAccount,
           variables.options
         );
       }
@@ -54,19 +53,30 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
-          ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
+          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];
             }
             return data.filter(
               (item: NFTResult) =>
-                item?.tokenAccount.pubkey !== variables.depositTokenAccount
+                !item?.tokenAccount.data.mint.equals(variables.mint)
             );
           }
         );
+
+        if (anchorWallet) {
+          const callOptionAddress = await query.findCallOptionAddress(
+            variables.mint,
+            anchorWallet.publicKey
+          );
+
+          await queryClient.invalidateQueries(
+            getCallOptionCacheKey(callOptionAddress)
+          );
+        }
 
         toast.success("Listing created");
 
@@ -129,7 +139,7 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
           }
         );
 
-        const callOptionAddress = await findCallOptionAddress(
+        const callOptionAddress = await query.findCallOptionAddress(
           variables.mint,
           variables.seller
         );
@@ -173,7 +183,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const callOptionAddress = await findCallOptionAddress(
+        const callOptionAddress = await query.findCallOptionAddress(
           variables.mint,
           variables.seller
         );
@@ -194,7 +204,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<CallOptionPretty | undefined>(
-          getCallOptionQueryKey(callOptionAddress),
+          getCallOptionCacheKey(callOptionAddress),
           (item) => {
             if (item && anchorWallet) {
               return {
@@ -294,7 +304,7 @@ function setCallOptionState(
   state: CallOptionStateEnum
 ) {
   queryClient.setQueryData<CallOptionPretty | undefined>(
-    getCallOptionQueryKey(callOption),
+    getCallOptionCacheKey(callOption),
     (item) => {
       if (item) {
         return {

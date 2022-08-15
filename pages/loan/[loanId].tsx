@@ -25,7 +25,7 @@ import { LoanStateEnum } from "../../common/types";
 import { fetchLoan } from "../../common/query";
 import { Loan } from "../../common/model";
 import {
-  getLoanQueryKey,
+  getLoanCacheKey,
   getMetadataFileCacheKey,
   useFloorPriceQuery,
   useLoanQuery,
@@ -44,6 +44,7 @@ import {
   RepayDialog,
   RepossessDialog,
 } from "../../components/dialog";
+import { SecondaryHireButton } from "../../components/buttons";
 import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
@@ -72,7 +73,7 @@ LoanPage.getInitialProps = async (ctx) => {
       const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
 
       const loan = await queryClient.fetchQuery(
-        getLoanQueryKey(loanAddress),
+        getLoanCacheKey(loanAddress),
         () => fetchLoan(connection, loanAddress)
       );
 
@@ -416,6 +417,18 @@ const LoanLayout = () => {
           )}
 
           {renderByState()}
+
+          {loan &&
+            loan.isBorrower(anchorWallet) &&
+            loan.expired !== false &&
+            loan.state !== LoanStateEnum.Defaulted && (
+              <Box mt="2" mb="2">
+                <SecondaryHireButton
+                  mint={loan?.data.mint}
+                  issuer={loan?.data.borrower}
+                />
+              </Box>
+            )}
 
           <Activity mint={loan?.data.mint} />
         </Box>

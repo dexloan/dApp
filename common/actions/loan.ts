@@ -4,6 +4,7 @@ import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
+import { HireData } from "../types";
 import { getProgram, getProvider } from "../provider";
 
 /**
@@ -14,7 +15,6 @@ export async function initLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  depositTokenAccount: anchor.web3.PublicKey,
   options: {
     amount: number;
     duration: number;
@@ -28,23 +28,59 @@ export async function initLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await query.findLoanAddress(mint, wallet.publicKey);
+  const loan = await query.findLoanAddress(mint, wallet.publicKey);
+  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
-    .initLoan(amount, basisPoint, duration)
-    .accounts({
-      loanAccount,
-      mint,
-      edition,
-      depositTokenAccount,
-      borrower: wallet.publicKey,
-      metadataProgram: METADATA_PROGRAM_ID,
-      tokenProgram: splToken.TOKEN_PROGRAM_ID,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    })
-    .rpc();
+  let hireData: HireData | null = null;
+
+  try {
+    hireData = await program.account.hire.fetch(hire);
+  } catch {
+    // Does not exist
+  }
+
+  if (hireData?.borrower) {
+    await program.methods
+      .initLoanWithHire(amount, basisPoint, duration)
+      .accounts({
+        loan,
+        hire,
+        tokenManager,
+        mint,
+        edition,
+        hireBorrower: hireData.borrower,
+        hireTokenAccount: tokenAccount,
+        borrower: wallet.publicKey,
+        metadataProgram: METADATA_PROGRAM_ID,
+        tokenProgram: splToken.TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+  } else {
+    await program.methods
+      .initLoan(amount, basisPoint, duration)
+      .accounts({
+        loan,
+        tokenManager,
+        mint,
+        edition,
+        depositTokenAccount: tokenAccount,
+        borrower: wallet.publicKey,
+        metadataProgram: METADATA_PROGRAM_ID,
+        tokenProgram: splToken.TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+  }
 }
 
 export async function giveLoan(
@@ -56,14 +92,16 @@ export async function giveLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await query.findLoanAddress(mint, borrower);
+  const loan = await query.findLoanAddress(mint, borrower);
+  const tokenManager = await query.findTokenManagerAddress(mint, borrower);
 
   await program.methods
     .giveLoan()
     .accounts({
       borrower,
       mint,
-      loanAccount,
+      loan,
+      tokenManager,
       lender: wallet.publicKey,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
@@ -81,13 +119,18 @@ export async function closeLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await query.findLoanAddress(mint, wallet.publicKey);
+  const loan = await query.findLoanAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
   const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .closeLoan()
     .accounts({
-      loanAccount,
+      loan,
+      tokenManager,
       mint,
       edition,
       depositTokenAccount: borrowerTokenAccount,
@@ -109,14 +152,19 @@ export async function repayLoan(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await query.findLoanAddress(mint, wallet.publicKey);
+  const loan = await query.findLoanAddress(mint, wallet.publicKey);
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
   const [edition] = await query.findEditionAddress(mint);
 
   await program.methods
     .repayLoan()
     .accounts({
       lender,
-      loanAccount,
+      loan,
+      tokenManager,
       mint,
       edition,
       borrower: wallet.publicKey,
@@ -139,27 +187,71 @@ export async function repossessCollateral(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const loanAccount = await query.findLoanAddress(mint, borrower);
+  const loan = await query.findLoanAddress(mint, borrower);
+  const hire = await query.findHireAddress(mint, borrower);
+  const hireEscrow = await query.findHireEscrowAddress(mint, borrower);
+  const tokenManager = await query.findTokenManagerAddress(mint, borrower);
   const [edition] = await query.findEditionAddress(mint);
 
-  const depositTokenAccount = (await connection.getTokenLargestAccounts(mint))
-    .value[0].address;
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
 
-  await program.methods
-    .repossessCollateral()
-    .accounts({
+  let hireAccount: HireData | null = null;
+
+  try {
+    hireAccount = await program.account.hire.fetch(hire);
+  } catch (err) {
+    // account does not exist
+  }
+
+  if (hireAccount) {
+    const method = program.methods.repossessWithHire().accounts({
+      loan,
+      tokenManager,
       mint,
       edition,
-      depositTokenAccount,
       lenderTokenAccount,
-      loanAccount,
       borrower,
+      hire,
+      hireEscrow,
+      tokenAccount,
       lender: wallet.publicKey,
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    })
-    .rpc();
+    });
+
+    if (hireAccount.borrower) {
+      method.remainingAccounts([
+        {
+          isSigner: false,
+          isWritable: true,
+          pubkey: hireAccount.borrower,
+        },
+      ]);
+    }
+
+    await method.rpc();
+  } else {
+    await program.methods
+      .repossess()
+      .accounts({
+        loan,
+        tokenManager,
+        mint,
+        edition,
+        borrower,
+        lenderTokenAccount,
+        depositTokenAccount: tokenAccount,
+        lender: wallet.publicKey,
+        metadataProgram: METADATA_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: splToken.TOKEN_PROGRAM_ID,
+        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+  }
 }

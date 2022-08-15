@@ -9,7 +9,7 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import { CallOption, Loan } from "../../common/model";
+import { CallOption, Loan, Hire } from "../../common/model";
 
 interface MutationDialogProps {
   open: boolean;
@@ -81,21 +81,26 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={<>Create Loan</>}
+      header={<>Give Loan</>}
       content={
         <>
           <Text mb="4">
             <Badge fontSize="md" colorScheme="green">
               {loan.amount}
             </Badge>{" "}
-            <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>
+            <Badge fontSize="md" colorScheme="teal">
+              {loan.interestDue}
+            </Badge>{" "}
+            <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>{" "}
           </Text>
-          <Text mb="4">Loan will mature on {loan.dueDate}.</Text>
+          <Text mb="4">
+            Loan will mature on <strong>{loan.dueDate}</strong>.
+          </Text>
           <Text fontSize="sm">
-            This loan may be repaid in full at any time. Interest will be
-            calculated on a pro-rata basis at the time of repayment. If the
-            borrower fails to repay the loan before the expiry date, you may
-            exercise the right to repossess the NFT.
+            This loan may be repaid in full at any time. Interest will changed
+            at the full maturity amount of <strong>{loan.interestDue}</strong>.
+            If the borrower fails to repay the loan before the expiry date, you
+            may exercise the right to repossess the NFT.
           </Text>
         </>
       }
@@ -153,10 +158,9 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
             to recover your NFT.
           </Text>
           <Text fontSize="sm">
-            This loan may be repaid in full at any time. Interest will be
-            calculated on a pro-rata basis. If the borrower fails to repay the
-            loan before the expiry date, you may exercise the right to repossess
-            the NFT.
+            This loan may be repaid in full at any time. Failure to repay the
+            loan before the maturity date may result in repossession of the NFT
+            by the lender.
           </Text>
         </>
       }
@@ -237,8 +241,9 @@ export const BuyCallOptionDialog = ({
           <Text mb="4" fontSize="sm">
             This option gives you the right to purchase{" "}
             {callOption.metadata.data.name} at the price of{" "}
-            {callOption.strikePrice} anytime before the expiry time. The cost to
-            purchase this option is {callOption.cost}.
+            <strong>{callOption.strikePrice}</strong> anytime before the expiry
+            time. The cost to purchase this option is{" "}
+            <strong>{callOption.cost}</strong>.
           </Text>
         </>
       }
@@ -259,7 +264,7 @@ export const ExerciseDialog = ({
     <MutationDialog
       open={open}
       loading={loading}
-      header={"Exercise call option"}
+      header="Exercise call option"
       content={
         <Text>
           Exercise option to buy {callOption.metadata.data.name} for{" "}
@@ -288,6 +293,94 @@ export const CloseCallOptionDialog = ({
         <Text>
           Close call option listing
           {callOption.hasBuyer ? " and recover NFT from escrow" : ""}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+interface HireDialogProps
+  extends Pick<
+    MutationDialogProps,
+    "open" | "loading" | "onConfirm" | "onRequestClose"
+  > {
+  hire: Hire;
+}
+
+export const TakeHireDialog = ({
+  hire,
+  days,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: HireDialogProps & {
+  days: number;
+}) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header="Rental"
+      content={
+        <Text>
+          Rent {hire.metadata.data.name} for {days} day{days > 1 ? "s" : ""} at
+          a cost of {hire.getFullAmount(days)}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+export const ExtendHireDialog = ({
+  hire,
+  days,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: HireDialogProps & {
+  days: number;
+}) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header="Extend rental"
+      content={
+        <Text>
+          Extend rental of <strong>{hire.metadata.data.name}</strong> for {days}{" "}
+          day
+          {days > 1 ? "s" : ""} at a cost of {hire.getFullAmount(days)}?
+        </Text>
+      }
+      onConfirm={onConfirm}
+      onRequestClose={onRequestClose}
+    />
+  );
+};
+
+export const RecoverHireDialog = ({
+  hire,
+  open,
+  loading,
+  onConfirm,
+  onRequestClose,
+}: HireDialogProps) => {
+  return (
+    <MutationDialog
+      open={open}
+      loading={loading}
+      header={`Recover NFT`}
+      content={
+        <Text>
+          The current hire period expired on ${hire.currentExpiry}. Do you wish
+          to take back possession of the NFT? The listing will remain active
+          until closed or another user choses to take the hire.
         </Text>
       }
       onConfirm={onConfirm}

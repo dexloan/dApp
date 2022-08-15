@@ -15,15 +15,16 @@ import {
   ModalBody,
   Select,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 
 import dayjs from "../../common/lib/dayjs";
-import { useInitCallOptionMutation } from "../../hooks/mutation";
-import { useMemo } from "react";
+import { useInitHireMutation } from "../../hooks/mutation";
 
 interface FormFields {
   amount: number;
-  strikePrice: number;
   expiry: number;
+  // TODO private borrowings
+  // borrower: string;
 }
 
 interface ListingFormProps {
@@ -32,7 +33,7 @@ interface ListingFormProps {
   onRequestClose: () => void;
 }
 
-export const InitCallOptionModal = ({
+export const InitHireModal = ({
   open,
   mint,
   onRequestClose,
@@ -45,18 +46,17 @@ export const InitCallOptionModal = ({
     mode: "onChange",
     defaultValues: {
       amount: undefined,
-      strikePrice: undefined,
       expiry: undefined,
+      // TODO borrower: null,
     },
   });
 
-  const mutation = useInitCallOptionMutation(() => onRequestClose());
+  const mutation = useInitHireMutation(() => onRequestClose());
 
   function onSubmit() {
     handleSubmit((data) => {
       const options = {
         amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
-        strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
         expiry: data.expiry,
       };
 
@@ -78,8 +78,6 @@ export const InitCallOptionModal = ({
           .startOf("month")
           .add(i + 1, "month")
           .startOf("month")
-          .day(6)
-          .add(2, "week")
           .unix()
       );
   }, []);
@@ -98,7 +96,7 @@ export const InitCallOptionModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="2xl" fontWeight="black">
-          Sell Call Option
+          Rent NFT
         </ModalHeader>
         <ModalBody>
           <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
@@ -119,7 +117,7 @@ export const InitCallOptionModal = ({
                       fieldState: { error },
                     }) => (
                       <FormControl isInvalid={Boolean(error)}>
-                        <FormLabel htmlFor="cost">Cost</FormLabel>
+                        <FormLabel htmlFor="cost">Rental Cost</FormLabel>
                         <Input
                           name="cost"
                           placeholder="0.00◎"
@@ -127,39 +125,7 @@ export const InitCallOptionModal = ({
                           onChange={onChange}
                         />
                         <FormHelperText>
-                          The cost of the call option
-                        </FormHelperText>
-                      </FormControl>
-                    )}
-                  />
-                </Box>
-
-                <Box pb="6">
-                  <Controller
-                    name="strikePrice"
-                    control={control}
-                    rules={{
-                      required: true,
-                      validate: (value) => {
-                        return !isNaN(value);
-                      },
-                    }}
-                    render={({
-                      field: { value, onChange },
-                      fieldState: { error },
-                    }) => (
-                      <FormControl isInvalid={Boolean(error)}>
-                        <FormLabel htmlFor="strike_price">
-                          Strike Price
-                        </FormLabel>
-                        <Input
-                          name="strike_price"
-                          placeholder="0.00◎"
-                          value={value}
-                          onChange={onChange}
-                        />
-                        <FormHelperText>
-                          The price at which the NFT can be bought
+                          The daily cost to rent your NFT
                         </FormHelperText>
                       </FormControl>
                     )}
@@ -195,7 +161,7 @@ export const InitCallOptionModal = ({
                           ))}
                         </Select>
                         <FormHelperText>
-                          The date the call option is valid until
+                          The latest date the NFT can be rented
                         </FormHelperText>
                       </FormControl>
                     )}

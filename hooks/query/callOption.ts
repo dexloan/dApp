@@ -5,7 +5,22 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
-export const getCallOptionQueryKey = (
+export const useCallOptionAddressQuery = (
+  mint?: anchor.web3.PublicKey,
+  seller?: anchor.web3.PublicKey
+) => {
+  return useQuery(
+    ["call_option_address", mint?.toBase58(), seller?.toBase58()],
+    () => {
+      if (mint && seller) {
+        return query.findCallOptionAddress(mint, seller);
+      }
+    },
+    { enabled: Boolean(mint && seller) }
+  );
+};
+
+export const getCallOptionCacheKey = (
   callOptionAddress: anchor.web3.PublicKey | undefined
 ) => ["callOption", callOptionAddress?.toBase58()];
 
@@ -15,7 +30,7 @@ export function useCallOptionQuery(
   const { connection } = useConnection();
 
   return useQuery(
-    getCallOptionQueryKey(callOptionAddress),
+    getCallOptionCacheKey(callOptionAddress),
     () => {
       if (callOptionAddress)
         return query.fetchCallOption(connection, callOptionAddress);
@@ -33,13 +48,13 @@ export function useCallOptionsQuery() {
     getCallOptionsQueryKey(),
     () => {
       return query.fetchMultipleCallOptions(connection, [
-        {
-          memcmp: {
-            // filter listed
-            offset: 8,
-            bytes: bs58.encode([0]),
-          },
-        },
+        // {
+        //   memcmp: {
+        //     // filter listed
+        //     offset: 8,
+        //     bytes: bs58.encode([0]),
+        //   },
+        // },
       ]);
     },
     {
@@ -64,7 +79,7 @@ export function useSellerCallOptionsQuery() {
           {
             memcmp: {
               // filter seller
-              offset: 8 + 8 + 1,
+              offset: 8 + 1 + 8,
               bytes: anchorWallet.publicKey.toBase58(),
             },
           },
@@ -94,7 +109,7 @@ export function useBuyerCallOptionsQuery() {
           {
             memcmp: {
               // filter lender
-              offset: 8 + 8 + 32 + 1,
+              offset: 8 + 1 + 8 + 32,
               bytes: anchorWallet?.publicKey.toBase58(),
             },
           },

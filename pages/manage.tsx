@@ -20,16 +20,17 @@ import {
 } from "@chakra-ui/react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useCallback, useMemo, useState } from "react";
-import { IoCalendar, IoCash } from "react-icons/io5";
+import { IoBicycle, IoCalendar, IoCash } from "react-icons/io5";
 import * as utils from "../common/utils";
 import {
   CallOptionStateEnum,
   Collection,
   CollectionMap,
+  HireStateEnum,
   LoanStateEnum,
   NFTResult,
 } from "../common/types";
-import { Listing, Loan, CallOption } from "../common/model";
+import { Loan, CallOption, Hire } from "../common/model";
 import {
   useNFTByOwnerQuery,
   useFloorPriceQuery,
@@ -37,18 +38,24 @@ import {
   useLoansGivenQuery,
   useBuyerCallOptionsQuery,
   useSellerCallOptionsQuery,
+  useLenderHiresQuery,
+  useBorrowerHiresQuery,
   // Deprecated
-  usePersonalListingsQuery,
+  // usePersonalListingsQuery,
 } from "../hooks/query";
 import {
   Card,
   CardList,
+  HireCard,
   LoanCard,
-  ListingCard,
   CallOptionCard,
 } from "../components/card";
 import { VerifiedCollection } from "../components/collection";
-import { InitCallOptionModal, InitLoanModal } from "../components/form";
+import {
+  InitCallOptionModal,
+  InitHireModal,
+  InitLoanModal,
+} from "../components/form";
 import { EllipsisProgress } from "../components/progress";
 
 const Manage: NextPage = () => {
@@ -61,6 +68,9 @@ const Manage: NextPage = () => {
 
       case "call_options":
         return <CallOptions />;
+
+      case "rentals":
+        return <Hires />;
 
       default:
         return <MyItems />;
@@ -99,7 +109,15 @@ const Manage: NextPage = () => {
             Call Options
           </Button>
         </NextLink>
-        <Button disabled>Hires</Button>
+        <NextLink href="/manage?tab=rentals">
+          <Button
+            as="a"
+            colorScheme={router.query.tab === "rentals" ? "green" : undefined}
+            cursor="pointer"
+          >
+            Rentals
+          </Button>
+        </NextLink>
       </ButtonGroup>
       {renderContent()}
     </Container>
@@ -134,8 +152,6 @@ const LoadingSpinner = () => (
 const Loans = () => {
   const loansGivenQuery = useLoansGivenQuery();
   const loansTakenQuery = useLoansTakeQuery();
-  // Deprecated listings
-  const listingsQuery = usePersonalListingsQuery();
 
   const givenLoans = useMemo(
     () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
@@ -155,11 +171,6 @@ const Loans = () => {
   const activeBorrowings = useMemo(
     () => borrowings.filter((b) => b.state === LoanStateEnum.Active),
     [borrowings]
-  );
-
-  const deprecatedListings = useMemo(
-    () => listingsQuery.data?.map((l) => Listing.fromJSON(l)) || [],
-    [listingsQuery.data]
   );
 
   const totalLending = useMemo(
@@ -192,7 +203,7 @@ const Loans = () => {
     <>
       {listedBorrowings.length ? (
         <>
-          <SectionHeader title="Listed items" />
+          <SectionHeader title="Listed items" subtitle="Your listed loans" />
           <CardList>
             {listedBorrowings.map((item) => (
               <LoanCard key={item.publicKey.toBase58()} loan={item} />
@@ -254,7 +265,7 @@ const Loans = () => {
         </>
       )}
 
-      {deprecatedListings.length ? (
+      {/* {deprecatedListings.length ? (
         <>
           <SectionHeader
             title="Deprecated v1 Listings"
@@ -266,7 +277,7 @@ const Loans = () => {
             ))}
           </CardList>
         </>
-      ) : null}
+      ) : null} */}
     </>
   );
 };
@@ -319,7 +330,10 @@ const CallOptions = () => {
     <>
       {listedSellerCallOptions.length ? (
         <>
-          <SectionHeader title="Listed Items" />
+          <SectionHeader
+            title="Listed Items"
+            subtitle="Your listed call options"
+          />
           <CardList>
             {listedSellerCallOptions.map((item) => (
               <CallOptionCard
@@ -335,7 +349,7 @@ const CallOptions = () => {
         <>
           <SectionHeader
             title="Sold Options"
-            subtitle="Options you have sold"
+            subtitle="Call options you have sold"
           />
           <CardList>
             {activeSellerCallOptions.map((item) => (
@@ -352,7 +366,7 @@ const CallOptions = () => {
         <>
           <SectionHeader
             title="Bought Options"
-            subtitle="Options you have bought"
+            subtitle="Call options you have bought"
           />
           <CardList>
             {buyerCallOptions.map((item) => (
@@ -385,11 +399,119 @@ const CallOptions = () => {
   );
 };
 
+const Hires = () => {
+  const lenderHiresQuery = useLenderHiresQuery();
+  const borrowerHiresQuery = useBorrowerHiresQuery();
+  // Deprecated listings
+  // const listingsQuery = usePersonalListingsQuery();
+
+  const lenderHires = useMemo(
+    () => lenderHiresQuery.data?.map((l) => Hire.fromJSON(l)) || [],
+    [lenderHiresQuery.data]
+  );
+
+  const listedHires = useMemo(
+    () => lenderHires.filter((b) => b.state !== HireStateEnum.Hired),
+    [lenderHires]
+  );
+
+  const activeHires = useMemo(
+    () => lenderHires.filter((b) => b.state === HireStateEnum.Hired),
+    [lenderHires]
+  );
+
+  const borrowerHires = useMemo(
+    () => borrowerHiresQuery.data?.map((l) => Hire.fromJSON(l)) || [],
+    [borrowerHiresQuery.data]
+  );
+
+  if (lenderHiresQuery.isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <>
+      {listedHires.length ? (
+        <>
+          <SectionHeader
+            title="Listed items"
+            subtitle="Your NFTs listed for rental"
+          />
+          <CardList>
+            {listedHires.map((item) => (
+              <HireCard key={item.publicKey.toBase58()} hire={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {activeHires.length ? (
+        <>
+          <SectionHeader
+            title="Active rentals"
+            subtitle="NFTs you are actively renting out"
+          />
+          <CardList>
+            {activeHires.map((item) => (
+              <HireCard key={item.publicKey.toBase58()} hire={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {borrowerHires.length ? (
+        <>
+          <SectionHeader
+            title="Your rentals"
+            subtitle="NFTs you are currently renting"
+          />
+          <CardList>
+            {borrowerHires.map((item) => (
+              <HireCard key={item.publicKey.toBase58()} hire={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null}
+
+      {!lenderHires.length && !borrowerHires.length && (
+        <>
+          <SectionHeader title="My Loans" />
+          <Box mb="12">
+            <Text>
+              Why not check out our{" "}
+              <NextLink href="/#rentals" scroll={false}>
+                <Link color="green.600" fontWeight="semibold">
+                  current listings
+                </Link>
+              </NextLink>{" "}
+              to start renting?
+            </Text>
+          </Box>
+        </>
+      )}
+
+      {/* {deprecatedListings.length ? (
+        <>
+          <SectionHeader
+            title="Deprecated v1 Listings"
+            subtitle="Please close the following accounts"
+          />
+          <CardList>
+            {deprecatedListings.map((item) => (
+              <ListingCard key={item.publicKey.toBase58()} listing={item} />
+            ))}
+          </CardList>
+        </>
+      ) : null} */}
+    </>
+  );
+};
+
 const MyItems = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
-  const [type, setType] = useState<"loan" | "callOption" | null>(null);
+  const [type, setType] = useState<"loan" | "callOption" | "hire" | null>(null);
   const nftQuery = useNFTByOwnerQuery(connection, wallet);
 
   const collections = useMemo(() => {
@@ -476,20 +598,41 @@ const MyItems = () => {
             >
               Sell call option
             </Button>
+            <Button
+              w="100%"
+              mb="4"
+              colorScheme="blue"
+              rightIcon={<IoBicycle />}
+              onClick={() => setType("hire")}
+            >
+              Rent
+            </Button>
           </ModalBody>
         </ModalContent>
       </Modal>
 
-      <InitLoanModal
-        selected={selected && type === "loan" ? selected : null}
+      <InitCallOptionModal
+        open={type === "callOption"}
+        mint={selected?.tokenAccount.data.mint}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
         }}
       />
 
-      <InitCallOptionModal
-        selected={selected && type === "callOption" ? selected : null}
+      <InitHireModal
+        open={type === "hire"}
+        mint={selected?.tokenAccount.data.mint}
+        onRequestClose={() => {
+          setSelected(null);
+          setType(null);
+        }}
+      />
+
+      <InitLoanModal
+        open={type === "loan"}
+        mint={selected?.tokenAccount.data.mint}
+        symbol={selected?.metadata.data.symbol}
         onRequestClose={() => {
           setSelected(null);
           setType(null);

@@ -1,6 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 
 import { LISTINGS_PROGRAM_ID } from "../constants";
+import { LoanData } from "../types";
 import { Loan, LoanPretty } from "../model";
 import { getProgram, getProvider } from "../provider";
 import {
@@ -35,7 +36,7 @@ export async function fetchLoan(
     assertMintIsWhitelisted(loanAccount.mint),
   ]);
 
-  return new Loan(loanAccount, metadata, address).pretty();
+  return new Loan(loanAccount as LoanData, metadata, address).pretty();
 }
 
 export async function fetchMultipleLoans(
@@ -59,7 +60,7 @@ export async function fetchMultipleLoans(
 
     if (metadataAccount) {
       return new Loan(
-        listing.account,
+        listing.account as LoanData,
         metadataAccount,
         listing.publicKey
       ).pretty();

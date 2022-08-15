@@ -28,6 +28,12 @@ export enum CallOptionStateEnum {
   Cancelled = "cancelled",
 }
 
+export enum HireStateEnum {
+  Listed = "listed",
+  Hired = "hired",
+  Cancelled = "cancelled",
+}
+
 export interface NFTResult {
   tokenAccount: {
     pubkey: anchor.web3.PublicKey;
@@ -50,17 +56,22 @@ export type CallOptionData = TypeDef<
   typeof IDL["accounts"][0],
   DexloanListings
 >;
+export type HireData = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
 export type LoanData = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
-export type ListingData = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
+export type TokenManagerData = TypeDef<
+  typeof IDL["accounts"][3],
+  DexloanListings
+>;
 
 interface Result {
   publicKey: anchor.web3.PublicKey;
   metadata: Metadata;
 }
 
-export interface ListingResult extends Result {
-  data: ListingData;
-}
+// export type ListingData = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+// export interface ListingResult extends Result {
+//   data: ListingData;
+// }
 
 export interface LoanResult extends Result {
   data: LoanData;

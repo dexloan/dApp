@@ -5,46 +5,46 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
-export const useLoanAddressQuery = (
+export const useHireAddressQuery = (
   mint?: anchor.web3.PublicKey,
-  borrower?: anchor.web3.PublicKey
+  lender?: anchor.web3.PublicKey
 ) => {
   return useQuery(
-    ["loan_address", mint?.toBase58(), borrower?.toBase58()],
+    ["hire_address", mint?.toBase58(), lender?.toBase58()],
     () => {
-      if (mint && borrower) {
-        return query.findLoanAddress(mint, borrower);
+      if (mint && lender) {
+        return query.findHireAddress(mint, lender);
       }
     },
-    { enabled: Boolean(mint && borrower) }
+    { enabled: Boolean(mint && lender) }
   );
 };
 
-export const getLoanCacheKey = (
-  loanAddress: anchor.web3.PublicKey | undefined
-) => ["loan", loanAddress?.toBase58()];
+export const getHireCacheKey = (
+  hireAddress: anchor.web3.PublicKey | undefined
+) => ["hire", hireAddress?.toBase58()];
 
-export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
+export function useHireQuery(hireAddress: anchor.web3.PublicKey | undefined) {
   const { connection } = useConnection();
 
   return useQuery(
-    getLoanCacheKey(loanAddress),
+    getHireCacheKey(hireAddress),
     () => {
-      if (loanAddress) return query.fetchLoan(connection, loanAddress);
+      if (hireAddress) return query.fetchHire(connection, hireAddress);
     },
-    { enabled: Boolean(loanAddress) }
+    { enabled: Boolean(hireAddress) }
   );
 }
 
-export const getLoansQueryKey = () => ["loans"];
+export const getHiresCacheKey = () => ["hires"];
 
-export function useLoansQuery() {
+export function useHiresQuery() {
   const { connection } = useConnection();
 
   return useQuery(
-    getLoansQueryKey(),
-    () =>
-      query.fetchMultipleLoans(connection, [
+    getHiresCacheKey(),
+    () => {
+      return query.fetchMultipleHires(connection, [
         // {
         //   memcmp: {
         //     // filter listed
@@ -52,29 +52,30 @@ export function useLoansQuery() {
         //     bytes: bs58.encode([0]),
         //   },
         // },
-      ]),
+      ]);
+    },
     {
       refetchOnWindowFocus: false,
     }
   );
 }
 
-export const getLoansTakenCacheKey = (
+export const getHiresGivenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["loans_taken", walletAddress?.toBase58()];
+) => ["hires_given", walletAddress?.toBase58()];
 
-export function useLoansTakeQuery() {
-  const { connection } = useConnection();
+export function useLenderHiresQuery() {
   const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
 
   return useQuery(
-    getLoansTakenCacheKey(anchorWallet?.publicKey),
+    getHiresGivenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
-        return query.fetchMultipleLoans(connection, [
+        return query.fetchMultipleHires(connection, [
           {
             memcmp: {
-              // filter borrower
+              // filter lender
               offset: 8 + 1 + 8,
               bytes: anchorWallet.publicKey.toBase58(),
             },
@@ -83,29 +84,29 @@ export function useLoansTakeQuery() {
       }
     },
     {
-      enabled: Boolean(anchorWallet),
+      enabled: Boolean(anchorWallet?.publicKey),
       refetchOnWindowFocus: false,
     }
   );
 }
 
-export const getLoansGivenCacheKey = (
+export const getHiresTakenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["loans_given", walletAddress?.toBase58()];
+) => ["hiresTaken", walletAddress?.toBase58()];
 
-export function useLoansGivenQuery() {
-  const { connection } = useConnection();
+export function useBorrowerHiresQuery() {
   const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
 
   return useQuery(
-    getLoansGivenCacheKey(anchorWallet?.publicKey),
+    getHiresTakenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
-        return query.fetchMultipleLoans(connection, [
+        return query.fetchMultipleHires(connection, [
           {
             memcmp: {
-              // filter lender
-              offset: 8 + 1 + 8 + 32,
+              // filter borrower
+              offset: 8 + 1 + 8 + 32 + 1,
               bytes: anchorWallet?.publicKey.toBase58(),
             },
           },

@@ -26,7 +26,7 @@ import { RPC_ENDPOINT } from "../../common/constants";
 import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
-  getCallOptionQueryKey,
+  getCallOptionCacheKey,
   getMetadataFileCacheKey,
   useCallOptionQuery,
   useFloorPriceQuery,
@@ -42,6 +42,7 @@ import {
   ExerciseDialog,
   CloseCallOptionDialog,
 } from "../../components/dialog";
+import { SecondaryHireButton } from "../../components/buttons";
 import { Activity } from "../../components/activity";
 import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
@@ -65,15 +66,15 @@ CallOptionPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
-
       const connection = new anchor.web3.Connection(RPC_ENDPOINT);
-      const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
-
-      const callOption = await queryClient.fetchQuery(
-        getCallOptionQueryKey(loanAddress),
-        () => fetchCallOption(connection, loanAddress)
+      const callOptionAddress = new anchor.web3.PublicKey(
+        ctx.query.optionId as string
       );
 
+      const callOption = await queryClient.fetchQuery(
+        getCallOptionCacheKey(callOptionAddress),
+        () => fetchCallOption(connection, callOptionAddress)
+      );
       await queryClient.prefetchQuery(
         getMetadataFileCacheKey(callOption.metadata.data.uri),
         () =>
@@ -164,13 +165,9 @@ const CallOptionHead = () => {
 };
 
 const CallOptionLayout = () => {
-  const router = useRouter();
   const anchorWallet = useAnchorWallet();
 
-  const callOptionAddress = new anchor.web3.PublicKey(
-    router.query.optionId as string
-  );
-
+  const callOptionAddress = usePageParam();
   const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
 
   const symbol = callOptionQueryResult.data?.metadata?.data.symbol;
@@ -416,6 +413,19 @@ const CallOptionLayout = () => {
           )}
 
           {renderByState()}
+
+          {callOption &&
+            callOption.isSeller(anchorWallet) &&
+            callOption.expired === false &&
+            callOption.state !== CallOptionStateEnum.Exercised &&
+            callOption.state !== CallOptionStateEnum.Cancelled && (
+              <Box mt="2" mb="2">
+                <SecondaryHireButton
+                  mint={callOption?.data.mint}
+                  issuer={callOption?.data.seller}
+                />
+              </Box>
+            )}
 
           <Activity mint={callOption?.data.mint} />
         </Box>

@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import * as utils from "../../common/utils";
-import { CallOption, Listing, Loan } from "../../common/model";
+import { CallOption, Hire, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
-import { CallOptionStateEnum } from "../../common/types";
+import { CallOptionStateEnum, HireStateEnum } from "../../common/types";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
 interface CardProps {
@@ -26,7 +26,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
 
   const card = (
     <Box
-      as={href ? "a" : "button"}
+      as={href ? "a" : "div"}
       w={{
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
@@ -35,7 +35,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       }}
       borderWidth="1px"
       borderRadius="lg"
-      cursor="pointer"
+      cursor={href || onClick ? "pointer" : undefined}
       overflow="hidden"
       tabIndex={1}
       ref={containerRef}
@@ -47,6 +47,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       }}
       transition="box-shadow 0.2s ease-in"
       onClick={onClick}
+      role={onClick ? "button" : "link"}
     >
       <Box position="relative" width="100%" pb="100%">
         <Box position="absolute" left="0" top="0" right="0" bottom="0">
@@ -89,64 +90,6 @@ export const CardList = ({ children }: CardListProps) => {
     <Flex flexDirection="row" wrap="wrap" gap="1.25rem" mb="12">
       {children}
     </Flex>
-  );
-};
-
-/**
- * Deprecated
- */
-
-interface ListingCardProps {
-  listing: Listing;
-}
-
-export const ListingCard = ({ listing }: ListingCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(listing.metadata.data.symbol);
-  const floorPrice = floorPriceQuery.data
-    ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-    : null;
-
-  return (
-    <Card
-      href={`/listing/${listing.publicKey.toBase58()}`}
-      uri={listing.metadata.data.uri}
-      imageAlt={listing.metadata.data.name}
-    >
-      <Box p="4">
-        <Box display="flex" alignItems="baseline">
-          <Badge borderRadius="full" px="2" colorScheme="teal">
-            {listing.data.basisPoints / 100}%
-          </Badge>
-          <Box
-            color="gray.500"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
-            ml="2"
-          >
-            {listing.duration}
-          </Box>
-        </Box>
-        <Box
-          mt="1"
-          fontWeight="semibold"
-          as="h4"
-          lineHeight="tight"
-          isTruncated
-        >
-          {listing.metadata.data.name}
-        </Box>
-      </Box>
-      <Box p="4" bgColor="blue.50">
-        <Box fontWeight="bold" as="h3">
-          {listing.amount}{" "}
-        </Box>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor Price {floorPrice ?? <EllipsisProgress />}
-        </Text>
-      </Box>
-    </Card>
   );
 };
 
@@ -296,6 +239,84 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
         </Box>
         <Text fontSize="xs" fontWeight="medium">
           Cost {callOption.cost}
+        </Text>
+      </Box>
+    </Card>
+  );
+};
+
+interface HireCardProps {
+  hire: Hire;
+}
+
+export const HireCard = ({ hire }: HireCardProps) => {
+  function renderBadge() {
+    if (hire.expired) {
+      return (
+        <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
+          <IoAlertCircle />
+        </Badge>
+      );
+    }
+
+    switch (hire.state) {
+      case HireStateEnum.Listed: {
+        return (
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
+            <IoLeaf />
+          </Badge>
+        );
+      }
+
+      case HireStateEnum.Hired: {
+        return (
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
+            <IoCheckmark />
+          </Badge>
+        );
+      }
+
+      default: {
+        return null;
+      }
+    }
+  }
+
+  return (
+    <Card
+      href={`/rental/${hire.address}`}
+      uri={hire.metadata.data.uri}
+      imageAlt={hire.metadata.data.name}
+    >
+      <Box p="4">
+        <Box display="flex" alignItems="center">
+          {renderBadge()}
+          <Box
+            color="gray.500"
+            fontWeight="semibold"
+            letterSpacing="wide"
+            fontSize="xs"
+            textTransform="uppercase"
+          >
+            Expires {hire.expiry}
+          </Box>
+        </Box>
+        <Box
+          mt="1"
+          fontWeight="semibold"
+          as="h4"
+          lineHeight="tight"
+          isTruncated
+        >
+          {hire.metadata.data.name}
+        </Box>
+      </Box>
+      <Box p="4" bgColor="blue.50">
+        <Box fontWeight="bold" as="h3">
+          {hire.amount}
+        </Box>
+        <Text fontSize="xs" fontWeight="medium">
+          Daily cost
         </Text>
       </Box>
     </Card>

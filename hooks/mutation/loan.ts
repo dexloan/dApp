@@ -13,14 +13,14 @@ import { NFTResult, LoanStateEnum } from "../../common/types";
 import { LoanPretty } from "../../common/model";
 import {
   getLoansTakenCacheKey,
-  getLoanQueryKey,
+  getLoanCacheKey,
   getLoansQueryKey,
   getLoansGivenCacheKey,
-} from "../query/loan";
+  getNFTByOwnerCacheKey,
+} from "../query";
 
 interface InitLoanMutationVariables {
   mint: anchor.web3.PublicKey;
-  depositTokenAccount: anchor.web3.PublicKey;
   options: {
     amount: number;
     basisPoints: number;
@@ -40,7 +40,6 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
-          variables.depositTokenAccount,
           variables.options
         );
       }
@@ -53,19 +52,27 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
+      async onSuccess(_, variables) {
         queryClient.setQueryData<NFTResult[]>(
-          ["wallet-nfts", anchorWallet?.publicKey.toBase58()],
+          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];
             }
             return data.filter(
               (item: NFTResult) =>
-                item?.tokenAccount.pubkey !== variables.depositTokenAccount
+                !item?.tokenAccount.data.mint.equals(variables.mint)
             );
           }
         );
+
+        if (anchorWallet) {
+          const loanAddress = await query.findLoanAddress(
+            variables.mint,
+            anchorWallet.publicKey
+          );
+          await queryClient.invalidateQueries(getLoanCacheKey(loanAddress));
+        }
 
         toast.success("Listing created");
 
@@ -115,7 +122,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<LoanPretty | undefined>(
-          getLoanQueryKey(loanAddress),
+          getLoanCacheKey(loanAddress),
           (item) => {
             if (item) {
               return {
@@ -357,7 +364,7 @@ function setLoanState(
   state: LoanStateEnum
 ) {
   queryClient.setQueryData<LoanPretty | undefined>(
-    getLoanQueryKey(loan),
+    getLoanCacheKey(loan),
     (item) => {
       if (item) {
         return {

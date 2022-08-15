@@ -1,8 +1,8 @@
 import * as anchor from "@project-serum/anchor";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { AnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
 
-import { fetchNFTs } from "../../common/query";
+import { fetchNFTs, fetchTokenAccountAddress } from "../../common/query";
 
 export const getNFTByOwnerCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
@@ -25,6 +25,26 @@ export function useNFTByOwnerQuery(
     }
   );
 }
+
+export const useTokenAccountQuery = (
+  wallet?: anchor.web3.PublicKey,
+  mint?: anchor.web3.PublicKey
+) => {
+  const { connection } = useConnection();
+
+  return useQuery(
+    ["token_account", wallet?.toBase58(), mint?.toBase58()],
+    async () => {
+      console.log("fetchTokenAccountAddress: ", fetchTokenAccountAddress);
+      if (wallet && mint) {
+        return fetchTokenAccountAddress(connection, wallet, mint);
+      }
+    },
+    {
+      enabled: Boolean(wallet && mint),
+    }
+  );
+};
 
 export const getMetadataFileCacheKey = (uri?: string) => ["metadata_file", uri];
 
