@@ -16,6 +16,7 @@ import {
   useHiresQuery,
   useLoansQuery,
 } from "../hooks/query";
+import { CallOptionStateEnum, LoanStateEnum } from "../common/types";
 
 const Home: NextPage = () => {
   const loansQuery = useLoansQuery();
@@ -23,14 +24,22 @@ const Home: NextPage = () => {
   const hiresQuery = useHiresQuery();
 
   const loans = useMemo(
-    () => loansQuery.data?.map(Loan.fromJSON) || [],
+    () =>
+      (loansQuery.data?.map(Loan.fromJSON) || []).filter(
+        (loan) => loan.state !== LoanStateEnum.Defaulted
+      ),
     [loansQuery.data]
   );
 
   const callOptions = useMemo(
-    () => callOptionsQuery.data?.map(CallOption.fromJSON) || [],
+    () =>
+      (callOptionsQuery.data?.map(CallOption.fromJSON) || []).filter(
+        (callOption) => callOption.state !== CallOptionStateEnum.Exercised
+      ),
     [callOptionsQuery.data]
   );
+
+  console.log(callOptions);
 
   const hires = useMemo(
     () => hiresQuery.data?.map(Hire.fromJSON) || [],
