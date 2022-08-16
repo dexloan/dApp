@@ -39,8 +39,6 @@ const Home: NextPage = () => {
     [callOptionsQuery.data]
   );
 
-  console.log(callOptions);
-
   const hires = useMemo(
     () => hiresQuery.data?.map(Hire.fromJSON) || [],
     [hiresQuery.data]
