@@ -1,5 +1,5 @@
 import type { AppProps } from "next/app";
-import { ChakraProvider } from "@chakra-ui/react";
+import { ChakraProvider, Box, Text, Input } from "@chakra-ui/react";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -13,18 +13,21 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import Head from "next/head";
-import { useMemo } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
 import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { Toaster } from "react-hot-toast";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
+import DexloanLogo from "../public/dexloan.svg";
 import theme from "../theme";
 import { RPC_ENDPOINT } from "../common/constants";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
+import { Main } from "../components/layout";
 
-function MyApp({ Component, pageProps }: AppProps) {
+function Dexloan({ Component, pageProps }: AppProps) {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
@@ -60,9 +63,13 @@ function MyApp({ Component, pageProps }: AppProps) {
                     content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover"
                   />
                 </Head>
-                <Navbar />
-                <Component {...pageProps} />
-                <Toaster />
+                <LaunchPlaceholder>
+                  <>
+                    <Navbar />
+                    <Component {...pageProps} />
+                    <Toaster />
+                  </>
+                </LaunchPlaceholder>
                 <FontFace />
               </ChakraProvider>
             </WalletModalProvider>
@@ -74,4 +81,42 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-export default MyApp;
+const LaunchPlaceholder = ({ children }: { children: JSX.Element }) => {
+  const router = useRouter();
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== undefined && router.query?.hackathon) {
+      setPassword(router.query?.hackathon as string);
+    }
+  }, [router.query?.hackathon]);
+
+  if (password !== "winner") {
+    return (
+      <Main>
+        <Box
+          height="100vh"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Box width="200px" mb="4">
+            <DexloanLogo />
+          </Box>
+          <Box width="400px">
+            <Input
+              placeholder="Enter Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Box>
+        </Box>
+      </Main>
+    );
+  }
+
+  return children;
+};
+
+export default Dexloan;
