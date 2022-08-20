@@ -577,7 +577,7 @@ const HireForm = ({ label = "Rent", hire, onSubmit }: HireFormProps) => {
                 <FormLabel htmlFor="cost">Days</FormLabel>
                 <Input
                   name="days"
-                  placeholder="0.00◎"
+                  placeholder="Enter"
                   value={value}
                   onChange={onChange}
                 />

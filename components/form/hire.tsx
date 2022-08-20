@@ -156,7 +156,7 @@ export const InitHireModal = ({
                               {dayjs
                                 .unix(unix)
                                 .tz("America/New_York")
-                                .format("DD/MM/YYYY")}
+                                .format("LL")}
                             </option>
                           ))}
                         </Select>

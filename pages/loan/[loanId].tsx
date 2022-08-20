@@ -182,14 +182,9 @@ const LoanLayout = () => {
   }, [loanQuery.data]);
 
   function renderActiveButton() {
-    if (loan && anchorWallet && loan.isBorrower(anchorWallet)) {
+    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
       return <RepayButton loan={loan} />;
-    } else if (
-      loan &&
-      loan.expired &&
-      anchorWallet &&
-      loan.isLender(anchorWallet)
-    ) {
+    } else if (anchorWallet && loan?.expired && loan?.isLender(anchorWallet)) {
       return <RepossessButton loan={loan} />;
     }
 
@@ -197,7 +192,7 @@ const LoanLayout = () => {
   }
 
   function renderListedButton() {
-    if (loan && anchorWallet && loan.isBorrower(anchorWallet)) {
+    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
       return <CancelButton loan={loan} />;
     } else if (loan) {
       return <LendButton loan={loan} />;
@@ -206,7 +201,7 @@ const LoanLayout = () => {
   }
 
   function renderCloseAccountButton() {
-    if (loan && anchorWallet && loan.isBorrower(anchorWallet)) {
+    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
       return <CloseAccountButton loan={loan} />;
     }
 
@@ -418,10 +413,9 @@ const LoanLayout = () => {
 
           {renderByState()}
 
-          {loan &&
-            loan.isBorrower(anchorWallet) &&
-            loan.expired !== false &&
-            loan.state !== LoanStateEnum.Defaulted && (
+          {loan?.isBorrower(anchorWallet) &&
+            loan?.expired !== true &&
+            loan?.state !== LoanStateEnum.Defaulted && (
               <Box mt="2" mb="2">
                 <SecondaryHireButton
                   mint={loan?.data.mint}

@@ -74,7 +74,9 @@ export const useInitHireMutation = (onSuccess: () => void) => {
             anchorWallet.publicKey
           );
 
-          await queryClient.invalidateQueries(getHireCacheKey(hireAddress));
+          setTimeout(() => {
+            queryClient.invalidateQueries(getHireCacheKey(hireAddress));
+          }, 500);
         }
 
         toast.success("Rental listing created");
