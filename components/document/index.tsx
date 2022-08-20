@@ -20,28 +20,75 @@ export const DocumentHead = ({
 }: DocumentHead) => {
   return (
     <Head>
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <meta name="author" content="Dexloan" />
-      <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"></link>
-      <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
+      <title key="title">{title}</title>
+      <meta key="description" name="description" content={description} />
+      <meta key="author" name="author" content="Dexloan" />
+      <link
+        key="shortcut-icon"
+        rel="shortcut icon"
+        type="image/x-icon"
+        href="/favicon.ico"
+      ></link>
+      <link
+        key="icon"
+        rel="icon"
+        type="image/png"
+        sizes="192x192"
+        href="/logo192.png"
+      />
 
-      <meta property="og:title" content={title} />
-      <meta property="og:type" content="website" />
-      <meta property="og:description" content={description} />
-      <meta property="og:url" content={`https://dexloan.io/${url}`} />
-      {image && <meta property="og:image" content={image} />}
+      <meta key="og:title" property="og:title" content={title} />
+      <meta key="og:type" property="og:type" content="website" />
+      <meta
+        key="og:description"
+        property="og:description"
+        content={description}
+      />
+      <meta
+        key="og:url"
+        property="og:url"
+        content={`https://dexloan.io/${url}`}
+      />
+      {image && <meta key="og:image" property="og:image" content={image} />}
 
-      <meta property="twitter:title" content={title} />
-      <meta property="twitter:description" content={description} />
-      <meta property="twitter:url" content={`https://dexloan.io/${url}}`} />
-      <meta property="twitter:card" content="summary_large_image" />
-      {image && <meta property="twitter:image" content={image} />}
-      {imageAlt && <meta property="twitter:image:alt" content={imageAlt} />}
+      <meta key="twitter:title" property="twitter:title" content={title} />
+      <meta
+        key="twitter:description"
+        property="twitter:description"
+        content={description}
+      />
+      <meta
+        key="twitter:url"
+        property="twitter:url"
+        content={`https://dexloan.io/${url}}`}
+      />
+      <meta
+        key="twitter:card"
+        property="twitter:card"
+        content="summary_large_image"
+      />
+      {image && (
+        <meta key="twitter:image" property="twitter:image" content={image} />
+      )}
+      {imageAlt && (
+        <meta
+          key="twitter:image:alt"
+          property="twitter:image:alt"
+          content={imageAlt}
+        />
+      )}
       {twitterLabels.map(({ label, value }, index) => (
         <Fragment key={label}>
-          <meta property={`twitter:label${index + 1}`} content={label} />
-          <meta property={`twitter:data${index + 1}`} content={value} />
+          <meta
+            key={`twitter:label${index + 1}`}
+            property={`twitter:label${index + 1}`}
+            content={label}
+          />
+          <meta
+            key={`twitter:data${index + 1}`}
+            property={`twitter:data${index + 1}`}
+            content={value}
+          />
         </Fragment>
       ))}
     </Head>
