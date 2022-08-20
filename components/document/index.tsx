@@ -4,10 +4,10 @@ import { Fragment } from "react";
 interface DocumentHead {
   title: string;
   description: string;
-  image: string;
-  imageAlt: string;
+  image?: string;
+  imageAlt?: string;
   url: string;
-  twitterLabels: { label: string; value: string }[];
+  twitterLabels?: { label: string; value: string }[];
 }
 
 export const DocumentHead = ({
@@ -30,14 +30,14 @@ export const DocumentHead = ({
       <meta property="og:type" content="website" />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={`https://dexloan.io/${url}`} />
-      <meta property="og:image" content={image} />
+      {image && <meta property="og:image" content={image} />}
 
       <meta property="twitter:title" content={title} />
       <meta property="twitter:description" content={description} />
       <meta property="twitter:url" content={`https://dexloan.io/${url}}`} />
       <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:image" content={image} />
-      <meta property="twitter:image:alt" content={imageAlt} />
+      {image && <meta property="twitter:image" content={image} />}
+      {imageAlt && <meta property="twitter:image:alt" content={imageAlt} />}
       {twitterLabels.map(({ label, value }, index) => (
         <Fragment key={label}>
           <meta property={`twitter:label${index + 1}`} content={label} />

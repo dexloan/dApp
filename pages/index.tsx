@@ -46,11 +46,6 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <Head>
-        <meta name="description" content="Free and secure NFT lending" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <Container maxW="container.xl">
         <Masthead />
         <Heading id="#listings" as="h2" color="gray.700" size="md" mb="6">
