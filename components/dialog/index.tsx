@@ -378,7 +378,7 @@ export const RecoverHireDialog = ({
       header={`Recover NFT`}
       content={
         <Text>
-          The current hire period expired on ${hire.currentExpiry}. Do you wish
+          The current hire period expired on {hire.currentExpiry}. Do you wish
           to take back possession of the NFT? The listing will remain active
           until closed or another user choses to take the hire.
         </Text>

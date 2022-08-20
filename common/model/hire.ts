@@ -93,6 +93,12 @@ export class Hire implements HireArgs {
     return Date.now() / 1000 > this.data.expiry.toNumber();
   }
 
+  get currentPeriodExpired() {
+    if (this.data.currentExpiry) {
+      return Date.now() / 1000 > this.data.currentExpiry.toNumber();
+    }
+  }
+
   get borrower() {
     return this.data.borrower ? this.data.borrower.toBase58() : "";
   }

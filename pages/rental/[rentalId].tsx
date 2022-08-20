@@ -169,25 +169,31 @@ interface HireLayoutProps {
 const HireLayout = ({ hire }: HireLayoutProps) => {
   const anchorWallet = useAnchorWallet();
 
+  const isBorrower = useMemo(
+    () => hire.isBorrower(anchorWallet),
+    [hire, anchorWallet]
+  );
+  const isLender = useMemo(
+    () => hire.isLender(anchorWallet),
+    [hire, anchorWallet]
+  );
+
   function renderActiveButton() {
-    if (hire && anchorWallet && hire.isBorrower(anchorWallet)) {
+    if (anchorWallet && hire.isBorrower(anchorWallet)) {
       return <ExtendButton hire={hire} />;
-    } else if (
-      hire &&
-      hire.expired &&
-      anchorWallet &&
-      hire.isLender(anchorWallet)
-    ) {
+    } else if (anchorWallet && hire.currentPeriodExpired && isLender) {
       return <RecoverButton hire={hire} />;
+    } else if (hire.currentPeriodExpired) {
+      return <HireButton hire={hire} />;
     }
 
     return null;
   }
 
   function renderListedButton() {
-    if (hire && anchorWallet && hire.isLender(anchorWallet)) {
+    if (anchorWallet && hire.isLender(anchorWallet)) {
       return <CloseButton hire={hire} />;
-    } else if (hire) {
+    } else {
       return <HireButton hire={hire} />;
     }
     return null;
@@ -219,11 +225,18 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
         return (
           <>
             <Box display="flex" pb="4">
-              <Tag colorScheme="green">
-                <TagLeftIcon boxSize="12px" as={IoLeaf} />
-                <TagLabel>Rental Active</TagLabel>
-              </Tag>
-              {hire.expired && (
+              {hire.currentPeriodExpired ? (
+                <Tag colorScheme="green">
+                  <TagLeftIcon boxSize="12px" as={IoList} />
+                  <TagLabel>Listed</TagLabel>
+                </Tag>
+              ) : (
+                <Tag colorScheme="green">
+                  <TagLeftIcon boxSize="12px" as={IoLeaf} />
+                  <TagLabel>Rental Active</TagLabel>
+                </Tag>
+              )}
+              {(isBorrower || isLender) && hire.currentPeriodExpired && (
                 <Tag colorScheme="red" ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Expired</TagLabel>
@@ -231,7 +244,19 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
               )}
             </Box>
             <Box p="4" borderRadius="lg" bgColor="blue.50">
-              <Text>Currently rented until {hire.currentExpiryLongFormat}</Text>
+              {hire.currentPeriodExpired ? (
+                isBorrower || isLender ? (
+                  <Text>
+                    Current rental expired on {hire.currentExpiryLongFormat}.
+                  </Text>
+                ) : (
+                  <Text>Available for rent until {hire.expiryLongFormat}</Text>
+                )
+              ) : (
+                <Text>
+                  Currently rented until {hire.currentExpiryLongFormat}
+                </Text>
+              )}
             </Box>
             <Box mt="4" mb="4">
               {renderActiveButton()}
@@ -615,7 +640,7 @@ const RecoverButton = ({ hire }: RecoverButtonProps) => {
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
-  async function onRepay() {
+  async function onRecover() {
     if (anchorWallet) {
       setDialog(true);
     } else {
@@ -623,15 +648,9 @@ const RecoverButton = ({ hire }: RecoverButtonProps) => {
     }
   }
 
-  useEffect(() => {
-    if (mutation.isSuccess) {
-      router.replace("/manage");
-    }
-  }, [router, mutation.isSuccess]);
-
   return (
     <>
-      <Button colorScheme="blue" w="100%" onClick={onRepay}>
+      <Button colorScheme="blue" w="100%" onClick={onRecover}>
         Recover NFT
       </Button>
       <RecoverHireDialog
