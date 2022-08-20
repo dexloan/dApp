@@ -81,7 +81,7 @@ export class Hire implements HireArgs {
   }
 
   get expiry() {
-    return dayjs.unix(this.data.expiry.toNumber()).format("DD/MM/YYYY");
+    return dayjs.unix(this.data.expiry.toNumber()).format("L");
   }
 
   get expiryLongFormat() {
