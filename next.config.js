@@ -5,7 +5,11 @@ const nextConfig = {
     modern: true,
   },
   images: {
-    domains: ["arweave.net", "www.arweave.net"],
+    domains: [
+      "arweave.net",
+      "www.arweave.net",
+      "chickentribe.s3.us-west-2.amazonaws.com",
+    ],
   },
   reactStrictMode: true,
   webpack(config) {
