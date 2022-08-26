@@ -48,15 +48,59 @@ import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
 import { EllipsisProgress } from "../../components/progress";
+import { DocumentHead } from "../../components/document";
 
 interface CallOptionProps {
   dehydratedState: DehydratedState | undefined;
 }
 
-const CallOptionPage: NextPage<CallOptionProps> = (props) => {
+const CallOptionPage: NextPage<CallOptionProps> = () => {
+  const callOptionAddress = usePageParam();
+  const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
+  const metadataQuery = useMetadataFileQuery(
+    callOptionQueryResult.data?.metadata.data.uri
+  );
+  const jsonMetadata = metadataQuery.data;
+
+  const callOption = useMemo(() => {
+    if (callOptionQueryResult.data) {
+      return CallOption.fromJSON(callOptionQueryResult.data);
+    }
+  }, [callOptionQueryResult.data]);
+
+  if (callOptionQueryResult.error instanceof Error) {
+    return (
+      <Container maxW="container.lg">
+        <Box mt="2">
+          <Flex direction="column" alignItems="center">
+            <Heading size="xl" fontWeight="black" mt="6" mb="6">
+              404 Error
+            </Heading>
+            <Text fontSize="lg">{callOptionQueryResult.error.message}</Text>
+          </Flex>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (!callOption || !jsonMetadata) {
+    return null;
+  }
+
   return (
     <>
-      <CallOptionHead />
+      <DocumentHead
+        title={callOption.metadata.data.name}
+        description={`Call Option with strike price ${callOption.strikePrice} expiring ${callOption.expiry}`}
+        image={jsonMetadata.image}
+        imageAlt={callOption.metadata.data.name}
+        url={`option/${callOption.publicKey.toBase58()}`}
+        twitterLabels={[
+          { label: "Strke Price", value: callOption.strikePrice },
+          { label: "Premium", value: callOption.cost },
+          { label: "Expiry", value: callOption.expiry },
+        ]}
+      />
       <CallOptionLayout />
     </>
   );
@@ -103,66 +147,6 @@ function usePageParam() {
     [router]
   );
 }
-
-const CallOptionHead = () => {
-  const callOptionAddress = usePageParam();
-  const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
-  const metadataQuery = useMetadataFileQuery(
-    callOptionQueryResult.data?.metadata.data.uri
-  );
-
-  const callOption = useMemo(() => {
-    if (callOptionQueryResult.data) {
-      return CallOption.fromJSON(callOptionQueryResult.data);
-    }
-  }, [callOptionQueryResult.data]);
-
-  const jsonMetadata = metadataQuery.data;
-
-  if (!callOption || !jsonMetadata) {
-    return null;
-  }
-
-  const description = `Call Option with strike price ${callOption.strikePrice} expiring ${callOption.expiry}`;
-
-  return (
-    <Head>
-      <title>{callOption.metadata.data.name}</title>
-      <meta name="description" content={description} />
-      <meta name="author" content="Dexloan" />
-      <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"></link>
-      <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
-
-      <meta property="og:title" content={callOption.metadata.data.name} />
-      <meta property="og:type" content="website" />
-      <meta property="og:description" content={description} />
-      <meta
-        property="og:url"
-        content={`https://dexloan.io/option/${callOption.publicKey.toBase58()}`}
-      />
-      <meta property="og:image" content={jsonMetadata.image} />
-
-      <meta property="twitter:title" content={jsonMetadata.name} />
-      <meta property="twitter:description" content={description} />
-      <meta
-        property="twitter:url"
-        content={`https://dexloan.io/option/${callOption.publicKey.toBase58()}`}
-      />
-      <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:image" content={jsonMetadata.image} />
-      <meta
-        property="twitter:image:alt"
-        content={callOption.metadata.data.name}
-      />
-      <meta property="twitter:label1" content="Strke Price" />
-      <meta property="twitter:data1" content={callOption.strikePrice} />
-      <meta property="twitter:label2" content="Cost" />
-      <meta property="twitter:data2" content={callOption.cost} />
-      <meta property="twitter:label3" content="Expiry" />
-      <meta property="twitter:data3" content={callOption.expiry} />
-    </Head>
-  );
-};
 
 const CallOptionLayout = () => {
   const anchorWallet = useAnchorWallet();
@@ -321,26 +305,6 @@ const CallOptionLayout = () => {
       default:
         return null;
     }
-  }
-
-  if (callOptionQueryResult.isLoading) {
-    // TODO skeleton
-    return null;
-  }
-
-  if (callOptionQueryResult.error instanceof Error) {
-    return (
-      <Container maxW="container.lg">
-        <Box mt="2">
-          <Flex direction="column" alignItems="center">
-            <Heading size="xl" fontWeight="black" mt="6" mb="6">
-              404 Error
-            </Heading>
-            <Text fontSize="lg">{callOptionQueryResult.error.message}</Text>
-          </Flex>
-        </Box>
-      </Container>
-    );
   }
 
   return (

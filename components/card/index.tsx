@@ -7,7 +7,11 @@ import * as utils from "../../common/utils";
 import { CallOption, Hire, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import { EllipsisProgress } from "../progress";
-import { CallOptionStateEnum, HireStateEnum } from "../../common/types";
+import {
+  CallOptionStateEnum,
+  HireStateEnum,
+  LoanStateEnum,
+} from "../../common/types";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
 interface CardProps {
@@ -108,6 +112,36 @@ export const LoanCard = ({ loan }: LoanCardProps) => {
     [floorPriceQuery.data]
   );
 
+  function renderBadge() {
+    switch (loan.state) {
+      case LoanStateEnum.Listed: {
+        return (
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
+            <IoLeaf />
+          </Badge>
+        );
+      }
+
+      case LoanStateEnum.Active:
+        return (
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
+            <IoCheckmark />
+          </Badge>
+        );
+
+      default: {
+        if (loan.expired) {
+          return (
+            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
+              <IoAlertCircle />
+            </Badge>
+          );
+        }
+        return null;
+      }
+    }
+  }
+
   return (
     <Card
       href={`/loan/${loan.publicKey.toBase58()}`}
@@ -115,17 +149,14 @@ export const LoanCard = ({ loan }: LoanCardProps) => {
       imageAlt={loan.metadata.data.name}
     >
       <Box p="4">
-        <Box display="flex" alignItems="baseline">
-          <Badge borderRadius="full" px="2" colorScheme="teal">
-            {loan.data.basisPoints / 100}%
-          </Badge>
+        <Box display="flex" alignItems="center">
+          {renderBadge()}
           <Box
             color="gray.500"
             fontWeight="semibold"
             letterSpacing="wide"
             fontSize="xs"
             textTransform="uppercase"
-            ml="2"
           >
             {loan.duration}
           </Box>
@@ -138,6 +169,16 @@ export const LoanCard = ({ loan }: LoanCardProps) => {
           isTruncated
         >
           {loan.metadata.data.name}
+        </Box>
+        <Box mt="1">
+          <Badge
+            borderRadius="full"
+            px="2"
+            colorScheme="green"
+            variant="subtle"
+          >
+            {loan.data.basisPoints / 100}% APY
+          </Badge>
         </Box>
       </Box>
       <Box p="4" bgColor="blue.50">
@@ -169,25 +210,10 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
 
   function renderBadge() {
     switch (callOption.state) {
-      case CallOptionStateEnum.Active: {
-        if (callOption.expired) {
-          return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
-              <IoAlertCircle />
-            </Badge>
-          );
-        }
+      case CallOptionStateEnum.Listed:
         return (
           <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
             <IoLeaf />
-          </Badge>
-        );
-      }
-
-      case CallOptionStateEnum.Exercised:
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
-            <IoCheckmark />
           </Badge>
         );
 
@@ -199,7 +225,12 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
             </Badge>
           );
         }
-        return null;
+
+        return (
+          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
+            <IoCheckmark />
+          </Badge>
+        );
       }
     }
   }
@@ -232,13 +263,23 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
         >
           {callOption.metadata.data.name}
         </Box>
+        <Box mt="1">
+          <Badge
+            borderRadius="full"
+            px="2"
+            colorScheme="green"
+            variant="subtle"
+          >
+            {callOption.cost} Premium
+          </Badge>
+        </Box>
       </Box>
       <Box p="4" bgColor="blue.50">
         <Box fontWeight="bold" as="h3">
           {callOption.strikePrice}{" "}
         </Box>
         <Text fontSize="xs" fontWeight="medium">
-          Cost {callOption.cost}
+          Floor price {floorPrice}
         </Text>
       </Box>
     </Card>
@@ -250,15 +291,17 @@ interface HireCardProps {
 }
 
 export const HireCard = ({ hire }: HireCardProps) => {
-  function renderBadge() {
-    if (hire.expired) {
-      return (
-        <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
-          <IoAlertCircle />
-        </Badge>
-      );
-    }
+  const floorPriceQuery = useFloorPriceQuery(hire.metadata.data.symbol);
 
+  const floorPrice = useMemo(
+    () =>
+      floorPriceQuery.data
+        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
+        : null,
+    [floorPriceQuery.data]
+  );
+
+  function renderBadge() {
     switch (hire.state) {
       case HireStateEnum.Listed: {
         return (
@@ -268,16 +311,28 @@ export const HireCard = ({ hire }: HireCardProps) => {
         );
       }
 
-      case HireStateEnum.Hired: {
+      default: {
+        if (hire.expired) {
+          return (
+            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
+              <IoAlertCircle />
+            </Badge>
+          );
+        }
+
+        if (hire.currentPeriodExpired) {
+          return (
+            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
+              <IoLeaf />
+            </Badge>
+          );
+        }
+
         return (
           <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
             <IoCheckmark />
           </Badge>
         );
-      }
-
-      default: {
-        return null;
       }
     }
   }
@@ -298,7 +353,7 @@ export const HireCard = ({ hire }: HireCardProps) => {
             fontSize="xs"
             textTransform="uppercase"
           >
-            Expires {hire.expiry}
+            {hire.expiry}
           </Box>
         </Box>
         <Box
@@ -316,7 +371,7 @@ export const HireCard = ({ hire }: HireCardProps) => {
           {hire.amount}
         </Box>
         <Text fontSize="xs" fontWeight="medium">
-          Daily cost
+          Floor Price {floorPrice}
         </Text>
       </Box>
     </Card>

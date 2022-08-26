@@ -44,7 +44,7 @@ export function Masthead() {
         against non-fungibles
       </Heading>
       <Text size="md" fontWeight="medium" mb="8">
-        Unlock the value of your NFTs with free and secure lending
+        Unlock the value of your NFTs with escrowless borrowing &amp; lending.
         <br />
         <Badge colorScheme="green">New: NFT rentals now available</Badge>
       </Text>

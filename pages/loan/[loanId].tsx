@@ -50,15 +50,59 @@ import { ExternalLinks } from "../../components/link";
 import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
 import { EllipsisProgress } from "../../components/progress";
+import { DocumentHead } from "../../components/document";
 
 interface LoanProps {
   dehydratedState: DehydratedState | undefined;
 }
 
 const LoanPage: NextPage<LoanProps> = () => {
+  const loanAddress = usePageParam();
+  const loanQueryResult = useLoanQuery(loanAddress);
+  const metadataQuery = useMetadataFileQuery(
+    loanQueryResult.data?.metadata.data.uri
+  );
+  const jsonMetadata = metadataQuery.data;
+
+  const loan = useMemo(() => {
+    if (loanQueryResult.data) {
+      return Loan.fromJSON(loanQueryResult.data);
+    }
+  }, [loanQueryResult.data]);
+
+  if (loanQueryResult.error instanceof Error) {
+    return (
+      <Container maxW="container.lg">
+        <Box mt="2">
+          <Flex direction="column" alignItems="center">
+            <Heading size="xl" fontWeight="black" mt="6" mb="6">
+              404 Error
+            </Heading>
+            <Text fontSize="lg">{loanQueryResult.error.message}</Text>
+          </Flex>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (!loan || !jsonMetadata) {
+    return null;
+  }
+
   return (
     <>
-      <LoanHead />
+      <DocumentHead
+        title={loan.metadata.data.name}
+        description={`Borrowring ${loan.amount} over ${loan.duration}`}
+        image={jsonMetadata.image}
+        imageAlt={loan.metadata.data.name}
+        url={`loan/${loan.publicKey.toBase58()}`}
+        twitterLabels={[
+          { label: "Amount", value: loan.amount },
+          { label: "APY", value: loan.apy },
+          { label: "Duration", value: loan.duration },
+        ]}
+      />
       <LoanLayout />
     </>
   );
@@ -106,66 +150,6 @@ function usePageParam() {
   );
 }
 
-const LoanHead = () => {
-  const loanAddress = usePageParam();
-  const loanQueryResult = useLoanQuery(loanAddress);
-  const metadataQuery = useMetadataFileQuery(
-    loanQueryResult.data?.metadata.data.uri
-  );
-
-  const loan = useMemo(() => {
-    if (loanQueryResult.data) {
-      return Loan.fromJSON(loanQueryResult.data);
-    }
-  }, [loanQueryResult.data]);
-
-  const jsonMetadata = metadataQuery.data;
-
-  if (!loan || !jsonMetadata) {
-    return null;
-  }
-
-  const description = `Borrowring ${loan.amount} over ${loan.duration}`;
-
-  return (
-    <Head>
-      <title>{loan.metadata.data.name}</title>
-      <meta name="description" content={description} />
-      <meta name="author" content="Dexloan" />
-      <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"></link>
-      <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
-
-      <meta property="og:title" content={loan.metadata.data.name} />
-      <meta property="og:type" content="website" />
-      <meta property="og:description" content={description} />
-      <meta
-        property="og:url"
-        content={`https://dexloan.io/loan/${loan.publicKey.toBase58()}`}
-      />
-      <meta property="og:image" content={jsonMetadata.image} />
-
-      <meta property="twitter:title" content={loan.metadata.data.name} />
-      <meta property="twitter:description" content={description} />
-      <meta
-        property="twitter:url"
-        content={`https://dexloan.io/loan/${loan.publicKey.toBase58()}`}
-      />
-      <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:image" content={jsonMetadata.image} />
-      <meta property="twitter:image:alt" content={jsonMetadata.name} />
-      <meta property="twitter:label1" content="Amount" />
-      <meta property="twitter:data1" content={loan.amount} />
-      <meta property="twitter:label2" content="APY" />
-      <meta
-        property="twitter:data2"
-        content={loan.data.basisPoints / 100 + "%"}
-      />
-      <meta property="twitter:label3" content="Duration" />
-      <meta property="twitter:data3" content={loan.duration} />
-    </Head>
-  );
-};
-
 const LoanLayout = () => {
   const anchorWallet = useAnchorWallet();
 
@@ -182,14 +166,9 @@ const LoanLayout = () => {
   }, [loanQuery.data]);
 
   function renderActiveButton() {
-    if (loan && anchorWallet && loan.isBorrower(anchorWallet)) {
+    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
       return <RepayButton loan={loan} />;
-    } else if (
-      loan &&
-      loan.expired &&
-      anchorWallet &&
-      loan.isLender(anchorWallet)
-    ) {
+    } else if (anchorWallet && loan?.expired && loan?.isLender(anchorWallet)) {
       return <RepossessButton loan={loan} />;
     }
 
@@ -197,7 +176,7 @@ const LoanLayout = () => {
   }
 
   function renderListedButton() {
-    if (loan && anchorWallet && loan.isBorrower(anchorWallet)) {
+    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
       return <CancelButton loan={loan} />;
     } else if (loan) {
       return <LendButton loan={loan} />;
@@ -206,7 +185,7 @@ const LoanLayout = () => {
   }
 
   function renderCloseAccountButton() {
-    if (loan && anchorWallet && loan.isBorrower(anchorWallet)) {
+    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
       return <CloseAccountButton loan={loan} />;
     }
 
@@ -319,26 +298,6 @@ const LoanLayout = () => {
     }
   }
 
-  if (loanQuery.isLoading) {
-    // TODO skeleton
-    return null;
-  }
-
-  if (loanQuery.error instanceof Error) {
-    return (
-      <Container maxW="container.lg">
-        <Box mt="2">
-          <Flex direction="column" alignItems="center">
-            <Heading size="xl" fontWeight="black" mt="6" mb="6">
-              404 Error
-            </Heading>
-            <Text fontSize="lg">{loanQuery.error.message}</Text>
-          </Flex>
-        </Box>
-      </Container>
-    );
-  }
-
   return (
     <Container maxW={{ md: "container.md", lg: "container.xl" }}>
       <Flex
@@ -418,10 +377,9 @@ const LoanLayout = () => {
 
           {renderByState()}
 
-          {loan &&
-            loan.isBorrower(anchorWallet) &&
-            loan.expired !== false &&
-            loan.state !== LoanStateEnum.Defaulted && (
+          {loan?.isBorrower(anchorWallet) &&
+            loan?.expired !== true &&
+            loan?.state !== LoanStateEnum.Defaulted && (
               <Box mt="2" mb="2">
                 <SecondaryHireButton
                   mint={loan?.data.mint}

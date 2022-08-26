@@ -1,5 +1,5 @@
 import type { AppProps } from "next/app";
-import { ChakraProvider, Box, Text, Input } from "@chakra-ui/react";
+import { ChakraProvider, Box, Input } from "@chakra-ui/react";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -12,7 +12,6 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
@@ -26,6 +25,7 @@ import { RPC_ENDPOINT } from "../common/constants";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
 import { Main } from "../components/layout";
+import { DocumentHead } from "../components/document";
 
 function Dexloan({ Component, pageProps }: AppProps) {
   const wallets = useMemo(
@@ -56,13 +56,11 @@ function Dexloan({ Component, pageProps }: AppProps) {
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
               <ChakraProvider theme={theme}>
-                <Head>
-                  <title>Dexloan | NFT Lending</title>
-                  <meta
-                    name="viewport"
-                    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover"
-                  />
-                </Head>
+                <DocumentHead
+                  title="Dexloan | Borrow and lend against NFTs on Solana"
+                  description="Dexloan is a DeFi protocol on the Solana blockchain for escrowless NFT borrowing &amp; lending. Users can take loans by collateralizing their NFT and simultaneously rent out the same NFT to earn passive income. We also support call options and (coming soon) NFT &amp; SOL staking."
+                  url={``}
+                />
                 <LaunchPlaceholder>
                   <>
                     <Navbar />

@@ -81,7 +81,7 @@ export class Hire implements HireArgs {
   }
 
   get expiry() {
-    return dayjs.unix(this.data.expiry.toNumber()).format("DD/MM/YYYY");
+    return dayjs.unix(this.data.expiry.toNumber()).format("L");
   }
 
   get expiryLongFormat() {
@@ -91,6 +91,12 @@ export class Hire implements HireArgs {
 
   get expired() {
     return Date.now() / 1000 > this.data.expiry.toNumber();
+  }
+
+  get currentPeriodExpired() {
+    if (this.data.currentExpiry) {
+      return Date.now() / 1000 > this.data.currentExpiry.toNumber();
+    }
   }
 
   get borrower() {

@@ -39,6 +39,10 @@ export class Loan implements LoanArgs {
     return utils.formatAmount(this.data.amount);
   }
 
+  get apy() {
+    return this.data.basisPoints / 100 + "%";
+  }
+
   get duration() {
     return utils.formatDuration(this.data.duration);
   }

@@ -71,7 +71,7 @@ export const useFloorPriceQuery = (symbol?: string) => {
     async () => {
       if (symbol) {
         const response = await fetch(`/api/floor/${symbol}`);
-        return response.json();
+        return response.json() as Promise<{ floorPrice: number }>;
       }
     },
     {
