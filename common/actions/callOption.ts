@@ -29,7 +29,6 @@ export async function initCallOption(
 
   const [edition] = await query.findEditionAddress(mint);
   const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
@@ -37,51 +36,24 @@ export async function initCallOption(
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
 
-  let hireData: HireData | null = null;
+  const signature = await program.methods
+    .initCallOption(amount, strikePrice, expiry)
+    .accounts({
+      callOption,
+      tokenManager,
+      mint,
+      edition,
+      seller: wallet.publicKey,
+      depositTokenAccount: tokenAccount,
+      metadataProgram: METADATA_PROGRAM_ID,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+    })
+    .rpc();
 
-  try {
-    hireData = await program.account.hire.fetch(hire);
-  } catch {
-    // Does not exist
-  }
-
-  if (hireData?.borrower) {
-    await program.methods
-      .initCallOptionWithHire(amount, strikePrice, expiry)
-      .accounts({
-        callOption,
-        hire,
-        tokenManager,
-        mint,
-        edition,
-        seller: wallet.publicKey,
-        hireBorrower: hireData?.borrower,
-        hireTokenAccount: tokenAccount,
-        metadataProgram: METADATA_PROGRAM_ID,
-        tokenProgram: splToken.TOKEN_PROGRAM_ID,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-      })
-      .rpc();
-  } else {
-    await program.methods
-      .initCallOption(amount, strikePrice, expiry)
-      .accounts({
-        callOption,
-        tokenManager,
-        mint,
-        edition,
-        seller: wallet.publicKey,
-        depositTokenAccount: tokenAccount,
-        metadataProgram: METADATA_PROGRAM_ID,
-        tokenProgram: splToken.TOKEN_PROGRAM_ID,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-      })
-      .rpc();
-  }
+  await connection.confirmTransaction(signature);
 }
 
 export async function buyCallOption(
@@ -97,7 +69,7 @@ export async function buyCallOption(
   const callOption = await query.findCallOptionAddress(mint, seller);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
 
-  await program.methods
+  const signature = await program.methods
     .buyCallOption()
     .accounts({
       callOption,
@@ -112,6 +84,8 @@ export async function buyCallOption(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
+
+  await connection.confirmTransaction(signature);
 }
 
 export async function exerciseCallOption(
@@ -141,6 +115,7 @@ export async function exerciseCallOption(
     isWritable: true,
   }));
 
+  let signature: string;
   let hireAccount: HireData | null = null;
 
   try {
@@ -150,11 +125,6 @@ export async function exerciseCallOption(
   }
 
   if (hireAccount) {
-    console.log("borrower", hireAccount.borrower?.toBase58());
-    console.log("escrowBalance", hireAccount.escrowBalance?.toNumber());
-    console.log("tokenManager", tokenManager.toBase58());
-    console.log("tokenAccount", tokenAccount.toBase58());
-
     const method = program.methods.exerciseCallOptionWithHire().accounts({
       buyerTokenAccount,
       callOption,
@@ -192,7 +162,7 @@ export async function exerciseCallOption(
       method.remainingAccounts(remainingAccounts);
     }
 
-    await method.rpc();
+    signature = await method.rpc();
   } else {
     const method = program.methods.exerciseCallOption().accounts({
       buyerTokenAccount,
@@ -215,8 +185,10 @@ export async function exerciseCallOption(
       method.remainingAccounts(creatorAccounts);
     }
 
-    await method.rpc();
+    signature = await method.rpc();
   }
+
+  await connection.confirmTransaction(signature);
 }
 
 export async function closeCallOption(
@@ -236,7 +208,7 @@ export async function closeCallOption(
 
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const signature = await program.methods
     .closeCallOption()
     .accounts({
       depositTokenAccount,
@@ -250,4 +222,6 @@ export async function closeCallOption(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
+
+  await connection.confirmTransaction(signature);
 }

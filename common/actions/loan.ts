@@ -29,7 +29,6 @@ export async function initLoan(
   const program = getProgram(provider);
 
   const loan = await query.findLoanAddress(mint, wallet.publicKey);
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
@@ -38,49 +37,23 @@ export async function initLoan(
     .address;
   const [edition] = await query.findEditionAddress(mint);
 
-  let hireData: HireData | null = null;
+  const signature = await program.methods
+    .initLoan(amount, basisPoint, duration)
+    .accounts({
+      loan,
+      tokenManager,
+      mint,
+      edition,
+      depositTokenAccount: tokenAccount,
+      borrower: wallet.publicKey,
+      metadataProgram: METADATA_PROGRAM_ID,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    })
+    .rpc();
 
-  try {
-    hireData = await program.account.hire.fetch(hire);
-  } catch {
-    // Does not exist
-  }
-
-  if (hireData?.borrower) {
-    await program.methods
-      .initLoanWithHire(amount, basisPoint, duration)
-      .accounts({
-        loan,
-        hire,
-        tokenManager,
-        mint,
-        edition,
-        hireBorrower: hireData.borrower,
-        hireTokenAccount: tokenAccount,
-        borrower: wallet.publicKey,
-        metadataProgram: METADATA_PROGRAM_ID,
-        tokenProgram: splToken.TOKEN_PROGRAM_ID,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      })
-      .rpc();
-  } else {
-    await program.methods
-      .initLoan(amount, basisPoint, duration)
-      .accounts({
-        loan,
-        tokenManager,
-        mint,
-        edition,
-        depositTokenAccount: tokenAccount,
-        borrower: wallet.publicKey,
-        metadataProgram: METADATA_PROGRAM_ID,
-        tokenProgram: splToken.TOKEN_PROGRAM_ID,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      })
-      .rpc();
-  }
+  await connection.confirmTransaction(signature);
 }
 
 export async function giveLoan(
@@ -95,7 +68,7 @@ export async function giveLoan(
   const loan = await query.findLoanAddress(mint, borrower);
   const tokenManager = await query.findTokenManagerAddress(mint, borrower);
 
-  await program.methods
+  const signature = await program.methods
     .giveLoan()
     .accounts({
       borrower,
@@ -108,6 +81,8 @@ export async function giveLoan(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
+
+  await connection.confirmTransaction(signature);
 }
 
 export async function closeLoan(
@@ -126,7 +101,7 @@ export async function closeLoan(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const signature = await program.methods
     .closeLoan()
     .accounts({
       loan,
@@ -140,6 +115,8 @@ export async function closeLoan(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
     })
     .rpc();
+
+  await connection.confirmTransaction(signature);
 }
 
 export async function repayLoan(
@@ -159,7 +136,7 @@ export async function repayLoan(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const signature = await program.methods
     .repayLoan()
     .accounts({
       lender,
@@ -175,6 +152,8 @@ export async function repayLoan(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
+
+  await connection.confirmTransaction(signature);
 }
 
 export async function repossessCollateral(
@@ -196,6 +175,7 @@ export async function repossessCollateral(
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
 
+  let signature: string;
   let hireAccount: HireData | null = null;
 
   try {
@@ -233,9 +213,9 @@ export async function repossessCollateral(
       ]);
     }
 
-    await method.rpc();
+    signature = await method.rpc();
   } else {
-    await program.methods
+    signature = await program.methods
       .repossess()
       .accounts({
         loan,
@@ -254,4 +234,6 @@ export async function repossessCollateral(
       })
       .rpc();
   }
+
+  await connection.confirmTransaction(signature);
 }

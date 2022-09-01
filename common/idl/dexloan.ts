@@ -72,85 +72,6 @@ export type DexloanListings = {
       ];
     },
     {
-      name: "initLoanWithHire";
-      accounts: [
-        {
-          name: "borrower";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "loan";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "tokenManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "hire";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "hireBorrower";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "hireTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "mint";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "edition";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "metadataProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "rent";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "amount";
-          type: "u64";
-        },
-        {
-          name: "basisPoints";
-          type: "u32";
-        },
-        {
-          name: "duration";
-          type: "i64";
-        }
-      ];
-    },
-    {
       name: "closeLoan";
       accounts: [
         {
@@ -535,90 +456,6 @@ export type DexloanListings = {
       ];
     },
     {
-      name: "initCallOptionWithHire";
-      accounts: [
-        {
-          name: "seller";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "callOption";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "hire";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "hireBorrower";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "hireTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "tokenManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "mint";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "edition";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "metadataProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "clock";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "rent";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "amount";
-          type: "u64";
-        },
-        {
-          name: "strikePrice";
-          type: "u64";
-        },
-        {
-          name: "expiry";
-          type: "i64";
-        }
-      ];
-    },
-    {
       name: "buyCallOption";
       accounts: [
         {
@@ -694,7 +531,7 @@ export type DexloanListings = {
         },
         {
           name: "tokenManager";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -1682,85 +1519,6 @@ export const IDL: DexloanListings = {
       ],
     },
     {
-      name: "initLoanWithHire",
-      accounts: [
-        {
-          name: "borrower",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "loan",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "tokenManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "hire",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "hireBorrower",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "hireTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "mint",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "edition",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "metadataProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "rent",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "amount",
-          type: "u64",
-        },
-        {
-          name: "basisPoints",
-          type: "u32",
-        },
-        {
-          name: "duration",
-          type: "i64",
-        },
-      ],
-    },
-    {
       name: "closeLoan",
       accounts: [
         {
@@ -2145,90 +1903,6 @@ export const IDL: DexloanListings = {
       ],
     },
     {
-      name: "initCallOptionWithHire",
-      accounts: [
-        {
-          name: "seller",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "callOption",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "hire",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "hireBorrower",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "hireTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "tokenManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "mint",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "edition",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "metadataProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "clock",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "rent",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "amount",
-          type: "u64",
-        },
-        {
-          name: "strikePrice",
-          type: "u64",
-        },
-        {
-          name: "expiry",
-          type: "i64",
-        },
-      ],
-    },
-    {
       name: "buyCallOption",
       accounts: [
         {
@@ -2304,7 +1978,7 @@ export const IDL: DexloanListings = {
         },
         {
           name: "tokenManager",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
