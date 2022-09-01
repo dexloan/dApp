@@ -402,8 +402,6 @@ const CallOptions = () => {
 const Hires = () => {
   const lenderHiresQuery = useLenderHiresQuery();
   const borrowerHiresQuery = useBorrowerHiresQuery();
-  // Deprecated listings
-  // const listingsQuery = usePersonalListingsQuery();
 
   const lenderHires = useMemo(
     () => lenderHiresQuery.data?.map((l) => Hire.fromJSON(l)) || [],

@@ -92,7 +92,7 @@ export function useLenderHiresQuery() {
 
 export const getHiresTakenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
-) => ["hiresTaken", walletAddress?.toBase58()];
+) => ["hires_taken", walletAddress?.toBase58()];
 
 export function useBorrowerHiresQuery() {
   const anchorWallet = useAnchorWallet();

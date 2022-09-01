@@ -74,9 +74,7 @@ export const useInitHireMutation = (onSuccess: () => void) => {
             anchorWallet.publicKey
           );
 
-          setTimeout(() => {
-            queryClient.invalidateQueries(getHireCacheKey(hireAddress));
-          }, 500);
+          await queryClient.invalidateQueries(getHireCacheKey(hireAddress));
         }
 
         toast.success("Rental listing created");
@@ -293,9 +291,16 @@ export const useRecoverHireMutation = (onSuccess: () => void) => {
           (items: HirePretty[] | undefined) => {
             if (!items) return [];
 
-            return items.filter(
-              (item) => item.data.mint !== variables.mint.toBase58()
-            );
+            return items.map((item) => {
+              if (item.data.mint === variables.mint.toBase58()) {
+                return {
+                  ...item,
+                  state: HireStateEnum.Listed,
+                };
+              }
+
+              return item;
+            });
           }
         );
 

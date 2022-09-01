@@ -20,7 +20,7 @@ import {
 import type { NextPage } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 import { Controller, useForm } from "react-hook-form";
@@ -196,7 +196,6 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
     } else {
       return <HireButton hire={hire} />;
     }
-    return null;
   }
 
   function renderByState() {
