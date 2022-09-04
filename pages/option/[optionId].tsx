@@ -14,7 +14,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
@@ -22,7 +21,7 @@ import { IoLeaf, IoAlert, IoList, IoCheckmark } from "react-icons/io5";
 
 import * as utils from "../../common/utils";
 import { CallOptionStateEnum } from "../../common/types";
-import { RPC_ENDPOINT } from "../../common/constants";
+import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
 import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
@@ -107,10 +106,10 @@ const CallOptionPage: NextPage<CallOptionProps> = () => {
 };
 
 CallOptionPage.getInitialProps = async (ctx) => {
-  if (typeof window === "undefined") {
+  if (ctx.req) {
     try {
       const queryClient = new QueryClient();
-      const connection = new anchor.web3.Connection(RPC_ENDPOINT);
+      const connection = new anchor.web3.Connection(BACKEND_RPC_ENDPOINT);
       const callOptionAddress = new anchor.web3.PublicKey(
         ctx.query.optionId as string
       );

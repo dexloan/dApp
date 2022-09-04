@@ -14,13 +14,12 @@ import {
   Text,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 
-import { RPC_ENDPOINT } from "../../common/constants";
+import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
 import { LoanStateEnum } from "../../common/types";
 import { fetchLoan } from "../../common/query";
 import { Loan } from "../../common/model";
@@ -109,11 +108,10 @@ const LoanPage: NextPage<LoanProps> = () => {
 };
 
 LoanPage.getInitialProps = async (ctx) => {
-  if (typeof window === "undefined") {
+  if (ctx.req) {
     try {
       const queryClient = new QueryClient();
-
-      const connection = new anchor.web3.Connection(RPC_ENDPOINT);
+      const connection = new anchor.web3.Connection(BACKEND_RPC_ENDPOINT);
       const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
 
       const loan = await queryClient.fetchQuery(

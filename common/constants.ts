@@ -4,7 +4,10 @@ export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
   "8hSdpqHU7jz4C6C1kHUPQNMqBcC76n1BFXbHaTwd9X4c"
 );
 
-export const RPC_ENDPOINT = "https://ssc-dao.genesysgo.net/";
+export const RPC_ENDPOINT =
+  "https://fragrant-capable-theorem.solana-mainnet.discover.quiknode.pro/";
+
+export const BACKEND_RPC_ENDPOINT = "https://ssc-dao.genesysgo.net/";
 
 export const SECONDS_PER_DAY = new anchor.BN(86_400);
 

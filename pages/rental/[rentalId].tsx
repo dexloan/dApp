@@ -25,7 +25,7 @@ import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 import { Controller, useForm } from "react-hook-form";
 
-import { RPC_ENDPOINT } from "../../common/constants";
+import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
 import {
   CallOptionStateEnum,
   HireStateEnum,
@@ -119,11 +119,10 @@ const HirePage: NextPage<HireProps> = () => {
 };
 
 HirePage.getInitialProps = async (ctx) => {
-  if (typeof window === "undefined") {
+  if (ctx.req) {
     try {
       const queryClient = new QueryClient();
-
-      const connection = new anchor.web3.Connection(RPC_ENDPOINT);
+      const connection = new anchor.web3.Connection(BACKEND_RPC_ENDPOINT);
       const hireAddress = new anchor.web3.PublicKey(
         ctx.query.rentalId as string
       );
