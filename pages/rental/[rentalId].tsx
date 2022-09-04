@@ -119,7 +119,7 @@ const HirePage: NextPage<HireProps> = () => {
 };
 
 HirePage.getInitialProps = async (ctx) => {
-  if (ctx.req) {
+  if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
       const connection = new anchor.web3.Connection(BACKEND_RPC_ENDPOINT);
