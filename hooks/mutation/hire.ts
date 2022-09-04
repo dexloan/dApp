@@ -349,7 +349,20 @@ export function useWithdrawFromHireEscrowMutation() {
             anchorWallet.publicKey
           );
 
-          await queryClient.invalidateQueries(getHireCacheKey(hireAddress));
+          queryClient.setQueryData<HirePretty | undefined>(
+            getHireCacheKey(hireAddress),
+            (data) => {
+              if (data) {
+                return {
+                  ...data,
+                  data: {
+                    ...data.data,
+                    currentStart: Date.now() / 1000,
+                  },
+                };
+              }
+            }
+          );
         }
       },
     }
