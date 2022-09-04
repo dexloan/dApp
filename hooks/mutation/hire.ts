@@ -74,7 +74,11 @@ export const useInitHireMutation = (onSuccess: () => void) => {
             anchorWallet.publicKey
           );
 
-          await queryClient.invalidateQueries(getHireCacheKey(hireAddress));
+          try {
+            const hire = await query.waitForHire(connection, hireAddress);
+
+            await queryClient.setQueryData(getHireCacheKey(hireAddress), hire);
+          } catch {}
         }
 
         toast.success("Rental listing created");
@@ -137,8 +141,12 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
           }
         );
 
-        queryClient.invalidateQueries(
-          getHiresTakenCacheKey(anchorWallet?.publicKey)
+        setTimeout(
+          () =>
+            queryClient.invalidateQueries(
+              getHiresTakenCacheKey(anchorWallet?.publicKey)
+            ),
+          500
         );
 
         queryClient.setQueryData<HirePretty | undefined>(
@@ -211,8 +219,12 @@ export const useExtendHireMutation = (onSuccess: () => void) => {
           variables.lender
         );
 
-        queryClient.invalidateQueries(
-          getHiresTakenCacheKey(anchorWallet?.publicKey)
+        setTimeout(
+          () =>
+            queryClient.invalidateQueries(
+              getHiresTakenCacheKey(anchorWallet?.publicKey)
+            ),
+          500
         );
 
         queryClient.setQueryData<HirePretty | undefined>(

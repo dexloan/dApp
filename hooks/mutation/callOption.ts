@@ -73,9 +73,17 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
             anchorWallet.publicKey
           );
 
-          await queryClient.invalidateQueries(
-            getCallOptionCacheKey(callOptionAddress)
-          );
+          try {
+            const callOption = await query.waitForCallOption(
+              connection,
+              callOptionAddress
+            );
+
+            queryClient.setQueryData(
+              getCallOptionCacheKey(callOptionAddress),
+              callOption
+            );
+          } catch {}
         }
 
         toast.success("Listing created");
@@ -98,7 +106,7 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, CloseCallOptionVariables>(
-    async ({ mint, seller }) => {
+    async ({ mint }) => {
       if (anchorWallet) {
         const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
@@ -199,8 +207,12 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
           }
         );
 
-        queryClient.invalidateQueries(
-          getBuyerCallOptionsQueryKey(anchorWallet?.publicKey)
+        setTimeout(
+          () =>
+            queryClient.invalidateQueries(
+              getBuyerCallOptionsQueryKey(anchorWallet?.publicKey)
+            ),
+          500
         );
 
         queryClient.setQueryData<CallOptionPretty | undefined>(

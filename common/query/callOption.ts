@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 
+import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import {
@@ -35,6 +36,28 @@ export async function fetchCallOption(
   const metadata = await fetchMetadata(connection, callOptionAccount.mint);
 
   return new CallOption(callOptionAccount, metadata, address).pretty();
+}
+
+export async function waitForCallOption(
+  connection: anchor.web3.Connection,
+  address: anchor.web3.PublicKey
+): Promise<CallOptionPretty> {
+  async function tryFetchCallOption(retry: number): Promise<CallOptionPretty> {
+    await utils.wait(800);
+
+    if (retry > 3) {
+      throw new Error("Max retries");
+    }
+
+    try {
+      const callOption = await fetchCallOption(connection, address);
+      return callOption;
+    } catch {
+      return tryFetchCallOption(retry + 1);
+    }
+  }
+
+  return tryFetchCallOption(0);
 }
 
 export async function fetchMultipleCallOptions(

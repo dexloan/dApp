@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 
+import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { LoanData } from "../types";
 import { Loan, LoanPretty } from "../model";
@@ -37,6 +38,28 @@ export async function fetchLoan(
   ]);
 
   return new Loan(loanAccount as LoanData, metadata, address).pretty();
+}
+
+export async function waitForLoan(
+  connection: anchor.web3.Connection,
+  address: anchor.web3.PublicKey
+): Promise<LoanPretty> {
+  async function tryFetchLoan(retry: number): Promise<LoanPretty> {
+    await utils.wait(800);
+
+    if (retry > 3) {
+      throw new Error("Max retries");
+    }
+
+    try {
+      const loan = await fetchLoan(connection, address);
+      return loan;
+    } catch {
+      return tryFetchLoan(retry + 1);
+    }
+  }
+
+  return tryFetchLoan(0);
 }
 
 export async function fetchMultipleLoans(

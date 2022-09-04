@@ -36,7 +36,7 @@ export async function initCallOption(
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
 
-  const signature = await program.methods
+  await program.methods
     .initCallOption(amount, strikePrice, expiry)
     .accounts({
       callOption,
@@ -52,8 +52,6 @@ export async function initCallOption(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function buyCallOption(
@@ -69,7 +67,7 @@ export async function buyCallOption(
   const callOption = await query.findCallOptionAddress(mint, seller);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
 
-  const signature = await program.methods
+  await program.methods
     .buyCallOption()
     .accounts({
       callOption,
@@ -84,8 +82,6 @@ export async function buyCallOption(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function exerciseCallOption(
@@ -115,7 +111,6 @@ export async function exerciseCallOption(
     isWritable: true,
   }));
 
-  let signature: string;
   let hireAccount: HireData | null = null;
 
   try {
@@ -162,7 +157,7 @@ export async function exerciseCallOption(
       method.remainingAccounts(remainingAccounts);
     }
 
-    signature = await method.rpc();
+    await method.rpc();
   } else {
     const method = program.methods.exerciseCallOption().accounts({
       buyerTokenAccount,
@@ -185,10 +180,8 @@ export async function exerciseCallOption(
       method.remainingAccounts(creatorAccounts);
     }
 
-    signature = await method.rpc();
+    await method.rpc();
   }
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function closeCallOption(
@@ -208,7 +201,7 @@ export async function closeCallOption(
 
   const [edition] = await query.findEditionAddress(mint);
 
-  const signature = await program.methods
+  await program.methods
     .closeCallOption()
     .accounts({
       depositTokenAccount,
@@ -222,6 +215,4 @@ export async function closeCallOption(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }

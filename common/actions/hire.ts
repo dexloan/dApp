@@ -35,7 +35,7 @@ export async function initHire(
     .address;
   const [edition] = await query.findEditionAddress(mint);
 
-  const signature = await program.methods
+  await program.methods
     .initHire({ amount, expiry, borrower })
     .accounts({
       hire,
@@ -50,8 +50,6 @@ export async function initHire(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function takeHire(
@@ -102,8 +100,7 @@ export async function takeHire(
     method.remainingAccounts(creatorAccounts);
   }
 
-  const signature = await method.rpc();
-  await connection.confirmTransaction(signature);
+  await method.rpc();
 }
 
 export async function extendHire(
@@ -143,8 +140,7 @@ export async function extendHire(
     method.remainingAccounts(creatorAccounts);
   }
 
-  const signature = await method.rpc();
-  await connection.confirmTransaction(signature);
+  await method.rpc();
 }
 
 export async function recoverHire(
@@ -168,7 +164,7 @@ export async function recoverHire(
   const hireTokenAccount = (await connection.getTokenLargestAccounts(mint))
     .value[0].address;
 
-  const signature = await program.methods
+  await program.methods
     .recoverHire()
     .accounts({
       borrower,
@@ -186,7 +182,6 @@ export async function recoverHire(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-  await connection.confirmTransaction(signature);
 }
 
 export async function withdrawFromHireEscrow(
@@ -200,7 +195,7 @@ export async function withdrawFromHireEscrow(
   const hire = await query.findHireAddress(mint, wallet.publicKey);
   const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
 
-  const signature = await program.methods
+  await program.methods
     .withdrawFromHireEscrow()
     .accounts({
       mint,
@@ -212,7 +207,6 @@ export async function withdrawFromHireEscrow(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-  await connection.confirmTransaction(signature);
 }
 
 export async function closeHire(
@@ -231,7 +225,7 @@ export async function closeHire(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  const signature = await program.methods
+  await program.methods
     .closeHire()
     .accounts({
       hire,
@@ -246,5 +240,4 @@ export async function closeHire(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-  await connection.confirmTransaction(signature);
 }

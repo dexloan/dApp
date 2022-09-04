@@ -182,3 +182,7 @@ export function mapSymbolToCollectionTitle(symbol: string) {
 export function trimNullChars(str: string) {
   return str.replace(/\x00/g, "");
 }
+
+export async function wait(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}

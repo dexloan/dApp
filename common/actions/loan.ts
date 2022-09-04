@@ -7,10 +7,6 @@ import * as query from "../query";
 import { HireData } from "../types";
 import { getProgram, getProvider } from "../provider";
 
-/**
- * Loans
- */
-
 export async function initLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
@@ -37,7 +33,7 @@ export async function initLoan(
     .address;
   const [edition] = await query.findEditionAddress(mint);
 
-  const signature = await program.methods
+  await program.methods
     .initLoan(amount, basisPoint, duration)
     .accounts({
       loan,
@@ -52,8 +48,6 @@ export async function initLoan(
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function giveLoan(
@@ -68,7 +62,7 @@ export async function giveLoan(
   const loan = await query.findLoanAddress(mint, borrower);
   const tokenManager = await query.findTokenManagerAddress(mint, borrower);
 
-  const signature = await program.methods
+  await program.methods
     .giveLoan()
     .accounts({
       borrower,
@@ -81,8 +75,6 @@ export async function giveLoan(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function closeLoan(
@@ -101,7 +93,7 @@ export async function closeLoan(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  const signature = await program.methods
+  await program.methods
     .closeLoan()
     .accounts({
       loan,
@@ -115,8 +107,6 @@ export async function closeLoan(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function repayLoan(
@@ -136,7 +126,7 @@ export async function repayLoan(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  const signature = await program.methods
+  await program.methods
     .repayLoan()
     .accounts({
       lender,
@@ -152,8 +142,6 @@ export async function repayLoan(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
     .rpc();
-
-  await connection.confirmTransaction(signature);
 }
 
 export async function repossessCollateral(
@@ -175,7 +163,6 @@ export async function repossessCollateral(
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
 
-  let signature: string;
   let hireAccount: HireData | null = null;
 
   try {
@@ -213,9 +200,9 @@ export async function repossessCollateral(
       ]);
     }
 
-    signature = await method.rpc();
+    await method.rpc();
   } else {
-    signature = await program.methods
+    await program.methods
       .repossess()
       .accounts({
         loan,
@@ -234,6 +221,4 @@ export async function repossessCollateral(
       })
       .rpc();
   }
-
-  await connection.confirmTransaction(signature);
 }

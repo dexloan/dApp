@@ -387,6 +387,7 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
     anchorWallet?.publicKey
   );
   const callOptionQuery = useCallOptionQuery(callOptionAddressQuery?.data);
+
   const loanAddressQuery = useLoanAddressQuery(
     hire.data.mint,
     anchorWallet?.publicKey

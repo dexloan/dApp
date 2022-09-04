@@ -71,7 +71,12 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
             variables.mint,
             anchorWallet.publicKey
           );
-          await queryClient.invalidateQueries(getLoanCacheKey(loanAddress));
+
+          try {
+            const loan = await query.waitForLoan(connection, loanAddress);
+
+            await queryClient.setQueryData(getLoanCacheKey(loanAddress), loan);
+          } catch {}
         }
 
         toast.success("Listing created");
@@ -276,8 +281,12 @@ export const useRepossessMutation = (onSuccess: () => void) => {
           }
         );
 
-        queryClient.invalidateQueries(
-          getLoansGivenCacheKey(anchorWallet?.publicKey)
+        setTimeout(
+          () =>
+            queryClient.invalidateQueries(
+              getLoansGivenCacheKey(anchorWallet?.publicKey)
+            ),
+          500
         );
 
         const loanAddress = await query.findLoanAddress(

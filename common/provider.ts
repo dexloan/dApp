@@ -15,11 +15,10 @@ export function getProvider(
 ): anchor.AnchorProvider {
   wallet = wallet || new MockWallet(anchor.web3.Keypair.generate());
 
-  return new anchor.AnchorProvider(
-    connection,
-    wallet,
-    anchor.AnchorProvider.defaultOptions()
-  );
+  return new anchor.AnchorProvider(connection, wallet, {
+    preflightCommitment: "confirmed",
+    commitment: "confirmed",
+  });
 }
 
 class MockWallet implements anchor.Wallet {
