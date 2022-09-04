@@ -48,7 +48,10 @@ export class Loan implements LoanArgs {
   }
 
   get expired() {
-    return Date.now() / 1000 > this.expiry().toNumber();
+    if (this.data.startDate.toNumber() > 0) {
+      return Date.now() / 1000 > this.expiry().toNumber();
+    }
+    return false;
   }
 
   get dueDateAndTime() {
