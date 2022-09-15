@@ -117,7 +117,7 @@ export async function exerciseCallOption(
   let hireAccount: HireData | null = null;
 
   try {
-    hireAccount = await program.account.hire.fetch(hire);
+    hireAccount = (await program.account.hire.fetch(hire)) as HireData;
   } catch (err) {
     // account does not exist
   }

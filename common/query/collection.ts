@@ -25,3 +25,16 @@ export async function fetchCollection(
 
   return collectionAccount;
 }
+
+export async function fetchMultipleCollections(
+  connection: anchor.web3.Connection
+): Promise<Collection[]> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
+
+  const collectionAccounts =
+    // @ts-ignore
+    (await program.account.collection.all()) as Collection[]; // TODO ??
+
+  return collectionAccounts;
+}

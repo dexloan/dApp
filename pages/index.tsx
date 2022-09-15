@@ -1,6 +1,5 @@
 import type { NextPage } from "next";
 import { Container, Heading } from "@chakra-ui/react";
-import Head from "next/head";
 import { useMemo } from "react";
 
 import { CallOption, Hire, Loan } from "../common/model";
