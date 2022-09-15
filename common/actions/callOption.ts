@@ -9,6 +9,7 @@ import {
 import * as query from "../query";
 import { HireData } from "../types";
 import { getProgram, getProvider } from "../provider";
+import { submitTransaction } from "./common";
 
 export async function initCallOption(
   connection: anchor.web3.Connection,
@@ -36,7 +37,7 @@ export async function initCallOption(
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
 
-  await program.methods
+  const transaction = await program.methods
     .initCallOption(amount, strikePrice, expiry)
     .accounts({
       callOption,
@@ -51,7 +52,9 @@ export async function initCallOption(
       systemProgram: anchor.web3.SystemProgram.programId,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function buyCallOption(

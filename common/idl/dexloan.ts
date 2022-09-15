@@ -26,7 +26,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
+          name: "collection";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
           isMut: false;
           isSigner: false;
         },
@@ -44,6 +54,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -113,6 +124,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -385,6 +397,11 @@ export type DexloanListings = {
       name: "initCallOption";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "seller";
           isMut: true;
           isSigner: true;
@@ -405,7 +422,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
+          name: "collection";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
           isMut: false;
           isSigner: false;
         },
@@ -423,6 +450,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -472,6 +500,7 @@ export type DexloanListings = {
           name: "callOption";
           isMut: true;
           isSigner: false;
+          docs: ["The listing the loan is being issued against"];
         },
         {
           name: "tokenManager";
@@ -497,6 +526,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -568,6 +598,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -654,6 +685,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -685,6 +717,7 @@ export type DexloanListings = {
           name: "callOption";
           isMut: true;
           isSigner: false;
+          docs: ["The listing the loan is being issued against"];
         },
         {
           name: "tokenManager";
@@ -715,6 +748,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -753,7 +787,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
+          name: "collection";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
           isMut: false;
           isSigner: false;
         },
@@ -771,6 +815,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -859,6 +904,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -915,6 +961,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -991,6 +1038,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -1017,6 +1065,7 @@ export type DexloanListings = {
           name: "hire";
           isMut: true;
           isSigner: false;
+          docs: ["The listing the loan is being issued against"];
         },
         {
           name: "hireEscrow";
@@ -1032,6 +1081,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -1058,6 +1108,7 @@ export type DexloanListings = {
           name: "hire";
           isMut: true;
           isSigner: false;
+          docs: ["The listing the loan is being issued against"];
         },
         {
           name: "tokenManager";
@@ -1088,6 +1139,7 @@ export type DexloanListings = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+          docs: ["Misc"];
         },
         {
           name: "tokenProgram";
@@ -1096,6 +1148,37 @@ export type DexloanListings = {
         },
         {
           name: "clock";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "initCollection";
+      accounts: [
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "collection";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
           isMut: false;
           isSigner: false;
         }
@@ -1111,39 +1194,69 @@ export type DexloanListings = {
         fields: [
           {
             name: "state";
+            docs: ["Whether the option is active"];
             type: {
               defined: "CallOptionState";
             };
           },
           {
             name: "amount";
+            docs: ["The amount of the loan"];
             type: "u64";
           },
           {
             name: "seller";
+            docs: ["The issuer of the call option"];
             type: "publicKey";
           },
           {
             name: "buyer";
-            type: "publicKey";
+            docs: ["The buyer of the call option"];
+            type: {
+              option: "publicKey";
+            };
           },
           {
             name: "expiry";
+            docs: ["Duration of the loan in seconds"];
             type: "i64";
           },
           {
             name: "strikePrice";
+            docs: ["The start date of the loan"];
             type: "u64";
           },
           {
             name: "mint";
+            docs: ["The mint of the token being used for collateral"];
             type: "publicKey";
           },
           {
             name: "padding";
+            docs: ["Misc"];
             type: {
               array: ["u8", 64];
             };
+          },
+          {
+            name: "bump";
+            type: "u8";
+          }
+        ];
+      };
+    },
+    {
+      name: "collection";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "authority";
+            type: "publicKey";
+          },
+          {
+            name: "mint";
+            type: "publicKey";
           },
           {
             name: "bump";
@@ -1159,50 +1272,60 @@ export type DexloanListings = {
         fields: [
           {
             name: "state";
+            docs: ["Whether the loan is active"];
             type: {
               defined: "HireState";
             };
           },
           {
             name: "amount";
+            docs: ["The daily cost to hire"];
             type: "u64";
           },
           {
             name: "lender";
+            docs: ["The NFT lender"];
             type: "publicKey";
           },
           {
             name: "borrower";
+            docs: ["The NFT borrower"];
             type: {
               option: "publicKey";
             };
           },
           {
             name: "expiry";
+            docs: ["The latest date this NFT may be hired until"];
             type: "i64";
           },
           {
             name: "currentStart";
+            docs: ["The start date of the current hire"];
             type: {
               option: "i64";
             };
           },
           {
             name: "currentExpiry";
+            docs: ["The end date of the current hire"];
             type: {
               option: "i64";
             };
           },
           {
             name: "escrowBalance";
+            docs: ["Any amount withheld in escrow"];
             type: "u64";
           },
           {
             name: "mint";
+            docs: ["The mint of the token being used for collateral,"];
             type: "publicKey";
           },
           {
             name: "bump";
+            docs: ["Misc"];
             type: "u8";
           }
         ];
@@ -1215,46 +1338,76 @@ export type DexloanListings = {
         fields: [
           {
             name: "state";
+            docs: ["Whether the loan is active"];
             type: {
               defined: "LoanState";
             };
           },
           {
+            name: "ltv";
+            docs: ["Loan to floor value"];
+            type: {
+              option: "u32";
+            };
+          },
+          {
             name: "amount";
-            type: "u64";
+            docs: ["The amount of the loan"];
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "threshold";
+            docs: ["The liquidation threshold"];
+            type: {
+              option: "u32";
+            };
           },
           {
             name: "borrower";
+            docs: ["The NFT holder"];
             type: "publicKey";
           },
           {
             name: "lender";
-            type: "publicKey";
+            docs: ["The issuer of the loan"];
+            type: {
+              option: "publicKey";
+            };
           },
           {
             name: "basisPoints";
+            docs: ["Annualized return"];
             type: "u32";
           },
           {
             name: "duration";
+            docs: ["Duration of the loan in seconds"];
             type: "i64";
           },
           {
             name: "startDate";
-            type: "i64";
+            docs: ["The start date of the loan"];
+            type: {
+              option: "i64";
+            };
           },
           {
             name: "mint";
+            docs: ["The mint of the token being used for collateral"];
             type: "publicKey";
           },
           {
-            name: "padding";
+            name: "tokenMint";
+            docs: ["The mint of the spl-token mint"];
             type: {
-              array: ["u8", 64];
+              option: "publicKey";
             };
           },
           {
             name: "bump";
+            docs: ["misc"];
             type: "u8";
           }
         ];
@@ -1267,12 +1420,14 @@ export type DexloanListings = {
         fields: [
           {
             name: "accounts";
+            docs: ["Represents"];
             type: {
               defined: "AccountState";
             };
           },
           {
             name: "bump";
+            docs: ["Misc"];
             type: "u8";
           }
         ];
@@ -1359,6 +1514,9 @@ export type DexloanListings = {
         kind: "enum";
         variants: [
           {
+            name: "Unlisted";
+          },
+          {
             name: "Listed";
           },
           {
@@ -1409,36 +1567,41 @@ export type DexloanListings = {
     },
     {
       code: 6007;
+      name: "InvalidCollection";
+      msg: "Invalid collection";
+    },
+    {
+      code: 6008;
       name: "MetadataDoesntExist";
       msg: "Metadata doesnt exist";
     },
     {
-      code: 6008;
+      code: 6009;
       name: "DerivedKeyInvalid";
       msg: "Derived key invalid";
     },
     {
-      code: 6009;
+      code: 6010;
       name: "OptionNotExpired";
       msg: "Option not expired";
     },
     {
-      code: 6010;
+      code: 6011;
       name: "NumericalOverflow";
       msg: "Numerical overflow";
     },
     {
-      code: 6011;
+      code: 6012;
       name: "BorrowerNotSpecified";
       msg: "Borrower not specified";
     },
     {
-      code: 6012;
+      code: 6013;
       name: "InvalidEscrowBalance";
       msg: "Invalid escrow balance";
     },
     {
-      code: 6013;
+      code: 6014;
       name: "InvalidDelegate";
       msg: "Invalid token account delegate";
     }
@@ -1473,7 +1636,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
+          name: "collection",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },
@@ -1491,6 +1664,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -1560,6 +1734,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -1832,6 +2007,11 @@ export const IDL: DexloanListings = {
       name: "initCallOption",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "seller",
           isMut: true,
           isSigner: true,
@@ -1852,7 +2032,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
+          name: "collection",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },
@@ -1870,6 +2060,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -1919,6 +2110,7 @@ export const IDL: DexloanListings = {
           name: "callOption",
           isMut: true,
           isSigner: false,
+          docs: ["The listing the loan is being issued against"],
         },
         {
           name: "tokenManager",
@@ -1944,6 +2136,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2015,6 +2208,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2101,6 +2295,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2132,6 +2327,7 @@ export const IDL: DexloanListings = {
           name: "callOption",
           isMut: true,
           isSigner: false,
+          docs: ["The listing the loan is being issued against"],
         },
         {
           name: "tokenManager",
@@ -2162,6 +2358,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2200,7 +2397,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
+          name: "collection",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },
@@ -2218,6 +2425,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2306,6 +2514,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2362,6 +2571,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2438,6 +2648,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2464,6 +2675,7 @@ export const IDL: DexloanListings = {
           name: "hire",
           isMut: true,
           isSigner: false,
+          docs: ["The listing the loan is being issued against"],
         },
         {
           name: "hireEscrow",
@@ -2479,6 +2691,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2505,6 +2718,7 @@ export const IDL: DexloanListings = {
           name: "hire",
           isMut: true,
           isSigner: false,
+          docs: ["The listing the loan is being issued against"],
         },
         {
           name: "tokenManager",
@@ -2535,6 +2749,7 @@ export const IDL: DexloanListings = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+          docs: ["Misc"],
         },
         {
           name: "tokenProgram",
@@ -2543,6 +2758,37 @@ export const IDL: DexloanListings = {
         },
         {
           name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "initCollection",
+      accounts: [
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "collection",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
           isMut: false,
           isSigner: false,
         },
@@ -2558,39 +2804,69 @@ export const IDL: DexloanListings = {
         fields: [
           {
             name: "state",
+            docs: ["Whether the option is active"],
             type: {
               defined: "CallOptionState",
             },
           },
           {
             name: "amount",
+            docs: ["The amount of the loan"],
             type: "u64",
           },
           {
             name: "seller",
+            docs: ["The issuer of the call option"],
             type: "publicKey",
           },
           {
             name: "buyer",
-            type: "publicKey",
+            docs: ["The buyer of the call option"],
+            type: {
+              option: "publicKey",
+            },
           },
           {
             name: "expiry",
+            docs: ["Duration of the loan in seconds"],
             type: "i64",
           },
           {
             name: "strikePrice",
+            docs: ["The start date of the loan"],
             type: "u64",
           },
           {
             name: "mint",
+            docs: ["The mint of the token being used for collateral"],
             type: "publicKey",
           },
           {
             name: "padding",
+            docs: ["Misc"],
             type: {
               array: ["u8", 64],
             },
+          },
+          {
+            name: "bump",
+            type: "u8",
+          },
+        ],
+      },
+    },
+    {
+      name: "collection",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "authority",
+            type: "publicKey",
+          },
+          {
+            name: "mint",
+            type: "publicKey",
           },
           {
             name: "bump",
@@ -2606,50 +2882,60 @@ export const IDL: DexloanListings = {
         fields: [
           {
             name: "state",
+            docs: ["Whether the loan is active"],
             type: {
               defined: "HireState",
             },
           },
           {
             name: "amount",
+            docs: ["The daily cost to hire"],
             type: "u64",
           },
           {
             name: "lender",
+            docs: ["The NFT lender"],
             type: "publicKey",
           },
           {
             name: "borrower",
+            docs: ["The NFT borrower"],
             type: {
               option: "publicKey",
             },
           },
           {
             name: "expiry",
+            docs: ["The latest date this NFT may be hired until"],
             type: "i64",
           },
           {
             name: "currentStart",
+            docs: ["The start date of the current hire"],
             type: {
               option: "i64",
             },
           },
           {
             name: "currentExpiry",
+            docs: ["The end date of the current hire"],
             type: {
               option: "i64",
             },
           },
           {
             name: "escrowBalance",
+            docs: ["Any amount withheld in escrow"],
             type: "u64",
           },
           {
             name: "mint",
+            docs: ["The mint of the token being used for collateral,"],
             type: "publicKey",
           },
           {
             name: "bump",
+            docs: ["Misc"],
             type: "u8",
           },
         ],
@@ -2662,46 +2948,76 @@ export const IDL: DexloanListings = {
         fields: [
           {
             name: "state",
+            docs: ["Whether the loan is active"],
             type: {
               defined: "LoanState",
             },
           },
           {
+            name: "ltv",
+            docs: ["Loan to floor value"],
+            type: {
+              option: "u32",
+            },
+          },
+          {
             name: "amount",
-            type: "u64",
+            docs: ["The amount of the loan"],
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "threshold",
+            docs: ["The liquidation threshold"],
+            type: {
+              option: "u32",
+            },
           },
           {
             name: "borrower",
+            docs: ["The NFT holder"],
             type: "publicKey",
           },
           {
             name: "lender",
-            type: "publicKey",
+            docs: ["The issuer of the loan"],
+            type: {
+              option: "publicKey",
+            },
           },
           {
             name: "basisPoints",
+            docs: ["Annualized return"],
             type: "u32",
           },
           {
             name: "duration",
+            docs: ["Duration of the loan in seconds"],
             type: "i64",
           },
           {
             name: "startDate",
-            type: "i64",
+            docs: ["The start date of the loan"],
+            type: {
+              option: "i64",
+            },
           },
           {
             name: "mint",
+            docs: ["The mint of the token being used for collateral"],
             type: "publicKey",
           },
           {
-            name: "padding",
+            name: "tokenMint",
+            docs: ["The mint of the spl-token mint"],
             type: {
-              array: ["u8", 64],
+              option: "publicKey",
             },
           },
           {
             name: "bump",
+            docs: ["misc"],
             type: "u8",
           },
         ],
@@ -2714,12 +3030,14 @@ export const IDL: DexloanListings = {
         fields: [
           {
             name: "accounts",
+            docs: ["Represents"],
             type: {
               defined: "AccountState",
             },
           },
           {
             name: "bump",
+            docs: ["Misc"],
             type: "u8",
           },
         ],
@@ -2806,6 +3124,9 @@ export const IDL: DexloanListings = {
         kind: "enum",
         variants: [
           {
+            name: "Unlisted",
+          },
+          {
             name: "Listed",
           },
           {
@@ -2856,36 +3177,41 @@ export const IDL: DexloanListings = {
     },
     {
       code: 6007,
+      name: "InvalidCollection",
+      msg: "Invalid collection",
+    },
+    {
+      code: 6008,
       name: "MetadataDoesntExist",
       msg: "Metadata doesnt exist",
     },
     {
-      code: 6008,
+      code: 6009,
       name: "DerivedKeyInvalid",
       msg: "Derived key invalid",
     },
     {
-      code: 6009,
+      code: 6010,
       name: "OptionNotExpired",
       msg: "Option not expired",
     },
     {
-      code: 6010,
+      code: 6011,
       name: "NumericalOverflow",
       msg: "Numerical overflow",
     },
     {
-      code: 6011,
+      code: 6012,
       name: "BorrowerNotSpecified",
       msg: "Borrower not specified",
     },
     {
-      code: 6012,
+      code: 6013,
       name: "InvalidEscrowBalance",
       msg: "Invalid escrow balance",
     },
     {
-      code: 6013,
+      code: 6014,
       name: "InvalidDelegate",
       msg: "Invalid token account delegate",
     },

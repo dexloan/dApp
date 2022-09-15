@@ -68,3 +68,24 @@ export async function getOrCreateTokenAccount(
 
   return tokenAccount;
 }
+
+export async function submitTransaction(
+  connection: anchor.web3.Connection,
+  txn: anchor.web3.Transaction
+) {
+  const serializedTxn = txn.serialize().toString();
+
+  const response = await fetch("/api/transaction", {
+    method: "POST",
+    body: JSON.stringify({
+      transaction: serializedTxn,
+    }),
+  });
+  const body = await response.json();
+
+  if (response.ok === false) {
+    throw new Error(body.message);
+  }
+
+  await connection.confirmTransaction(body.signature);
+}

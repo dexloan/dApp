@@ -22,7 +22,7 @@ export class CallOption implements CallOptionArgs {
   ) {}
 
   public isBuyer(wallet?: AnchorWallet) {
-    if (wallet) {
+    if (wallet && this.data.buyer) {
       return this.data.buyer.equals(wallet.publicKey);
     }
     return false;
@@ -65,7 +65,7 @@ export class CallOption implements CallOptionArgs {
   }
 
   get hasBuyer() {
-    return !utils.isSystemProgram(this.data.buyer);
+    return this.data.buyer !== null;
   }
 
   get seller() {
@@ -101,7 +101,7 @@ export class CallOption implements CallOptionArgs {
         state: { [args.data.state as string]: {} },
         amount: new BN(args.data.amount),
         seller: new web3.PublicKey(args.data.seller),
-        buyer: new web3.PublicKey(args.data.buyer),
+        buyer: args.data.buyer ? new web3.PublicKey(args.data.buyer) : null,
         expiry: new BN(args.data.expiry),
         strikePrice: new BN(args.data.strikePrice),
         mint: new web3.PublicKey(args.data.mint),

@@ -24,7 +24,7 @@ import { IoBicycle, IoCalendar, IoCash } from "react-icons/io5";
 import * as utils from "../common/utils";
 import {
   CallOptionStateEnum,
-  Collection,
+  CollectionItem,
   CollectionMap,
   HireStateEnum,
   LoanStateEnum,
@@ -176,7 +176,7 @@ const Loans = () => {
   const totalLending = useMemo(
     () =>
       givenLoans?.reduce((total, item) => {
-        if (item) {
+        if (item?.data?.amount) {
           return total.add(item.data.amount);
         }
         return total;
@@ -187,7 +187,7 @@ const Loans = () => {
   const totalBorrowing = useMemo(
     () =>
       activeBorrowings?.reduce((total, item) => {
-        if (item) {
+        if (item?.data?.amount) {
           return total.add(item.data.amount);
         }
         return total;
@@ -641,7 +641,7 @@ const MyItems = () => {
 };
 
 interface CollectionProps {
-  collection: Collection;
+  collection: CollectionItem;
   onSelectItem: (item: NFTResult) => void;
 }
 

@@ -2,12 +2,9 @@ import * as anchor from "@project-serum/anchor";
 
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
+import { CallOptionData } from "../types";
 import { getProgram, getProvider } from "../provider";
-import {
-  fetchMetadata,
-  fetchMetadataAccounts,
-  assertMintIsWhitelisted,
-} from "./common";
+import { fetchMetadata, fetchMetadataAccounts } from "./common";
 import { CallOption, CallOptionPretty } from "../model/callOption";
 
 export async function findCallOptionAddress(
@@ -31,11 +28,13 @@ export async function fetchCallOption(
 
   const callOptionAccount = await program.account.callOption.fetch(address);
 
-  assertMintIsWhitelisted(callOptionAccount.mint);
-
   const metadata = await fetchMetadata(connection, callOptionAccount.mint);
 
-  return new CallOption(callOptionAccount, metadata, address).pretty();
+  return new CallOption(
+    callOptionAccount as CallOptionData,
+    metadata,
+    address
+  ).pretty();
 }
 
 export async function waitForCallOption(
@@ -66,13 +65,7 @@ export async function fetchMultipleCallOptions(
 ): Promise<CallOptionPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
-  const callOptions = await program.account.callOption
-    .all(filter)
-    .then((result) =>
-      result.sort(
-        (a, b) => a.account.amount.toNumber() - b.account.amount.toNumber()
-      )
-    );
+  const callOptions = await program.account.callOption.all(filter);
 
   const metadataAccounts = await fetchMetadataAccounts(connection, callOptions);
 
@@ -81,7 +74,7 @@ export async function fetchMultipleCallOptions(
 
     if (metadataAccount) {
       return new CallOption(
-        callOption.account,
+        callOption.account as CallOptionData,
         metadataAccount,
         callOption.publicKey
       ).pretty();
