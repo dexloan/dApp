@@ -30,6 +30,7 @@ import {
 } from "react-icons/io5";
 import { IconType } from "react-icons";
 import * as utils from "../../common/utils";
+import { NFTResult } from "../../common/types";
 import { useFloorPriceQuery } from "../../hooks/query";
 import { useInitLoanMutation } from "../../hooks/mutation/loan";
 
@@ -41,15 +42,13 @@ interface FormFields {
 
 interface ListingFormProps {
   open: boolean;
-  mint: anchor.web3.PublicKey | undefined;
-  symbol: string | undefined;
+  selected: NFTResult | null;
   onRequestClose: () => void;
 }
 
 export const InitLoanModal = ({
   open,
-  mint,
-  symbol,
+  selected,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -65,7 +64,7 @@ export const InitLoanModal = ({
     },
   });
 
-  const floorPriceQuery = useFloorPriceQuery(symbol);
+  const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
   const mutation = useInitLoanMutation(() => onRequestClose());
 
   function onSubmit() {
@@ -77,10 +76,11 @@ export const InitLoanModal = ({
           duration: data.duration * 24 * 60 * 60,
         };
 
-        if (mint) {
+        if (selected && selected.metadata.collection) {
           mutation.mutate({
             options,
-            mint,
+            mint: selected.tokenAccount.data.mint,
+            collectionMint: selected.metadata.collection?.key,
           });
         }
       }

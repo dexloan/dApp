@@ -19,6 +19,7 @@ import { useMemo } from "react";
 
 import dayjs from "../../common/lib/dayjs";
 import { useInitHireMutation } from "../../hooks/mutation";
+import { NFTResult } from "../../common/types";
 
 interface FormFields {
   amount: number;
@@ -29,13 +30,13 @@ interface FormFields {
 
 interface ListingFormProps {
   open: boolean;
-  mint: anchor.web3.PublicKey | undefined;
+  selected: NFTResult | null;
   onRequestClose: () => void;
 }
 
 export const InitHireModal = ({
   open,
-  mint,
+  selected,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -60,10 +61,11 @@ export const InitHireModal = ({
         expiry: data.expiry,
       };
 
-      if (mint) {
+      if (selected && selected.metadata.collection) {
         mutation.mutate({
           options,
-          mint,
+          mint: selected.tokenAccount.data.mint,
+          collectionMint: selected.metadata.collection.key,
         });
       }
     })();

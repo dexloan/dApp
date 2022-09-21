@@ -23,6 +23,7 @@ import {
 
 interface InitHireMutationVariables {
   mint: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
   options: {
     amount: number;
     expiry: number;
@@ -42,6 +43,7 @@ export const useInitHireMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
+          variables.collectionMint,
           variables.options
         );
       }

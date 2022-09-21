@@ -6,11 +6,13 @@ import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-toke
 import * as query from "../query";
 import { HireData } from "../types";
 import { getProgram, getProvider } from "../provider";
+import { submitTransaction } from "./common";
 
 export async function initLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
+  collectionMint: anchor.web3.PublicKey,
   options: {
     amount: number;
     duration: number;
@@ -25,6 +27,7 @@ export async function initLoan(
   const program = getProgram(provider);
 
   const loan = await query.findLoanAddress(mint, wallet.publicKey);
+  const collection = await query.findCollectionAddress(collectionMint);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
@@ -33,11 +36,12 @@ export async function initLoan(
     .address;
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const transaction = await program.methods
     .initLoan(amount, basisPoint, duration)
     .accounts({
       loan,
       tokenManager,
+      collection,
       mint,
       edition,
       depositTokenAccount: tokenAccount,
@@ -47,7 +51,9 @@ export async function initLoan(
       systemProgram: anchor.web3.SystemProgram.programId,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function giveLoan(
@@ -62,7 +68,7 @@ export async function giveLoan(
   const loan = await query.findLoanAddress(mint, borrower);
   const tokenManager = await query.findTokenManagerAddress(mint, borrower);
 
-  await program.methods
+  const transaction = await program.methods
     .giveLoan()
     .accounts({
       borrower,
@@ -74,7 +80,9 @@ export async function giveLoan(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function closeLoan(
@@ -93,7 +101,7 @@ export async function closeLoan(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const transaction = await program.methods
     .closeLoan()
     .accounts({
       loan,
@@ -106,7 +114,9 @@ export async function closeLoan(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function repayLoan(
@@ -126,7 +136,7 @@ export async function repayLoan(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const transaction = await program.methods
     .repayLoan()
     .accounts({
       lender,
@@ -141,7 +151,9 @@ export async function repayLoan(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function repossessCollateral(
@@ -166,7 +178,7 @@ export async function repossessCollateral(
   let hireAccount: HireData | null = null;
 
   try {
-    hireAccount = await program.account.hire.fetch(hire);
+    hireAccount = (await program.account.hire.fetch(hire)) as HireData;
   } catch (err) {
     // account does not exist
   }
@@ -200,9 +212,10 @@ export async function repossessCollateral(
       ]);
     }
 
-    await method.rpc();
+    const transaction = await method.transaction();
+    await submitTransaction(connection, transaction);
   } else {
-    await program.methods
+    const transaction = await program.methods
       .repossess()
       .accounts({
         loan,
@@ -219,6 +232,8 @@ export async function repossessCollateral(
         clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       })
-      .rpc();
+      .transaction();
+
+    await submitTransaction(connection, transaction);
   }
 }

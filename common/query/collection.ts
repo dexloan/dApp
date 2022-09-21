@@ -32,9 +32,7 @@ export async function fetchMultipleCollections(
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
-  const collectionAccounts =
-    // @ts-ignore
-    (await program.account.collection.all()) as Collection[]; // TODO ??
-
-  return collectionAccounts;
+  return program.account.collection
+    .all()
+    .then((all) => all.map((collection) => collection.account));
 }

@@ -61,13 +61,9 @@ function Dexloan({ Component, pageProps }: AppProps) {
                   description="Dexloan is a DeFi protocol on the Solana blockchain for escrowless NFT borrowing &amp; lending. Users can take loans by collateralizing their NFT and simultaneously rent out the same NFT to earn passive income. We also support call options and (coming soon) NFT &amp; SOL staking."
                   url={``}
                 />
-                <LaunchPlaceholder>
-                  <>
-                    <Navbar />
-                    <Component {...pageProps} />
-                    <Toaster />
-                  </>
-                </LaunchPlaceholder>
+                <Navbar />
+                <Component {...pageProps} />
+                <Toaster />
                 <FontFace />
               </ChakraProvider>
             </WalletModalProvider>
@@ -78,43 +74,5 @@ function Dexloan({ Component, pageProps }: AppProps) {
     </QueryClientProvider>
   );
 }
-
-const LaunchPlaceholder = ({ children }: { children: JSX.Element }) => {
-  const router = useRouter();
-  const [password, setPassword] = useState("");
-
-  useEffect(() => {
-    if (typeof window !== undefined && router.query?.hackathon) {
-      setPassword(router.query?.hackathon as string);
-    }
-  }, [router.query?.hackathon]);
-
-  if (password !== "winner") {
-    return (
-      <Main>
-        <Box
-          height="100vh"
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Box width="200px" mb="4">
-            <DexloanLogo />
-          </Box>
-          <Box width="400px">
-            <Input
-              placeholder="Enter Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </Box>
-        </Box>
-      </Main>
-    );
-  }
-
-  return children;
-};
 
 export default Dexloan;

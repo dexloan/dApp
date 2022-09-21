@@ -22,3 +22,5 @@ export const SerializedCallOptionState = {
   Active: 1,
   Exercised: 2,
 };
+
+export const SIGNER = null;

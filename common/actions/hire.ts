@@ -8,11 +8,13 @@ import {
 
 import * as query from "../query";
 import { getProgram, getProvider } from "../provider";
+import { submitTransaction } from "./common";
 
 export async function initHire(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
+  collectionMint: anchor.web3.PublicKey,
   options: {
     amount: number;
     expiry: number;
@@ -27,6 +29,7 @@ export async function initHire(
   const program = getProgram(provider);
 
   const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const collection = await query.findCollectionAddress(collectionMint);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
@@ -35,12 +38,13 @@ export async function initHire(
     .address;
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const transaction = await program.methods
     .initHire({ amount, expiry, borrower })
     .accounts({
       hire,
       tokenManager,
       mint,
+      collection,
       edition,
       lender: wallet.publicKey,
       depositTokenAccount: tokenAccount,
@@ -49,7 +53,9 @@ export async function initHire(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function takeHire(
@@ -100,7 +106,8 @@ export async function takeHire(
     method.remainingAccounts(creatorAccounts);
   }
 
-  await method.rpc();
+  const transaction = await method.transaction();
+  await submitTransaction(connection, transaction);
 }
 
 export async function extendHire(
@@ -140,7 +147,8 @@ export async function extendHire(
     method.remainingAccounts(creatorAccounts);
   }
 
-  await method.rpc();
+  const transaction = await method.transaction();
+  await submitTransaction(connection, transaction);
 }
 
 export async function recoverHire(
@@ -164,7 +172,7 @@ export async function recoverHire(
   const hireTokenAccount = (await connection.getTokenLargestAccounts(mint))
     .value[0].address;
 
-  await program.methods
+  const transaction = await program.methods
     .recoverHire()
     .accounts({
       borrower,
@@ -181,7 +189,9 @@ export async function recoverHire(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function withdrawFromHireEscrow(
@@ -195,7 +205,7 @@ export async function withdrawFromHireEscrow(
   const hire = await query.findHireAddress(mint, wallet.publicKey);
   const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
 
-  await program.methods
+  const transaction = await program.methods
     .withdrawFromHireEscrow()
     .accounts({
       mint,
@@ -206,7 +216,9 @@ export async function withdrawFromHireEscrow(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }
 
 export async function closeHire(
@@ -225,7 +237,7 @@ export async function closeHire(
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const transaction = await program.methods
     .closeHire()
     .accounts({
       hire,
@@ -239,5 +251,7 @@ export async function closeHire(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, transaction);
 }

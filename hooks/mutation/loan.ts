@@ -21,6 +21,7 @@ import {
 
 interface InitLoanMutationVariables {
   mint: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
   options: {
     amount: number;
     basisPoints: number;
@@ -40,6 +41,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
+          variables.collectionMint,
           variables.options
         );
       }
