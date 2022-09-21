@@ -1,5 +1,5 @@
 import type { AppProps } from "next/app";
-import { ChakraProvider, Box, Input } from "@chakra-ui/react";
+import { ChakraProvider, Box, Input, Heading, Text } from "@chakra-ui/react";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -13,7 +13,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { Toaster } from "react-hot-toast";
@@ -81,40 +81,61 @@ function Dexloan({ Component, pageProps }: AppProps) {
 
 const LaunchPlaceholder = ({ children }: { children: JSX.Element }) => {
   const router = useRouter();
-  const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    if (typeof window !== undefined && router.query?.hackathon) {
-      setPassword(router.query?.hackathon as string);
-    }
-  }, [router.query?.hackathon]);
-
-  if (password !== "winner") {
-    return (
-      <Main>
+  return (
+    <Main>
+      <Box
+        height="100vh"
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Box width="200px" mb="6">
+          <DexloanLogo />
+        </Box>
         <Box
-          height="100vh"
           display="flex"
           flexDirection="column"
           alignItems="center"
           justifyContent="center"
         >
-          <Box width="200px" mb="4">
-            <DexloanLogo />
-          </Box>
-          <Box width="400px">
-            <Input
-              placeholder="Enter Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </Box>
+          <Heading
+            as="h1"
+            size="2xl"
+            color="gray.700"
+            lineHeight="shorter"
+            fontWeight="extrabold"
+            maxW="16ch"
+            mb="8"
+            textAlign="center"
+          >
+            <Box as="span" color="green.600">
+              Borrow and lend
+            </Box>{" "}
+            against your digital assets
+          </Heading>
+          <Text
+            size="md"
+            fontWeight="medium"
+            mb="8"
+            maxW="60ch"
+            textAlign="center"
+          >
+            Dexloan is now onboarding a select number of communities for early
+            access to our financial &amp; social NFT services. Please reach out
+            to us <Text as="b">@dexloanio</Text> if you are part of a community
+            interested in using our services.
+          </Text>
         </Box>
-      </Main>
-    );
-  }
+        <Box width="400px">
+          <Input placeholder="Enter Password" />
+        </Box>
+      </Box>
+    </Main>
+  );
 
-  return children;
+  // return children;
 };
 
 export default Dexloan;
