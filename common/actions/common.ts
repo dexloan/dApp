@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
-import { WalletContextState } from "@solana/wallet-adapter-react";
+import { AnchorWallet, WalletContextState } from "@solana/wallet-adapter-react";
 
 export async function getOrCreateTokenAccount(
   connection: anchor.web3.Connection,
@@ -71,9 +71,17 @@ export async function getOrCreateTokenAccount(
 
 export async function submitTransaction(
   connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
   txn: anchor.web3.Transaction
 ) {
-  const serializedTxn = txn.serialize().toString();
+  txn.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+  txn.feePayer = wallet.publicKey;
+
+  const serializedTxn = txn
+    .serialize({
+      requireAllSignatures: false,
+    })
+    .toString();
 
   const response = await fetch("/api/transaction", {
     method: "POST",

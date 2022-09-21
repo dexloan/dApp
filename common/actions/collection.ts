@@ -2,6 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 import { getProgram, getProvider } from "../provider";
+import { SIGNER } from "../constants";
 import { submitTransaction } from "./common";
 import * as query from "../query";
 
@@ -23,8 +24,9 @@ export async function initCollection(
       authority: wallet.publicKey,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }

@@ -23,4 +23,6 @@ export const SerializedCallOptionState = {
   Exercised: 2,
 };
 
-export const SIGNER = null;
+export const SIGNER = new anchor.web3.PublicKey(
+  process.env.NEXT_PUBLIC_SIGNER as string
+);

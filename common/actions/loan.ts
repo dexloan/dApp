@@ -4,6 +4,7 @@ import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
+import { SIGNER } from "../constants";
 import { HireData } from "../types";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
@@ -50,10 +51,11 @@ export async function initLoan(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function giveLoan(
@@ -79,10 +81,11 @@ export async function giveLoan(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function closeLoan(
@@ -113,10 +116,11 @@ export async function closeLoan(
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function repayLoan(
@@ -150,10 +154,11 @@ export async function repayLoan(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function repossessCollateral(
@@ -200,6 +205,7 @@ export async function repossessCollateral(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      signer: SIGNER,
     });
 
     if (hireAccount.borrower) {
@@ -213,7 +219,7 @@ export async function repossessCollateral(
     }
 
     const transaction = await method.transaction();
-    await submitTransaction(connection, transaction);
+    await submitTransaction(connection, wallet, transaction);
   } else {
     const transaction = await program.methods
       .repossess()
@@ -231,9 +237,10 @@ export async function repossessCollateral(
         tokenProgram: splToken.TOKEN_PROGRAM_ID,
         clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        signer: SIGNER,
       })
       .transaction();
 
-    await submitTransaction(connection, transaction);
+    await submitTransaction(connection, wallet, transaction);
   }
 }

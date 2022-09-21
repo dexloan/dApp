@@ -6,6 +6,11 @@ export type DexloanListings = {
       name: "initLoan";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "borrower";
           isMut: true;
           isSigner: true;
@@ -86,6 +91,11 @@ export type DexloanListings = {
       name: "closeLoan";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "borrower";
           isMut: false;
           isSigner: true;
@@ -138,6 +148,11 @@ export type DexloanListings = {
       name: "giveLoan";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "borrower";
           isMut: true;
           isSigner: false;
@@ -183,6 +198,11 @@ export type DexloanListings = {
     {
       name: "repayLoan";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "borrower";
           isMut: true;
@@ -244,6 +264,11 @@ export type DexloanListings = {
     {
       name: "repossess";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "lender";
           isMut: true;
@@ -315,6 +340,11 @@ export type DexloanListings = {
     {
       name: "repossessWithHire";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "lender";
           isMut: true;
@@ -487,6 +517,11 @@ export type DexloanListings = {
       name: "buyCallOption";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "seller";
           isMut: true;
           isSigner: false;
@@ -544,6 +579,11 @@ export type DexloanListings = {
     {
       name: "exerciseCallOption";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "seller";
           isMut: true;
@@ -621,6 +661,11 @@ export type DexloanListings = {
     {
       name: "exerciseCallOptionWithHire";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "seller";
           isMut: true;
@@ -709,6 +754,11 @@ export type DexloanListings = {
       name: "closeCallOption";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "seller";
           isMut: true;
           isSigner: true;
@@ -766,6 +816,11 @@ export type DexloanListings = {
     {
       name: "initHire";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "lender";
           isMut: true;
@@ -845,6 +900,11 @@ export type DexloanListings = {
     {
       name: "takeHire";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "lender";
           isMut: true;
@@ -928,6 +988,11 @@ export type DexloanListings = {
       name: "extendHire";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "lender";
           isMut: true;
           isSigner: false;
@@ -984,6 +1049,11 @@ export type DexloanListings = {
     {
       name: "recoverHire";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "lender";
           isMut: true;
@@ -1057,6 +1127,11 @@ export type DexloanListings = {
       name: "withdrawFromHireEscrow";
       accounts: [
         {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
           name: "lender";
           isMut: true;
           isSigner: true;
@@ -1099,6 +1174,11 @@ export type DexloanListings = {
     {
       name: "closeHire";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "lender";
           isMut: true;
@@ -1157,6 +1237,11 @@ export type DexloanListings = {
     {
       name: "initCollection";
       accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
         {
           name: "authority";
           isMut: true;
@@ -1616,6 +1701,11 @@ export const IDL: DexloanListings = {
       name: "initLoan",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "borrower",
           isMut: true,
           isSigner: true,
@@ -1696,6 +1786,11 @@ export const IDL: DexloanListings = {
       name: "closeLoan",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "borrower",
           isMut: false,
           isSigner: true,
@@ -1748,6 +1843,11 @@ export const IDL: DexloanListings = {
       name: "giveLoan",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "borrower",
           isMut: true,
           isSigner: false,
@@ -1793,6 +1893,11 @@ export const IDL: DexloanListings = {
     {
       name: "repayLoan",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "borrower",
           isMut: true,
@@ -1854,6 +1959,11 @@ export const IDL: DexloanListings = {
     {
       name: "repossess",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "lender",
           isMut: true,
@@ -1925,6 +2035,11 @@ export const IDL: DexloanListings = {
     {
       name: "repossessWithHire",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "lender",
           isMut: true,
@@ -2097,6 +2212,11 @@ export const IDL: DexloanListings = {
       name: "buyCallOption",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "seller",
           isMut: true,
           isSigner: false,
@@ -2154,6 +2274,11 @@ export const IDL: DexloanListings = {
     {
       name: "exerciseCallOption",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "seller",
           isMut: true,
@@ -2231,6 +2356,11 @@ export const IDL: DexloanListings = {
     {
       name: "exerciseCallOptionWithHire",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "seller",
           isMut: true,
@@ -2319,6 +2449,11 @@ export const IDL: DexloanListings = {
       name: "closeCallOption",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "seller",
           isMut: true,
           isSigner: true,
@@ -2376,6 +2511,11 @@ export const IDL: DexloanListings = {
     {
       name: "initHire",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "lender",
           isMut: true,
@@ -2455,6 +2595,11 @@ export const IDL: DexloanListings = {
     {
       name: "takeHire",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "lender",
           isMut: true,
@@ -2538,6 +2683,11 @@ export const IDL: DexloanListings = {
       name: "extendHire",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "lender",
           isMut: true,
           isSigner: false,
@@ -2594,6 +2744,11 @@ export const IDL: DexloanListings = {
     {
       name: "recoverHire",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "lender",
           isMut: true,
@@ -2667,6 +2822,11 @@ export const IDL: DexloanListings = {
       name: "withdrawFromHireEscrow",
       accounts: [
         {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
           name: "lender",
           isMut: true,
           isSigner: true,
@@ -2709,6 +2869,11 @@ export const IDL: DexloanListings = {
     {
       name: "closeHire",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "lender",
           isMut: true,
@@ -2767,6 +2932,11 @@ export const IDL: DexloanListings = {
     {
       name: "initCollection",
       accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
         {
           name: "authority",
           isMut: true,

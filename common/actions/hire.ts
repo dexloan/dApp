@@ -7,6 +7,7 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
+import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
 
@@ -52,10 +53,11 @@ export async function initHire(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function takeHire(
@@ -100,6 +102,7 @@ export async function takeHire(
     systemProgram: anchor.web3.SystemProgram.programId,
     tokenProgram: splToken.TOKEN_PROGRAM_ID,
     clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+    signer: SIGNER,
   });
 
   if (creatorAccounts?.length) {
@@ -107,7 +110,7 @@ export async function takeHire(
   }
 
   const transaction = await method.transaction();
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function extendHire(
@@ -141,6 +144,7 @@ export async function extendHire(
     systemProgram: anchor.web3.SystemProgram.programId,
     tokenProgram: splToken.TOKEN_PROGRAM_ID,
     clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+    signer: SIGNER,
   });
 
   if (creatorAccounts?.length) {
@@ -148,7 +152,7 @@ export async function extendHire(
   }
 
   const transaction = await method.transaction();
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function recoverHire(
@@ -188,10 +192,11 @@ export async function recoverHire(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function withdrawFromHireEscrow(
@@ -215,10 +220,11 @@ export async function withdrawFromHireEscrow(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function closeHire(
@@ -250,8 +256,9 @@ export async function closeHire(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
     .transaction();
 
-  await submitTransaction(connection, transaction);
+  await submitTransaction(connection, wallet, transaction);
 }

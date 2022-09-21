@@ -18,7 +18,6 @@ import { Card, CardList } from "../components/card";
 
 const Collection: NextPage = () => {
   const collectionsQuery = useCollectionsQuery();
-
   const mutation = useInitCollectionMutation();
 
   const {
@@ -76,7 +75,12 @@ const Collection: NextPage = () => {
                 )}
               />
             </Box>
-            <Button colorScheme="green" w="100%" isLoading={mutation.isLoading}>
+            <Button
+              colorScheme="green"
+              type="submit"
+              w="100%"
+              isLoading={mutation.isLoading}
+            >
               Confirm
             </Button>
           </FormControl>
