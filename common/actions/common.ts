@@ -77,11 +77,14 @@ export async function submitTransaction(
   txn.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
   txn.feePayer = wallet.publicKey;
 
-  const serializedTxn = txn
+  const signedTxn = await wallet.signTransaction(txn);
+
+  const serializedTxn = signedTxn
     .serialize({
       requireAllSignatures: false,
+      verifySignatures: true,
     })
-    .toString();
+    .toString("base64");
 
   const response = await fetch("/api/transaction", {
     method: "POST",

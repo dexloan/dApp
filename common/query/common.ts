@@ -4,6 +4,7 @@ import {
   Metadata,
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
+import { getProgram, getProvider } from "../provider";
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
@@ -22,18 +23,6 @@ export async function findMetadataAddress(mint: anchor.web3.PublicKey) {
     [Buffer.from("metadata"), METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
     METADATA_PROGRAM_ID
   );
-}
-
-export async function assertMintIsWhitelisted(mint: anchor.web3.PublicKey) {
-  const origin =
-    typeof window === "undefined" ? process.env.NEXT_PUBLIC_HOST : "";
-
-  const response = await fetch(`${origin}/api/whitelist/${mint.toBase58()}`);
-
-  if (response.ok === false) {
-    const message = await response.json();
-    throw new Error(message);
-  }
 }
 
 export async function fetchMetadata(
@@ -75,48 +64,52 @@ export async function fetchNFTs(
   connection: anchor.web3.Connection,
   publicKey: anchor.web3.PublicKey
 ) {
-  const rawTokenAccounts = await connection.getTokenAccountsByOwner(publicKey, {
-    programId: splToken.TOKEN_PROGRAM_ID,
-  });
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
 
-  const tokenAccounts = await Promise.all(
-    rawTokenAccounts.value.map(({ pubkey, account }) => {
-      const decodedInfo = splToken.AccountLayout.decode(
-        account.data.slice(0, splToken.ACCOUNT_SIZE)
-      );
-
-      return {
-        pubkey,
-        data: decodedInfo,
-      };
-    })
-  ).then((accounts) => {
-    return accounts.filter(
-      (account) =>
-        account.data.amount === BigInt("1") && account.data.state !== 2
+  const collectionMints = await program.account.collection
+    .all()
+    .then((collections) =>
+      collections.map((collection) => collection.account.mint)
     );
-  });
 
-  const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {
-    method: "POST",
-    body: JSON.stringify({
-      mints: tokenAccounts.map((account) => account.data.mint.toBase58()),
-    }),
-  }).then((response) => response.json());
+  const tokenAccounts = await connection
+    .getTokenAccountsByOwner(publicKey, {
+      programId: splToken.TOKEN_PROGRAM_ID,
+    })
+    .then((rawTokenAccounts) => {
+      return rawTokenAccounts.value
+        .map(({ pubkey, account }) => {
+          const decodedInfo = splToken.AccountLayout.decode(
+            account.data.slice(0, splToken.ACCOUNT_SIZE)
+          );
 
-  const filteredTokenAccounts = tokenAccounts.filter((account) =>
-    whitelist.mints.includes(account.data.mint.toBase58())
-  );
+          return {
+            pubkey,
+            data: decodedInfo,
+          };
+        })
+        .filter(
+          (account) =>
+            account.data.amount === BigInt("1") && account.data.state !== 2
+        );
+    });
 
   const metadataAccounts = await fetchMetadataAccounts(
     connection,
-    filteredTokenAccounts.map((a) => ({ account: { mint: a.data.mint } }))
+    tokenAccounts.map((a) => ({ account: { mint: a.data.mint } }))
   );
 
   const combinedAccounts = metadataAccounts.map((metadata, index) => {
-    if (metadata) {
+    const collectionMint = metadata?.collection?.key;
+
+    if (
+      metadata &&
+      collectionMint !== undefined &&
+      collectionMints.some((mint) => mint.equals(collectionMint))
+    ) {
       try {
-        const tokenAccount = filteredTokenAccounts[index];
+        const tokenAccount = tokenAccounts[index];
 
         if (tokenAccount.data.amount === BigInt("0")) {
           return null;

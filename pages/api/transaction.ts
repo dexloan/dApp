@@ -3,7 +3,7 @@ import { web3 } from "@project-serum/anchor";
 import * as bip39 from "bip39";
 import { derivePath } from "ed25519-hd-key";
 
-import { RPC_ENDPOINT } from "../../common/constants";
+import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
 
 interface TransactionResponse {
   signature: string;
@@ -13,18 +13,29 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<TransactionResponse>
 ) {
-  const connection = new web3.Connection(RPC_ENDPOINT);
+  const connection = new web3.Connection(BACKEND_RPC_ENDPOINT);
   const serializedTransaction = JSON.parse(req.body).transaction as string;
-  const buffer = Buffer.from(serializedTransaction);
+  const buffer = Buffer.from(serializedTransaction, "base64");
   const transaction = web3.Transaction.from(buffer);
-  const signer = await getSigner();
-  console.log("signer: ", signer.publicKey.toBase58());
-  transaction.partialSign(signer);
-  const signature = await connection.sendTransaction(transaction, [], {
-    preflightCommitment: "confirmed",
-  });
 
-  return res.status(200).json({ signature });
+  try {
+    console.log("transaction: ", transaction);
+    const signer = await getSigner();
+    console.log("signer: ", signer.publicKey.toBase58());
+    transaction.partialSign(signer);
+
+    const signature = await connection.sendRawTransaction(
+      transaction.serialize(),
+      {
+        preflightCommitment: "confirmed",
+      }
+    );
+
+    return res.status(200).json({ signature });
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
 }
 
 async function getSigner() {
