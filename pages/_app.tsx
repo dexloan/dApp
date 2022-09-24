@@ -19,12 +19,10 @@ import { ReactQueryDevtools } from "react-query/devtools";
 import { Toaster } from "react-hot-toast";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-import DexloanLogo from "../public/dexloan.svg";
 import theme from "../theme";
 import { RPC_ENDPOINT } from "../common/constants";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
-import { Main } from "../components/layout";
 import { DocumentHead } from "../components/document";
 
 function Dexloan({ Component, pageProps }: AppProps) {
