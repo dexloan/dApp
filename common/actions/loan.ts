@@ -35,6 +35,7 @@ export async function initLoan(
   );
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
+  const [metadata] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
 
   const transaction = await program.methods
@@ -45,6 +46,7 @@ export async function initLoan(
       collection,
       mint,
       edition,
+      metadata,
       depositTokenAccount: tokenAccount,
       borrower: wallet.publicKey,
       metadataProgram: METADATA_PROGRAM_ID,
