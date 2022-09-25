@@ -7,7 +7,7 @@ type Data = {
   error?: string;
 };
 
-const EXPIRY = 60 * 5; // 5 minutes
+const EXPIRY = 60 * 30; // 30 minutes
 const client = new Redis(process.env.REDIS_URL as string);
 
 export default async function handler(

@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 
 export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
-  "8hSdpqHU7jz4C6C1kHUPQNMqBcC76n1BFXbHaTwd9X4c"
+  "3prAEjvoQffKGbTLzFHx8oq1NZfhpLwHm9nfcdczrzVe"
 );
 
 export const RPC_ENDPOINT =

@@ -58,6 +58,7 @@ interface LoanProps {
 const LoanPage: NextPage<LoanProps> = () => {
   const loanAddress = usePageParam();
   const loanQueryResult = useLoanQuery(loanAddress);
+
   const metadataQuery = useMetadataFileQuery(
     loanQueryResult.data?.metadata.data.uri
   );

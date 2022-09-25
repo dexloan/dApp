@@ -162,7 +162,7 @@ nameMap.set("CHKN", "chicken_tribe");
 nameMap.set("CHKCOP", "chicken_tribe_coops");
 nameMap.set("XAPE", "exiled_degen_ape_academy");
 nameMap.set("BH", "lgtb");
-nameMap.set("JB", "jelly_beasts");
+nameMap.set("NOOT", "pesky_penguins");
 
 export function mapSymbolToCollectionName(symbol: string) {
   return nameMap.get(trimNullChars(symbol));
@@ -173,7 +173,7 @@ titleMap.set("CHKN", "Chicken Tribe");
 titleMap.set("CHKCOP", "Chicken Tribe Coops");
 titleMap.set("XAPE", "Exiled Apes");
 titleMap.set("BH", "Breadheads");
-titleMap.set("JB", "Jelly Beasts");
+titleMap.set("NOOT", "Pesky Penguins");
 
 export function mapSymbolToCollectionTitle(symbol: string) {
   return titleMap.get(symbol.replace(/\x00/g, ""));

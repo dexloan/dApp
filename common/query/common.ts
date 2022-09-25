@@ -129,7 +129,9 @@ export async function fetchNFTs(
       .then((rawTokenAccounts) => {
         return rawTokenAccounts.value
           .map(({ pubkey, account }) => unpackToken(pubkey, account))
-          .filter((account) => account.amount === BigInt("1"));
+          .filter(
+            (account) => account.amount === BigInt("1") && !account.isFrozen
+          );
       }),
   ]);
 

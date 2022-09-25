@@ -34,7 +34,7 @@ import { Loan, CallOption, Hire } from "../common/model";
 import {
   useNFTByOwnerQuery,
   useFloorPriceQuery,
-  useLoansTakeQuery,
+  useLoansTakenQuery,
   useLoansGivenQuery,
   useBuyerCallOptionsQuery,
   useSellerCallOptionsQuery,
@@ -149,8 +149,8 @@ const LoadingSpinner = () => (
 
 const Loans = () => {
   const loansGivenQuery = useLoansGivenQuery();
-  const loansTakenQuery = useLoansTakeQuery();
-
+  const loansTakenQuery = useLoansTakenQuery();
+  console.log("loansTakenQuery: ", loansTakenQuery);
   const givenLoans = useMemo(
     () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
     [loansGivenQuery.data]
