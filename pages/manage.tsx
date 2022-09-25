@@ -40,8 +40,6 @@ import {
   useSellerCallOptionsQuery,
   useLenderHiresQuery,
   useBorrowerHiresQuery,
-  // Deprecated
-  // usePersonalListingsQuery,
 } from "../hooks/query";
 import {
   Card,
@@ -506,11 +504,10 @@ const Hires = () => {
 };
 
 const MyItems = () => {
-  const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
   const [type, setType] = useState<"loan" | "callOption" | "hire" | null>(null);
-  const nftQuery = useNFTByOwnerQuery(connection, wallet);
+  const nftQuery = useNFTByOwnerQuery(wallet);
 
   const collections = useMemo(() => {
     const collectionMap = nftQuery.data?.reduce((cols, nft) => {
@@ -651,7 +648,7 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
     (item: NFTResult) => {
       return (
         <Card
-          key={item?.tokenAccount.pubkey.toBase58()}
+          key={item?.tokenAccount.address.toBase58()}
           uri={item?.metadata.data.uri}
           imageAlt={item?.metadata.data.name}
         >

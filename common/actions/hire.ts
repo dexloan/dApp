@@ -38,6 +38,7 @@ export async function initHire(
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
   const [edition] = await query.findEditionAddress(mint);
+  const [metadata] = await query.findMetadataAddress(mint);
 
   const transaction = await program.methods
     .initHire({ amount, expiry, borrower })
@@ -47,6 +48,7 @@ export async function initHire(
       mint,
       collection,
       edition,
+      metadata,
       lender: wallet.publicKey,
       depositTokenAccount: tokenAccount,
       metadataProgram: METADATA_PROGRAM_ID,

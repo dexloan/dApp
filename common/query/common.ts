@@ -5,6 +5,7 @@ import {
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { getProgram, getProvider } from "../provider";
+import { NFTResult } from "../types";
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
@@ -60,44 +61,81 @@ export async function fetchMetadataAccounts(
   );
 }
 
+// Can remove this when we update spl-token lib
+function unpackToken(
+  address: anchor.web3.PublicKey,
+  info: anchor.web3.AccountInfo<Buffer> | null,
+  programId = splToken.TOKEN_PROGRAM_ID
+) {
+  if (!info) throw new splToken.TokenAccountNotFoundError();
+
+  const rawAccount = splToken.AccountLayout.decode(info.data);
+  if (!info.owner.equals(programId))
+    throw new splToken.TokenInvalidAccountOwnerError();
+  if (info.data.length < splToken.ACCOUNT_SIZE)
+    throw new splToken.TokenInvalidAccountSizeError();
+
+  return {
+    address,
+    mint: rawAccount.mint,
+    owner: rawAccount.owner,
+    amount: rawAccount.amount,
+    delegate: rawAccount.delegateOption ? rawAccount.delegate : null,
+    delegatedAmount: rawAccount.delegatedAmount,
+    isInitialized: rawAccount.state !== splToken.AccountState.Uninitialized,
+    isFrozen: rawAccount.state === splToken.AccountState.Frozen,
+    isNative: !!rawAccount.isNativeOption,
+    rentExemptReserve: rawAccount.isNativeOption ? rawAccount.isNative : null,
+    closeAuthority: rawAccount.closeAuthorityOption
+      ? rawAccount.closeAuthority
+      : null,
+  };
+}
+
+export async function fetchNFT(
+  connection: anchor.web3.Connection,
+  mint: anchor.web3.PublicKey
+): Promise<NFTResult> {
+  const largestTokenAccounts = await connection.getTokenLargestAccounts(mint);
+
+  const [tokenAccount, metadata] = await Promise.all([
+    splToken.getAccount(connection, largestTokenAccounts.value[0].address),
+    fetchMetadata(connection, mint),
+  ]);
+
+  return {
+    metadata,
+    tokenAccount,
+  };
+}
+
 export async function fetchNFTs(
   connection: anchor.web3.Connection,
-  publicKey: anchor.web3.PublicKey
-) {
+  address: anchor.web3.PublicKey
+): Promise<NFTResult[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
-  const collectionMints = await program.account.collection
-    .all()
-    .then((collections) =>
-      collections.map((collection) => collection.account.mint)
-    );
-
-  const tokenAccounts = await connection
-    .getTokenAccountsByOwner(publicKey, {
-      programId: splToken.TOKEN_PROGRAM_ID,
-    })
-    .then((rawTokenAccounts) => {
-      return rawTokenAccounts.value
-        .map(({ pubkey, account }) => {
-          const decodedInfo = splToken.AccountLayout.decode(
-            account.data.slice(0, splToken.ACCOUNT_SIZE)
-          );
-
-          return {
-            pubkey,
-            data: decodedInfo,
-          };
-        })
-        .filter(
-          (account) =>
-            account.data.amount === BigInt("1") && account.data.state !== 2
-        );
-    });
+  const [collectionMints, tokenAccounts] = await Promise.all([
+    program.account.collection
+      .all()
+      .then((collections) =>
+        collections.map((collection) => collection.account.mint)
+      ),
+    connection
+      .getTokenAccountsByOwner(address, {
+        programId: splToken.TOKEN_PROGRAM_ID,
+      })
+      .then((rawTokenAccounts) => {
+        return rawTokenAccounts.value
+          .map(({ pubkey, account }) => unpackToken(pubkey, account))
+          .filter((account) => account.amount === BigInt("1"));
+      }),
+  ]);
 
   const metadataAccounts = await fetchMetadataAccounts(
     connection,
-    tokenAccounts.map((a) => ({ account: { mint: a.data.mint } }))
+    tokenAccounts.map((a) => ({ account: { mint: a.mint } }))
   );
 
   const combinedAccounts = metadataAccounts.map((metadata, index) => {
@@ -111,7 +149,7 @@ export async function fetchNFTs(
       try {
         const tokenAccount = tokenAccounts[index];
 
-        if (tokenAccount.data.amount === BigInt("0")) {
+        if (tokenAccount.amount === BigInt("0")) {
           return null;
         }
 
@@ -127,7 +165,7 @@ export async function fetchNFTs(
     return null;
   });
 
-  return combinedAccounts.filter(Boolean);
+  return combinedAccounts.filter(Boolean) as NFTResult[];
 }
 
 export async function fetchTokenAccountAddress(

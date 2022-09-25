@@ -97,7 +97,7 @@ const LoanPage: NextPage<LoanProps> = () => {
         imageAlt={loan.metadata.data.name}
         url={`loan/${loan.publicKey.toBase58()}`}
         twitterLabels={[
-          { label: "Amount", value: loan.amount },
+          { label: "Amount", value: loan.amount || "" },
           { label: "APY", value: loan.apy },
           { label: "Duration", value: loan.duration },
         ]}
@@ -190,8 +190,8 @@ const LoanLayout = () => {
     return null;
   }
 
-  const ltv = useMemo(() => {
-    if (loan?.data && floorPriceQuery.data?.floorPrice) {
+  const currentLTV = useMemo(() => {
+    if (loan?.data?.amount && floorPriceQuery.data?.floorPrice) {
       const percentage = Number(
         (loan.data.amount.toNumber() / floorPriceQuery.data.floorPrice) * 100
       ).toFixed(2);
@@ -366,7 +366,7 @@ const LoanLayout = () => {
                     Loan to Floor Value
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
-                    {ltv}
+                    {currentLTV}
                   </Heading>
                 </Box>
               </Flex>

@@ -65,7 +65,7 @@ export const useInitHireMutation = (onSuccess: () => void) => {
             }
 
             return data.filter((item: NFTResult) => {
-              return !item?.tokenAccount.data.mint.equals(variables.mint);
+              return !item?.tokenAccount.mint.equals(variables.mint);
             });
           }
         );

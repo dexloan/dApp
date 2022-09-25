@@ -35,10 +35,7 @@ export enum HireStateEnum {
 }
 
 export interface NFTResult {
-  tokenAccount: {
-    pubkey: anchor.web3.PublicKey;
-    data: splToken.RawAccount;
-  };
+  tokenAccount: splToken.Account;
   metadata: Metadata;
 }
 

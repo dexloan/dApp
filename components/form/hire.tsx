@@ -64,7 +64,7 @@ export const InitHireModal = ({
       if (selected && selected.metadata.collection) {
         mutation.mutate({
           options,
-          mint: selected.tokenAccount.data.mint,
+          mint: selected.tokenAccount.mint,
           collectionMint: selected.metadata.collection.key,
         });
       }

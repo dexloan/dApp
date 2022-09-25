@@ -2,26 +2,24 @@ import * as anchor from "@project-serum/anchor";
 import { Button } from "@chakra-ui/react";
 import { useState } from "react";
 import { IoCash } from "react-icons/io5";
+
+import { useNFT } from "../../hooks/query";
 import { InitLoanModal } from "../form";
 
 interface LoanButtonProps {
   mint: anchor.web3.PublicKey;
-  symbol: string;
   disabled?: boolean;
 }
 
-export const LoanButton = ({
-  mint,
-  symbol,
-  disabled = false,
-}: LoanButtonProps) => {
+export const LoanButton = ({ mint, disabled = false }: LoanButtonProps) => {
   const [modal, setModal] = useState(false);
+  const nftQuery = useNFT(mint);
 
   return (
     <>
       <Button
         w="100%"
-        disabled={disabled}
+        disabled={disabled || !nftQuery.data}
         rightIcon={<IoCash />}
         onClick={() => setModal(true)}
       >
@@ -29,8 +27,7 @@ export const LoanButton = ({
       </Button>
       <InitLoanModal
         open={modal}
-        mint={mint}
-        symbol={symbol}
+        selected={nftQuery.data ?? null}
         onRequestClose={() => setModal(false)}
       />
     </>

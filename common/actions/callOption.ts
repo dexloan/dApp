@@ -31,6 +31,7 @@ export async function initCallOption(
   const program = getProgram(provider);
 
   const [edition] = await query.findEditionAddress(mint);
+  const [metadata] = await query.findMetadataAddress(mint);
   const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
@@ -47,6 +48,7 @@ export async function initCallOption(
       collection,
       tokenManager,
       mint,
+      metadata,
       edition,
       seller: wallet.publicKey,
       depositTokenAccount: tokenAccount,

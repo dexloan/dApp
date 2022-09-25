@@ -63,7 +63,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
             }
             return data.filter(
               (item: NFTResult) =>
-                !item?.tokenAccount.data.mint.equals(variables.mint)
+                !item?.tokenAccount.mint.equals(variables.mint)
             );
           }
         );
@@ -307,7 +307,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
 interface RepayLoanProps {
   mint: anchor.web3.PublicKey;
   borrower: anchor.web3.PublicKey;
-  lender: anchor.web3.PublicKey;
+  lender: anchor.web3.PublicKey | null;
 }
 
 export const useRepayLoanMutation = (onSuccess: () => void) => {
@@ -318,7 +318,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
 
   return useMutation<void, Error, RepayLoanProps>(
     async ({ mint, lender }) => {
-      if (anchorWallet) {
+      if (anchorWallet && lender) {
         const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,

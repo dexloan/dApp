@@ -64,7 +64,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
             }
             return data.filter(
               (item: NFTResult) =>
-                !item?.tokenAccount.data.mint.equals(variables.mint)
+                !item?.tokenAccount.mint.equals(variables.mint)
             );
           }
         );
