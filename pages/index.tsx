@@ -24,22 +24,34 @@ const Home: NextPage = () => {
 
   const loans = useMemo(
     () =>
-      (loansQuery.data?.map(Loan.fromJSON) || []).filter(
-        (loan) => loan.state !== LoanStateEnum.Defaulted
-      ),
+      (loansQuery.data?.map(Loan.fromJSON) || [])
+        .filter((loan) => loan.state !== LoanStateEnum.Defaulted)
+        .sort((loan) => {
+          if (loan.state === "listed") return -1;
+          return 1;
+        }),
     [loansQuery.data]
   );
 
   const callOptions = useMemo(
     () =>
-      (callOptionsQuery.data?.map(CallOption.fromJSON) || []).filter(
-        (callOption) => callOption.state !== CallOptionStateEnum.Exercised
-      ),
+      (callOptionsQuery.data?.map(CallOption.fromJSON) || [])
+        .filter(
+          (callOption) => callOption.state !== CallOptionStateEnum.Exercised
+        )
+        .sort((callOption) => {
+          if (callOption.state === "listed") return -1;
+          return 1;
+        }),
     [callOptionsQuery.data]
   );
 
   const hires = useMemo(
-    () => hiresQuery.data?.map(Hire.fromJSON) || [],
+    () =>
+      (hiresQuery.data?.map(Hire.fromJSON) || []).sort((callOption) => {
+        if (callOption.state === "listed") return -1;
+        return 1;
+      }),
     [hiresQuery.data]
   );
 
