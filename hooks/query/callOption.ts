@@ -1,7 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "react-query";
-import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
@@ -109,7 +108,7 @@ export function useBuyerCallOptionsQuery() {
           {
             memcmp: {
               // filter lender
-              offset: 8 + 1 + 8 + 32,
+              offset: 8 + 1 + 8 + 32 + 1,
               bytes: anchorWallet?.publicKey.toBase58(),
             },
           },

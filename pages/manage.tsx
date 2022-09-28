@@ -150,7 +150,7 @@ const LoadingSpinner = () => (
 const Loans = () => {
   const loansGivenQuery = useLoansGivenQuery();
   const loansTakenQuery = useLoansTakenQuery();
-  console.log("loansTakenQuery: ", loansTakenQuery);
+
   const givenLoans = useMemo(
     () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
     [loansGivenQuery.data]

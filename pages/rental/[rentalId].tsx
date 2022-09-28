@@ -438,10 +438,7 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
           <CallOptionButton mint={hire.data.mint} />
         </Box>
         <Box mt="2" mb="2" flex={1}>
-          <LoanButton
-            mint={hire.data.mint}
-            symbol={hire.metadata.data.symbol}
-          />
+          <LoanButton mint={hire.data.mint} />
         </Box>
       </Flex>
     );

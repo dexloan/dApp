@@ -58,7 +58,6 @@ interface LoanProps {
 const LoanPage: NextPage<LoanProps> = () => {
   const loanAddress = usePageParam();
   const loanQueryResult = useLoanQuery(loanAddress);
-
   const metadataQuery = useMetadataFileQuery(
     loanQueryResult.data?.metadata.data.uri
   );
@@ -354,14 +353,16 @@ const LoanLayout = () => {
                 </Box>
               </Flex>
               <Flex direction="row" gap="12" mb="12">
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Interest
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {loan.interestDue}
-                  </Heading>
-                </Box>
+                {loan.state === "active" && (
+                  <Box>
+                    <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                      Interest due
+                    </Text>
+                    <Heading size="md" fontWeight="bold" mb="6">
+                      {loan.interestDue}
+                    </Heading>
+                  </Box>
+                )}
                 <Box>
                   <Text fontSize="sm" fontWeight="medium" color="gray.500">
                     Loan to Floor Value

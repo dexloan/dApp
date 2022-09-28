@@ -46,6 +46,12 @@ interface ListingFormProps {
   onRequestClose: () => void;
 }
 
+const defaultValues = {
+  ltv: 30,
+  apy: 50,
+  duration: 30,
+};
+
 export const InitLoanModal = ({
   open,
   selected,
@@ -57,17 +63,15 @@ export const InitLoanModal = ({
     formState: { isValid },
   } = useForm<FormFields>({
     mode: "onChange",
-    defaultValues: {
-      ltv: 60,
-      apy: 50,
-      duration: 30,
-    },
+    defaultValues,
   });
 
   const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
   const mutation = useInitLoanMutation(() => onRequestClose());
 
   function onSubmit() {
+    if (mutation.isLoading) return;
+
     handleSubmit((data) => {
       if (floorPriceQuery.data) {
         const options = {
@@ -121,7 +125,7 @@ export const InitLoanModal = ({
                       name="ltv"
                       control={control}
                       label="Loan to value"
-                      defaultValue={60}
+                      defaultValue={defaultValues.ltv}
                       min={10}
                       max={100}
                       step={5}
@@ -133,7 +137,7 @@ export const InitLoanModal = ({
                       name="apy"
                       control={control}
                       label="APY"
-                      defaultValue={50}
+                      defaultValue={defaultValues.apy}
                       min={5}
                       max={1000}
                       step={5}
@@ -145,7 +149,7 @@ export const InitLoanModal = ({
                       name="duration"
                       control={control}
                       label="Duration"
-                      defaultValue={30}
+                      defaultValue={defaultValues.duration}
                       min={1}
                       max={365}
                       icon={IoCalendar}

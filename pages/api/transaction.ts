@@ -19,9 +19,7 @@ export default async function handler(
   const transaction = web3.Transaction.from(buffer);
 
   try {
-    console.log("transaction: ", transaction);
     const signer = await getSigner();
-    console.log("signer: ", signer.publicKey.toBase58());
     transaction.partialSign(signer);
 
     const signature = await connection.sendRawTransaction(

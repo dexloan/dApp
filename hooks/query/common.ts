@@ -78,7 +78,6 @@ export const useTokenAccountQuery = (
   return useQuery(
     ["token_account", wallet?.toBase58(), mint?.toBase58()],
     async () => {
-      console.log("fetchTokenAccountAddress: ", fetchTokenAccountAddress);
       if (wallet && mint) {
         return fetchTokenAccountAddress(connection, wallet, mint);
       }
