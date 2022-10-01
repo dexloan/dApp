@@ -563,7 +563,7 @@ const HireForm = ({ label = "Rent", hire, onSubmit }: HireFormProps) => {
             rules={{
               required: true,
               min: 1,
-              max: maxDays,
+              max: { value: maxDays, message: "Exceeds maximum rental period" },
               validate: (value) => {
                 return !isNaN(value);
               },
@@ -578,7 +578,9 @@ const HireForm = ({ label = "Rent", hire, onSubmit }: HireFormProps) => {
                   onChange={onChange}
                 />
                 <FormHelperText>
-                  The number of days you wish to rent
+                  {error?.message?.length
+                    ? error.message
+                    : "The number of days you wish to rent"}
                 </FormHelperText>
               </FormControl>
             )}
