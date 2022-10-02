@@ -51,33 +51,40 @@ export function calculateProRataInterestRate(
   return (basisPoints / 10_000 / SECONDS_PER_YEAR) * duration.toNumber();
 }
 
+const LATE_REPAYMENT_FEE_BASIS_POINTS = new anchor.BN(500);
+const BASIS_POINTS_DIVISOR = new anchor.BN(10_000);
+
+export function calculateLateRepaymentFee(amount: anchor.BN) {
+  return amount.mul(LATE_REPAYMENT_FEE_BASIS_POINTS).div(BASIS_POINTS_DIVISOR);
+}
+
 export function calculateInterestDue(
   amount: anchor.BN,
   startDate: anchor.BN,
-  basisPoints: number
+  basisPoints: number,
+  expired: boolean
 ): anchor.BN {
   const now = new anchor.BN(Date.now() / 1000);
   const elapsed = now.sub(startDate);
   const interestRate = calculateProRataInterestRate(basisPoints, elapsed);
-  return new anchor.BN(amount.toNumber() * interestRate);
-}
+  const interestDue = new anchor.BN(amount.toNumber() * interestRate);
 
-export function formatInterestDue(
-  amount: anchor.BN,
-  startDate: anchor.BN,
-  basisPoints: number
-): string {
-  return formatAmount(calculateInterestDue(amount, startDate, basisPoints));
+  return expired
+    ? interestDue.add(calculateLateRepaymentFee(amount))
+    : interestDue;
 }
 
 export function formatTotalDue(
   amount: anchor.BN,
   startDate: anchor.BN,
-  basisPoints: number
+  basisPoints: number,
+  expired: boolean
 ): string {
-  return formatAmount(
-    amount.add(calculateInterestDue(amount, startDate, basisPoints))
+  const total = amount.add(
+    calculateInterestDue(amount, startDate, basisPoints, expired)
   );
+
+  return formatAmount(total);
 }
 
 export function calculateInterestOnMaturity(

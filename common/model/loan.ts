@@ -100,7 +100,8 @@ export class Loan implements LoanArgs {
         utils.calculateInterestDue(
           this.data.amount,
           this.data.startDate,
-          this.data.basisPoints
+          this.data.basisPoints,
+          this.expired
         )
       );
     }
@@ -111,7 +112,8 @@ export class Loan implements LoanArgs {
       return utils.formatTotalDue(
         this.data.amount,
         this.data.startDate,
-        this.data.basisPoints
+        this.data.basisPoints,
+        this.expired
       );
     }
   }

@@ -153,7 +153,7 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
             <Text as="span" fontWeight="semibold">
               {loan.totalDue}
             </Text>{" "}
-            to recover your NFT.
+            to unlock your NFT.
           </Text>
           <Text fontSize="sm">
             This loan may be repaid in full at any time. Failure to repay the
