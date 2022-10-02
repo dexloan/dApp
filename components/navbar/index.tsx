@@ -12,8 +12,11 @@ import {
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import NextLink from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { IoWallet } from "react-icons/io5";
+import toast from "react-hot-toast";
+import base58 from "bs58";
+
 import Dexloan from "../../public/dexloan.svg";
 
 export function Navbar() {
@@ -30,6 +33,42 @@ export function Navbar() {
   function onConnect() {
     modal.setVisible(true);
   }
+
+  useEffect(() => {
+    async function signMessage() {
+      if (!wallet.signMessage) return;
+
+      try {
+        const message = process.env.NEXT_PUBLIC_AUTH_MESSAGE as string;
+        const signature = await wallet.signMessage(
+          Buffer.from(message, "utf8")
+        );
+        const encodedSignature = base58.encode(signature);
+
+        const response = await fetch("/api/authenticate", {
+          method: "POST",
+          body: JSON.stringify({
+            signature: encodedSignature,
+            publicKey: wallet.publicKey?.toBase58(),
+          }),
+        });
+        const body = await response.json();
+
+        if (!response.ok) {
+          throw new Error(body.message ?? "Failed to verify");
+        }
+      } catch (error) {
+        toast.error("Failed to verify");
+        try {
+          await wallet.disconnect();
+        } catch {}
+      }
+    }
+
+    if (wallet.publicKey) {
+      signMessage();
+    }
+  }, [wallet.publicKey]);
 
   function UserMenuButton() {
     return (

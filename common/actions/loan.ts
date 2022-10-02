@@ -57,7 +57,10 @@ export async function initLoan(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction);
+  await submitTransaction(connection, wallet, transaction, {
+    struct: "loan",
+    address: loan.toBase58(),
+  });
 }
 
 export async function giveLoan(
@@ -87,7 +90,10 @@ export async function giveLoan(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction);
+  await submitTransaction(connection, wallet, transaction, {
+    struct: "loan",
+    address: loan.toBase58(),
+  });
 }
 
 export async function closeLoan(
@@ -122,7 +128,10 @@ export async function closeLoan(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction);
+  await submitTransaction(connection, wallet, transaction, {
+    struct: "loan",
+    address: loan.toBase58(),
+  });
 }
 
 export async function repayLoan(
@@ -160,7 +169,10 @@ export async function repayLoan(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction);
+  await submitTransaction(connection, wallet, transaction, {
+    struct: "loan",
+    address: loan.toBase58(),
+  });
 }
 
 export async function repossessCollateral(
@@ -221,7 +233,10 @@ export async function repossessCollateral(
     }
 
     const transaction = await method.transaction();
-    await submitTransaction(connection, wallet, transaction);
+    await submitTransaction(connection, wallet, transaction, {
+      struct: "loan",
+      address: loan.toBase58(),
+    });
   } else {
     const transaction = await program.methods
       .repossess()
@@ -243,6 +258,9 @@ export async function repossessCollateral(
       })
       .transaction();
 
-    await submitTransaction(connection, wallet, transaction);
+    await submitTransaction(connection, wallet, transaction, {
+      struct: "loan",
+      address: loan.toBase58(),
+    });
   }
 }

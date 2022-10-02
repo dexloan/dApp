@@ -61,7 +61,10 @@ export async function initCallOption(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction);
+  await submitTransaction(connection, wallet, transaction, {
+    struct: "callOption",
+    address: callOption.toBase58(),
+  });
 }
 
 export async function buyCallOption(
@@ -94,7 +97,10 @@ export async function buyCallOption(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction);
+  await submitTransaction(connection, wallet, transaction, {
+    struct: "callOption",
+    address: callOption.toBase58(),
+  });
 }
 
 export async function exerciseCallOption(
@@ -172,7 +178,10 @@ export async function exerciseCallOption(
     }
 
     const transaction = await method.transaction();
-    await submitTransaction(connection, wallet, transaction);
+    await submitTransaction(connection, wallet, transaction, {
+      struct: "callOption",
+      address: callOption.toBase58(),
+    });
   } else {
     const method = program.methods.exerciseCallOption().accounts({
       buyerTokenAccount,
@@ -197,7 +206,10 @@ export async function exerciseCallOption(
     }
 
     const transaction = await method.transaction();
-    await submitTransaction(connection, wallet, transaction);
+    await submitTransaction(connection, wallet, transaction, {
+      struct: "callOption",
+      address: callOption.toBase58(),
+    });
   }
 }
 
@@ -234,5 +246,8 @@ export async function closeCallOption(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction);
+  await submitTransaction(connection, wallet, transaction, {
+    struct: "callOption",
+    address: callOption.toBase58(),
+  });
 }

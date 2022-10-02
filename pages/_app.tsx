@@ -1,5 +1,5 @@
 import type { AppProps } from "next/app";
-import { ChakraProvider, Box, Input } from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -12,8 +12,7 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { Toaster } from "react-hot-toast";

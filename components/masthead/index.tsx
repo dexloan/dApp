@@ -44,8 +44,8 @@ export function Masthead() {
         </Box>
       </Heading>
       <Text size="md" fontWeight="medium" mb="8" maxW="50ch">
-        Unlock the value of your NFTs with escrowless finacial &amp; contracts
-        and social staking. Borrow and lend. Buy and sell call options.
+        Unlock the value of your NFTs with escrowless finacial contracts and
+        social staking. Borrow and lend. Buy and sell call options.
         <br />
         <Badge colorScheme="green">New: NFT rentals now available</Badge>
       </Text>

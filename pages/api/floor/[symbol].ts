@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import Redis from "ioredis";
+import { Redis } from "@upstash/redis";
 import * as utils from "../../../common/utils";
 
 type Data = {
@@ -8,14 +8,18 @@ type Data = {
 };
 
 const EXPIRY = 60 * 30; // 30 minutes
-const client = new Redis(process.env.REDIS_URL as string);
+
+const client = new Redis({
+  url: process.env.REDIS_URL as string,
+  token: process.env.REDIS_TOKEN as string,
+});
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
   const symbol = req.query.symbol as string;
-  const floorPrice = await client.get(symbol);
+  const floorPrice = await client.get<string>(symbol);
 
   if (floorPrice) {
     return res.status(200).json({ floorPrice: parseInt(floorPrice) });
@@ -26,7 +30,7 @@ export default async function handler(
     const stats = await queuedTimeout(() =>
       fetchMagicEdenCollectionStats(name)
     );
-    client.set(symbol, stats.floorPrice, "EX", EXPIRY);
+    client.set(symbol, stats.floorPrice, { ex: EXPIRY });
 
     return res.status(200).json({ floorPrice: stats.floorPrice });
   } catch (error) {
