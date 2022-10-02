@@ -8,7 +8,6 @@ import nookies from "nookies";
 import jwt from "jsonwebtoken";
 
 import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
-import { getProgram, getProvider } from "../../common/provider";
 
 const client = new Redis({
   url: process.env.REDIS_URL as string,
@@ -46,79 +45,24 @@ export default async function handler(
     return res.status(401).json({ message: "Not authorized" });
   }
 
-  const connection = new web3.Connection(BACKEND_RPC_ENDPOINT);
-  const { info, transaction: serializedTransaction } = JSON.parse(req.body) as {
+  const { transaction: serializedTransaction } = JSON.parse(req.body) as {
     transaction: string;
-    info: { struct: "callOption" | "hire" | "loan"; address: string };
   };
+  const connection = new web3.Connection(BACKEND_RPC_ENDPOINT);
   const buffer = Buffer.from(serializedTransaction, "base64");
   const transaction = web3.Transaction.from(buffer);
 
   const accounts = transaction.instructions[0].keys;
   const payload = jwt.verify(token, process.env.AUTH_TOKEN_SECRET as string);
+
   // @ts-ignore
   const user = new web3.PublicKey(payload.publicKey);
-  const account = new web3.PublicKey(info.address);
-  const hasAccount = accounts.some(
-    (a) => a.isWritable && a.pubkey.equals(account)
+  const hasUser = accounts.some(
+    (a) => a.isWritable && a.isSigner && a.pubkey.equals(user)
   );
+  const isPayer = transaction.feePayer?.equals(user);
 
-  if (hasAccount) {
-    const provider = getProvider(connection);
-    const program = getProgram(provider);
-
-    switch (info.struct) {
-      case "callOption": {
-        try {
-          const data = await program.account.callOption.fetch(account);
-
-          if (data.buyer || data.seller) {
-            if (
-              (data.buyer && user.equals(data.buyer)) ||
-              (data.seller && user.equals(data.seller))
-            ) {
-              // ok
-            } else {
-              return res.status(401).json({ message: "Not authorized" });
-            }
-          }
-        } catch {}
-      }
-
-      case "hire": {
-        try {
-          const data = await program.account.hire.fetch(account);
-
-          if (data.borrower || data.lender) {
-            if (
-              (data.borrower && user.equals(data.borrower)) ||
-              (data.lender && user.equals(data.lender))
-            ) {
-              // ok
-            } else {
-              return res.status(401).json({ message: "Not authorized" });
-            }
-          }
-        } catch {}
-      }
-      case "loan": {
-        try {
-          const data = await program.account.loan.fetch(account);
-
-          if (data.borrower || data.lender) {
-            if (
-              (data.borrower && user.equals(data.borrower)) ||
-              (data.lender && user.equals(data.lender))
-            ) {
-              // ok
-            } else {
-              return res.status(401).json({ message: "Not authorized" });
-            }
-          }
-        } catch {}
-      }
-    }
-  } else {
+  if (!hasUser || !isPayer) {
     return res.status(401).json({ message: "Not authorized" });
   }
 

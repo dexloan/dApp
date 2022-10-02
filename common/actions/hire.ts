@@ -59,10 +59,7 @@ export async function initHire(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction, {
-    struct: "hire",
-    address: hire.toBase58(),
-  });
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function takeHire(
@@ -116,10 +113,7 @@ export async function takeHire(
 
   const transaction = await method.transaction();
 
-  await submitTransaction(connection, wallet, transaction, {
-    struct: "hire",
-    address: hire.toBase58(),
-  });
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function extendHire(
@@ -161,10 +155,7 @@ export async function extendHire(
   }
 
   const transaction = await method.transaction();
-  await submitTransaction(connection, wallet, transaction, {
-    struct: "hire",
-    address: hire.toBase58(),
-  });
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function recoverHire(
@@ -208,10 +199,7 @@ export async function recoverHire(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction, {
-    struct: "hire",
-    address: hire.toBase58(),
-  });
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function withdrawFromHireEscrow(
@@ -239,10 +227,7 @@ export async function withdrawFromHireEscrow(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction, {
-    struct: "hire",
-    address: hire.toBase58(),
-  });
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function closeHire(
@@ -278,8 +263,5 @@ export async function closeHire(
     })
     .transaction();
 
-  await submitTransaction(connection, wallet, transaction, {
-    struct: "hire",
-    address: hire.toBase58(),
-  });
+  await submitTransaction(connection, wallet, transaction);
 }

@@ -72,8 +72,7 @@ export async function getOrCreateTokenAccount(
 export async function submitTransaction(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
-  txn: anchor.web3.Transaction,
-  info: { struct: "callOption" | "loan" | "hire"; address: string }
+  txn: anchor.web3.Transaction
 ) {
   txn.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
   txn.feePayer = wallet.publicKey;
@@ -90,7 +89,6 @@ export async function submitTransaction(
   const response = await fetch("/api/transaction", {
     method: "POST",
     body: JSON.stringify({
-      info,
       transaction: serializedTxn,
     }),
   });
