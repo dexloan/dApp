@@ -155,16 +155,16 @@ export async function exerciseCallOption(
 
     const remainingAccounts = [];
 
+    if (creatorAccounts?.length) {
+      remainingAccounts.push(...creatorAccounts);
+    }
+
     if (hireAccount.borrower) {
       remainingAccounts.push({
         isSigner: false,
         isWritable: true,
         pubkey: hireAccount.borrower,
       });
-    }
-
-    if (creatorAccounts?.length) {
-      remainingAccounts.push(...creatorAccounts);
     }
 
     if (remainingAccounts.length) {
