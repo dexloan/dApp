@@ -13,12 +13,16 @@ import {
 import { Controller, useForm } from "react-hook-form";
 
 import { useCollectionsQuery } from "../hooks/query";
-import { useInitCollectionMutation } from "../hooks/mutation";
+import {
+  useInitCollectionMutation,
+  useCloseCollectionMutation,
+} from "../hooks/mutation";
 import { Card, CardList } from "../components/card";
 
 const Collection: NextPage = () => {
   const collectionsQuery = useCollectionsQuery();
-  const mutation = useInitCollectionMutation();
+  const initMutation = useInitCollectionMutation();
+  const closeMutation = useCloseCollectionMutation();
 
   const {
     control,
@@ -54,6 +58,16 @@ const Collection: NextPage = () => {
               >
                 {collection.metadata.data.name}
               </Box>
+              <Button
+                isLoading={closeMutation.isLoading}
+                onClick={() =>
+                  closeMutation.mutate({
+                    mint: collection.data.mint,
+                  })
+                }
+              >
+                Close
+              </Button>
             </Box>
           </Card>
         ))}
@@ -61,7 +75,7 @@ const Collection: NextPage = () => {
       <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
         <form
           onSubmit={handleSubmit((data) => {
-            mutation.mutate({ mint: new anchor.web3.PublicKey(data.mint) });
+            initMutation.mutate({ mint: new anchor.web3.PublicKey(data.mint) });
           })}
         >
           <FormControl isInvalid={!isValid}>
@@ -93,7 +107,7 @@ const Collection: NextPage = () => {
               colorScheme="green"
               type="submit"
               w="100%"
-              isLoading={mutation.isLoading}
+              isLoading={initMutation.isLoading}
             >
               Confirm
             </Button>

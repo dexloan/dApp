@@ -27,3 +27,26 @@ export const useInitCollectionMutation = () => {
     }
   );
 };
+
+export const useCloseCollectionMutation = () => {
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+
+  return useMutation<void, Error, InitCollectionVariables>(
+    (variables) => {
+      if (anchorWallet) {
+        return actions.closeCollection(
+          connection,
+          anchorWallet,
+          variables.mint
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onSuccess() {
+        toast.success("Collection closed");
+      },
+    }
+  );
+};

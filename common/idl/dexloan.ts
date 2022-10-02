@@ -1252,6 +1252,42 @@ export type DexloanListings = {
         }
       ];
       args: [];
+    },
+    {
+      name: "closeCollection";
+      accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "collection";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -1317,6 +1353,12 @@ export type DexloanListings = {
           {
             name: "mint";
             type: "publicKey";
+          },
+          {
+            name: "reserved";
+            type: {
+              array: ["u8", 128];
+            };
           },
           {
             name: "bump";
@@ -2911,6 +2953,42 @@ export const IDL: DexloanListings = {
       ],
       args: [],
     },
+    {
+      name: "closeCollection",
+      accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "collection",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
   ],
   accounts: [
     {
@@ -2975,6 +3053,12 @@ export const IDL: DexloanListings = {
           {
             name: "mint",
             type: "publicKey",
+          },
+          {
+            name: "reserved",
+            type: {
+              array: ["u8", 128],
+            },
           },
           {
             name: "bump",
