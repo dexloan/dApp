@@ -105,7 +105,7 @@ export class CallOption implements CallOptionArgs {
         expiry: new BN(args.data.expiry),
         strikePrice: new BN(args.data.strikePrice),
         mint: new web3.PublicKey(args.data.mint),
-        padding: [],
+        tokenMint: null,
         bump: args.data.bump,
       },
       Metadata.fromArgs({
