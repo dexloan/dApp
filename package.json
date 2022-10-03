@@ -6,9 +6,7 @@
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "whitelist": "node_modules/.bin/ts-node ./scripts/whitelist.ts",
-    "parse": "node_modules/.bin/ts-node ./scripts/parse.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@chakra-ui/react": "^1.8.8",
