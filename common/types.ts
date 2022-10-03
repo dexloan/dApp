@@ -57,7 +57,7 @@ export type Collection = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
 export type HireData = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
 export type LoanData = TypeDef<typeof IDL["accounts"][3], DexloanListings>;
 export type TokenManagerData = TypeDef<
-  typeof IDL["accounts"][3],
+  typeof IDL["accounts"][4],
   DexloanListings
 >;
 

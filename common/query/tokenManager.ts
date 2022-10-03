@@ -26,5 +26,9 @@ export async function fetchTokenManager(
 
   const address = await findTokenManagerAddress(mint, issuer);
 
-  return program.account.tokenManager.fetch(address);
+  const data = (await program.account.tokenManager.fetch(
+    address
+  )) as TokenManagerData;
+
+  return data;
 }
