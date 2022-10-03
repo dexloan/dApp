@@ -343,7 +343,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        toast.success("Loan repaid. Your NFT has been returned to you.");
+        toast.success("Loan repaid. Your NFT has been unlocked.");
 
         queryClient.setQueryData(
           getLoansTakenCacheKey(anchorWallet?.publicKey),
