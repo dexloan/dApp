@@ -16,8 +16,7 @@ import { useEffect, useMemo } from "react";
 import { IoWallet } from "react-icons/io5";
 import toast from "react-hot-toast";
 import base58 from "bs58";
-
-import Dexloan from "../../public/dexloan.svg";
+import { useRouter } from "next/router";
 
 export function Navbar() {
   const modal = useWalletModal();
@@ -83,6 +82,7 @@ export function Navbar() {
               borderColor="gray.200"
               cursor="pointer"
               px="0.25"
+              size="sm"
             >
               <Box as={IoWallet} />
             </Button>
@@ -112,42 +112,81 @@ export function Navbar() {
             </MenuList>
           </Menu>
         ) : (
-          <Button onClick={onConnect}>Connect Wallet</Button>
+          <Button onClick={onConnect} size="sm">
+            Connect Wallet
+          </Button>
         )}
       </ButtonGroup>
     );
   }
 
   return (
-    <Container maxW="container.xl">
-      <Box
-        as="nav"
-        borderBottomWidth="1px"
-        borderColor="gray.200"
-        display="flex"
-        h="28"
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="space-between"
-        mb="10"
-      >
-        <Box>
-          <NextLink href="/">
-            <a>
-              <Dexloan width="168px" />
-            </a>
-          </NextLink>
-        </Box>
+    <Box display="flex" borderBottomWidth="1px" borderColor="gray.800">
+      <Container maxW="container.lg">
+        <Box
+          as="nav"
+          display="flex"
+          h="16"
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Box>
+            <Box>
+              <NextLink href="/">
+                <a>{/* LOGO GOES HERE */}</a>
+              </NextLink>
+            </Box>
 
-        <Flex align="center">
-          {/* <Flex pr="6">
+            <Box>
+              <Box as="ul" display="flex" listStyleType="none">
+                <NavItem href="/loans">Loans</NavItem>
+                <NavItem href="/options">Call Options</NavItem>
+                <NavItem href="/rentals">Rentals</NavItem>
+              </Box>
+            </Box>
+          </Box>
+
+          <Flex align="center">
+            {/* <Flex pr="6">
             <NextLink href="/help">
               <Button variant="link">Help</Button>
             </NextLink>
           </Flex> */}
-          <UserMenuButton />
-        </Flex>
-      </Box>
-    </Container>
+            <UserMenuButton />
+          </Flex>
+        </Box>
+      </Container>
+    </Box>
+  );
+}
+
+interface NavItemProps {
+  href: string;
+  children: string;
+}
+
+function NavItem({ href, children }: NavItemProps) {
+  const { asPath } = useRouter();
+  const isActive = asPath === href;
+
+  return (
+    <Box as="li">
+      <NextLink href={href} passHref>
+        <Button
+          as="a"
+          backgroundColor={isActive ? "rgba(255,255,255,0.1)" : "transparent"}
+          _hover={{
+            backgroundColor: isActive ? "rgba(255,255,255,0.1)" : "transparent",
+            color: "gray.100",
+          }}
+          cursor="pointer"
+          size="sm"
+          variant="ghost"
+        >
+          {children}
+        </Button>
+      </NextLink>
+    </Box>
   );
 }
