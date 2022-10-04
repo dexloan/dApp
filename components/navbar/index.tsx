@@ -68,6 +68,7 @@ export function Navbar() {
     if (wallet.publicKey) {
       signMessage();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallet.publicKey]);
 
   function UserMenuButton() {
