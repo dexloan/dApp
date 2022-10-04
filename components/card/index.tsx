@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { Badge, Box, Flex, Skeleton, Text } from "@chakra-ui/react";
+import { Badge, Box, Heading, Flex, Skeleton, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
@@ -35,10 +35,11 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
         lg: "calc(25% - 0.937rem)",
-        xl: "calc(20% - 1rem)",
+        // xl: "calc(20% - 1rem)",
       }}
       borderWidth="1px"
-      borderRadius="lg"
+      borderColor="gray.800"
+      borderRadius="md"
       cursor={href || onClick ? "pointer" : undefined}
       overflow="hidden"
       tabIndex={1}
@@ -48,12 +49,13 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       }}
       _hover={{
         boxShadow: href || onClick ? "md" : undefined,
+        transform: href || onClick ? "scale(1.02)" : undefined,
       }}
-      transition="box-shadow 0.2s ease-in"
+      transition="box-shadow 0.2s ease-in, transform 0.2s ease-in-out"
       onClick={onClick}
       role={onClick ? "button" : "link"}
     >
-      <Box position="relative" width="100%" pb="100%">
+      <Box position="relative" width="100%" pb="80%">
         <Box position="absolute" left="0" top="0" right="0" bottom="0">
           <Skeleton
             height="100%"
@@ -116,7 +118,7 @@ export const LoanCard = ({ loan }: LoanCardProps) => {
     switch (loan.state) {
       case LoanStateEnum.Listed: {
         return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
+          <Badge borderRadius="full" px="1" py="1" mr="2" bg="#ffb703">
             <IoLeaf />
           </Badge>
         );
@@ -152,39 +154,20 @@ export const LoanCard = ({ loan }: LoanCardProps) => {
         <Box display="flex" alignItems="center">
           {renderBadge()}
           <Box
-            color="gray.500"
+            color="gray.300"
             fontWeight="semibold"
             letterSpacing="wide"
             fontSize="xs"
             textTransform="uppercase"
           >
-            {loan.duration}
+            {loan.duration} ({loan.data.basisPoints / 100}% APY)
           </Box>
         </Box>
-        <Box
-          mt="1"
-          fontWeight="semibold"
-          as="h4"
-          lineHeight="tight"
-          isTruncated
-        >
-          {loan.metadata.data.name}
-        </Box>
-        <Box mt="1">
-          <Badge
-            borderRadius="full"
-            px="2"
-            colorScheme="green"
-            variant="subtle"
-          >
-            {loan.data.basisPoints / 100}% APY
-          </Badge>
-        </Box>
       </Box>
-      <Box p="4" bgColor="blue.50">
-        <Box fontWeight="bold" as="h3">
+      <Box p="4">
+        <Heading fontWeight="bold" fontSize="lg" as="span">
           {loan.amount}{" "}
-        </Box>
+        </Heading>
         <Text fontSize="xs" fontWeight="medium">
           Floor Price {floorPrice ?? <EllipsisProgress />}
         </Text>

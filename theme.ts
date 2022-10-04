@@ -31,14 +31,43 @@ const theme = extendTheme({
         color: "gray.100",
       },
     },
+    Table: {
+      parts: ["th", "td"],
+      baseStyle: {
+        th: {
+          color: "gray.200",
+          borderBottom: "none",
+        },
+        td: {
+          color: "gray.200",
+          borderBottom: "none",
+        },
+        tbody: {
+          tr: {
+            "&:nth-of-type(odd)": {
+              "th, td": {
+                borderBottomWidth: "0px",
+              },
+            },
+            "&:last-of-type": {
+              td: {
+                borderColor: "gray.800",
+              },
+            },
+          },
+        },
+        thead: {
+          tr: {
+            th: {
+              borderColor: "gray.800",
+              py: "4",
+            },
+          },
+        },
+      },
+    },
   },
   colors: {
-    // #EA858D
-    // #AA586F
-    // #502C48
-    // #2F4D8B
-    // #033B6E
-    // #0C0D29
     blue: {
       50: "#CCCDF0",
       100: "#999CE1",
