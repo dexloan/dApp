@@ -21,6 +21,7 @@ import {
 
 interface InitLoanMutationVariables {
   mint: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
   options: {
     amount: number;
     basisPoints: number;
@@ -40,6 +41,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
+          variables.collectionMint,
           variables.options
         );
       }
@@ -61,7 +63,7 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
             }
             return data.filter(
               (item: NFTResult) =>
-                !item?.tokenAccount.data.mint.equals(variables.mint)
+                !item?.tokenAccount.mint.equals(variables.mint)
             );
           }
         );
@@ -305,7 +307,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
 interface RepayLoanProps {
   mint: anchor.web3.PublicKey;
   borrower: anchor.web3.PublicKey;
-  lender: anchor.web3.PublicKey;
+  lender: anchor.web3.PublicKey | null;
 }
 
 export const useRepayLoanMutation = (onSuccess: () => void) => {
@@ -316,7 +318,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
 
   return useMutation<void, Error, RepayLoanProps>(
     async ({ mint, lender }) => {
-      if (anchorWallet) {
+      if (anchorWallet && lender) {
         const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
@@ -341,7 +343,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        toast.success("Loan repaid. Your NFT has been returned to you.");
+        toast.success("Loan repaid. Your NFT has been unlocked.");
 
         queryClient.setQueryData(
           getLoansTakenCacheKey(anchorWallet?.publicKey),

@@ -5,11 +5,7 @@ import { LISTINGS_PROGRAM_ID } from "../constants";
 import { LoanData } from "../types";
 import { Loan, LoanPretty } from "../model";
 import { getProgram, getProvider } from "../provider";
-import {
-  fetchMetadata,
-  fetchMetadataAccounts,
-  assertMintIsWhitelisted,
-} from "./common";
+import { fetchMetadata, fetchMetadataAccounts } from "./common";
 
 export async function findLoanAddress(
   mint: anchor.web3.PublicKey,
@@ -32,10 +28,7 @@ export async function fetchLoan(
 
   const loanAccount = await program.account.loan.fetch(address);
 
-  const [metadata] = await Promise.all([
-    fetchMetadata(connection, loanAccount.mint),
-    assertMintIsWhitelisted(loanAccount.mint),
-  ]);
+  const metadata = await fetchMetadata(connection, loanAccount.mint);
 
   return new Loan(loanAccount as LoanData, metadata, address).pretty();
 }
@@ -68,13 +61,7 @@ export async function fetchMultipleLoans(
 ): Promise<LoanPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
-  const listings = await program.account.loan
-    .all(filter)
-    .then((result) =>
-      result.sort(
-        (a, b) => a.account.amount.toNumber() - b.account.amount.toNumber()
-      )
-    );
+  const listings = await program.account.loan.all(filter);
 
   const metadataAccounts = await fetchMetadataAccounts(connection, listings);
 

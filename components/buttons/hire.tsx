@@ -4,17 +4,17 @@ import NextLink from "next/link";
 import { useState, useMemo } from "react";
 import { IoBicycle } from "react-icons/io5";
 
-import { HireStateEnum } from "../../common/types";
+import { HireStateEnum, NFTResult } from "../../common/types";
 import { Hire } from "../../common/model";
-import { useHireAddressQuery, useHireQuery } from "../../hooks/query";
+import { useHireAddressQuery, useHireQuery, useNFT } from "../../hooks/query";
 import { InitHireModal } from "../form";
 
 interface HireButtonProps {
-  mint: anchor.web3.PublicKey;
+  selected: NFTResult | null;
   disabled?: boolean;
 }
 
-export const HireButton = ({ mint, disabled = false }: HireButtonProps) => {
+export const HireButton = ({ selected, disabled = false }: HireButtonProps) => {
   const [modal, setModal] = useState(false);
 
   return (
@@ -22,14 +22,14 @@ export const HireButton = ({ mint, disabled = false }: HireButtonProps) => {
       <Button
         w="100%"
         rightIcon={<IoBicycle />}
-        disabled={disabled}
+        disabled={disabled || !selected}
         onClick={() => setModal(true)}
       >
         Rent NFT
       </Button>
       <InitHireModal
         open={modal}
-        mint={mint}
+        selected={selected}
         onRequestClose={() => setModal(false)}
       />
     </>
@@ -49,6 +49,7 @@ export const SecondaryHireButton = ({
 }: SecondaryHireButtonProps) => {
   const hireAddress = useHireAddressQuery(mint, issuer);
   const hireQuery = useHireQuery(hireAddress.data);
+  const nftQuery = useNFT(mint);
 
   const hire = useMemo(() => {
     if (hireQuery.data) {
@@ -64,5 +65,5 @@ export const SecondaryHireButton = ({
     );
   }
 
-  return <HireButton mint={mint} disabled={disabled} />;
+  return <HireButton selected={nftQuery.data ?? null} disabled={disabled} />;
 };

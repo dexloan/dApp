@@ -1,13 +1,10 @@
 import * as anchor from "@project-serum/anchor";
 
 import * as utils from "../utils";
+import { HireData } from "../types";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { getProgram, getProvider } from "../provider";
-import {
-  fetchMetadata,
-  fetchMetadataAccounts,
-  assertMintIsWhitelisted,
-} from "./common";
+import { fetchMetadata, fetchMetadataAccounts } from "./common";
 import { Hire, HirePretty } from "../model/hire";
 
 export async function findHireAddress(
@@ -43,11 +40,9 @@ export async function fetchHire(
 
   const hireAccount = await program.account.hire.fetch(address);
 
-  assertMintIsWhitelisted(hireAccount.mint);
-
   const metadata = await fetchMetadata(connection, hireAccount.mint);
 
-  return new Hire(hireAccount, metadata, address).pretty();
+  return new Hire(hireAccount as HireData, metadata, address).pretty();
 }
 
 export async function waitForHire(
@@ -79,13 +74,7 @@ export async function fetchMultipleHires(
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
-  const hires = await program.account.hire
-    .all(filter)
-    .then((result) =>
-      result.sort(
-        (a, b) => a.account.amount.toNumber() - b.account.amount.toNumber()
-      )
-    );
+  const hires = await program.account.hire.all(filter);
 
   const metadataAccounts = await fetchMetadataAccounts(connection, hires);
 
@@ -93,7 +82,11 @@ export async function fetchMultipleHires(
     const metadataAccount = metadataAccounts[index];
 
     if (metadataAccount) {
-      return new Hire(hire.account, metadataAccount, hire.publicKey).pretty();
+      return new Hire(
+        hire.account as HireData,
+        metadataAccount,
+        hire.publicKey
+      ).pretty();
     }
     return null;
   });

@@ -38,13 +38,14 @@ export function Masthead() {
         maxW="16ch"
         mb="6"
       >
+        Do more with your{" "}
         <Box as="span" color="green.600">
-          Borrow and lend
-        </Box>{" "}
-        against non-fungibles
+          non-fungibles
+        </Box>
       </Heading>
-      <Text size="md" fontWeight="medium" mb="8">
-        Unlock the value of your NFTs with escrowless borrowing &amp; lending.
+      <Text size="md" fontWeight="medium" mb="8" maxW="50ch">
+        Unlock the value of your NFTs with escrowless finacial contracts and
+        social staking. Borrow and lend. Buy and sell call options.
         <br />
         <Badge colorScheme="green">New: NFT rentals now available</Badge>
       </Text>

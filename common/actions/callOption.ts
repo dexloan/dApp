@@ -8,12 +8,15 @@ import {
 
 import * as query from "../query";
 import { HireData } from "../types";
+import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
+import { submitTransaction } from "./common";
 
 export async function initCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
+  collectionMint: anchor.web3.PublicKey,
   options: {
     amount: number;
     strikePrice: number;
@@ -28,20 +31,24 @@ export async function initCallOption(
   const program = getProgram(provider);
 
   const [edition] = await query.findEditionAddress(mint);
+  const [metadata] = await query.findMetadataAddress(mint);
   const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
   );
+  const collection = await query.findCollectionAddress(collectionMint);
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
 
-  await program.methods
+  const transaction = await program.methods
     .initCallOption(amount, strikePrice, expiry)
     .accounts({
       callOption,
+      collection,
       tokenManager,
       mint,
+      metadata,
       edition,
       seller: wallet.publicKey,
       depositTokenAccount: tokenAccount,
@@ -50,8 +57,11 @@ export async function initCallOption(
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function buyCallOption(
@@ -67,7 +77,7 @@ export async function buyCallOption(
   const callOption = await query.findCallOptionAddress(mint, seller);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
 
-  await program.methods
+  const transaction = await program.methods
     .buyCallOption()
     .accounts({
       callOption,
@@ -80,8 +90,11 @@ export async function buyCallOption(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
 }
 
 export async function exerciseCallOption(
@@ -114,7 +127,7 @@ export async function exerciseCallOption(
   let hireAccount: HireData | null = null;
 
   try {
-    hireAccount = await program.account.hire.fetch(hire);
+    hireAccount = (await program.account.hire.fetch(hire)) as HireData;
   } catch (err) {
     // account does not exist
   }
@@ -137,9 +150,14 @@ export async function exerciseCallOption(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      signer: SIGNER,
     });
 
     const remainingAccounts = [];
+
+    if (creatorAccounts?.length) {
+      remainingAccounts.push(...creatorAccounts);
+    }
 
     if (hireAccount.borrower) {
       remainingAccounts.push({
@@ -149,15 +167,12 @@ export async function exerciseCallOption(
       });
     }
 
-    if (creatorAccounts?.length) {
-      remainingAccounts.push(...creatorAccounts);
-    }
-
     if (remainingAccounts.length) {
       method.remainingAccounts(remainingAccounts);
     }
 
-    await method.rpc();
+    const transaction = await method.transaction();
+    await submitTransaction(connection, wallet, transaction);
   } else {
     const method = program.methods.exerciseCallOption().accounts({
       buyerTokenAccount,
@@ -174,13 +189,15 @@ export async function exerciseCallOption(
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      signer: SIGNER,
     });
 
     if (creatorAccounts?.length) {
       method.remainingAccounts(creatorAccounts);
     }
 
-    await method.rpc();
+    const transaction = await method.transaction();
+    await submitTransaction(connection, wallet, transaction);
   }
 }
 
@@ -201,7 +218,7 @@ export async function closeCallOption(
 
   const [edition] = await query.findEditionAddress(mint);
 
-  await program.methods
+  const transaction = await program.methods
     .closeCallOption()
     .accounts({
       depositTokenAccount,
@@ -213,6 +230,9 @@ export async function closeCallOption(
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
     })
-    .rpc();
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
 }

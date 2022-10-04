@@ -35,31 +35,29 @@ export enum HireStateEnum {
 }
 
 export interface NFTResult {
-  tokenAccount: {
-    pubkey: anchor.web3.PublicKey;
-    data: splToken.RawAccount;
-  };
+  tokenAccount: splToken.Account;
   metadata: Metadata;
 }
 
-export interface Collection {
+export interface CollectionItem {
   symbol: string;
   name: string;
   items: NFTResult[];
 }
 
 export interface CollectionMap {
-  [key: string]: Collection;
+  [key: string]: CollectionItem;
 }
 
 export type CallOptionData = TypeDef<
   typeof IDL["accounts"][0],
   DexloanListings
 >;
-export type HireData = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
-export type LoanData = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+export type Collection = TypeDef<typeof IDL["accounts"][1], DexloanListings>;
+export type HireData = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+export type LoanData = TypeDef<typeof IDL["accounts"][3], DexloanListings>;
 export type TokenManagerData = TypeDef<
-  typeof IDL["accounts"][3],
+  typeof IDL["accounts"][4],
   DexloanListings
 >;
 
@@ -67,11 +65,6 @@ interface Result {
   publicKey: anchor.web3.PublicKey;
   metadata: Metadata;
 }
-
-// export type ListingData = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
-// export interface ListingResult extends Result {
-//   data: ListingData;
-// }
 
 export interface LoanResult extends Result {
   data: LoanData;

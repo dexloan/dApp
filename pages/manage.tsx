@@ -24,7 +24,7 @@ import { IoBicycle, IoCalendar, IoCash } from "react-icons/io5";
 import * as utils from "../common/utils";
 import {
   CallOptionStateEnum,
-  Collection,
+  CollectionItem,
   CollectionMap,
   HireStateEnum,
   LoanStateEnum,
@@ -34,14 +34,12 @@ import { Loan, CallOption, Hire } from "../common/model";
 import {
   useNFTByOwnerQuery,
   useFloorPriceQuery,
-  useLoansTakeQuery,
+  useLoansTakenQuery,
   useLoansGivenQuery,
   useBuyerCallOptionsQuery,
   useSellerCallOptionsQuery,
   useLenderHiresQuery,
   useBorrowerHiresQuery,
-  // Deprecated
-  // usePersonalListingsQuery,
 } from "../hooks/query";
 import {
   Card,
@@ -151,7 +149,7 @@ const LoadingSpinner = () => (
 
 const Loans = () => {
   const loansGivenQuery = useLoansGivenQuery();
-  const loansTakenQuery = useLoansTakeQuery();
+  const loansTakenQuery = useLoansTakenQuery();
 
   const givenLoans = useMemo(
     () => loansGivenQuery.data?.map((l) => Loan.fromJSON(l)) || [],
@@ -176,7 +174,7 @@ const Loans = () => {
   const totalLending = useMemo(
     () =>
       givenLoans?.reduce((total, item) => {
-        if (item) {
+        if (item?.data?.amount) {
           return total.add(item.data.amount);
         }
         return total;
@@ -187,7 +185,7 @@ const Loans = () => {
   const totalBorrowing = useMemo(
     () =>
       activeBorrowings?.reduce((total, item) => {
-        if (item) {
+        if (item?.data?.amount) {
           return total.add(item.data.amount);
         }
         return total;
@@ -506,11 +504,10 @@ const Hires = () => {
 };
 
 const MyItems = () => {
-  const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const [selected, setSelected] = useState<NFTResult | null>(null);
   const [type, setType] = useState<"loan" | "callOption" | "hire" | null>(null);
-  const nftQuery = useNFTByOwnerQuery(connection, wallet);
+  const nftQuery = useNFTByOwnerQuery(wallet);
 
   const collections = useMemo(() => {
     const collectionMap = nftQuery.data?.reduce((cols, nft) => {
@@ -611,7 +608,7 @@ const MyItems = () => {
 
       <InitCallOptionModal
         open={type === "callOption"}
-        mint={selected?.tokenAccount.data.mint}
+        selected={selected}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
@@ -620,7 +617,7 @@ const MyItems = () => {
 
       <InitHireModal
         open={type === "hire"}
-        mint={selected?.tokenAccount.data.mint}
+        selected={selected}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
@@ -629,8 +626,7 @@ const MyItems = () => {
 
       <InitLoanModal
         open={type === "loan"}
-        mint={selected?.tokenAccount.data.mint}
-        symbol={selected?.metadata.data.symbol}
+        selected={selected}
         onRequestClose={() => {
           setSelected(null);
           setType(null);
@@ -641,7 +637,7 @@ const MyItems = () => {
 };
 
 interface CollectionProps {
-  collection: Collection;
+  collection: CollectionItem;
   onSelectItem: (item: NFTResult) => void;
 }
 
@@ -652,7 +648,7 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
     (item: NFTResult) => {
       return (
         <Card
-          key={item?.tokenAccount.pubkey.toBase58()}
+          key={item?.tokenAccount.address.toBase58()}
           uri={item?.metadata.data.uri}
           imageAlt={item?.metadata.data.name}
         >

@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 
 export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
-  "8hSdpqHU7jz4C6C1kHUPQNMqBcC76n1BFXbHaTwd9X4c"
+  "GDNxgyEcP6b2FtTtCGrGhmoy5AQEiwuv26hV1CLmL1yu"
 );
 
 export const RPC_ENDPOINT =
@@ -22,3 +22,7 @@ export const SerializedCallOptionState = {
   Active: 1,
   Exercised: 2,
 };
+
+export const SIGNER = new anchor.web3.PublicKey(
+  process.env.NEXT_PUBLIC_SIGNER as string
+);

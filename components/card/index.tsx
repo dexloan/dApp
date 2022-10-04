@@ -3,6 +3,7 @@ import { Badge, Box, Flex, Skeleton, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
+import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 import * as utils from "../../common/utils";
 import { CallOption, Hire, Loan } from "../../common/model";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
@@ -12,7 +13,6 @@ import {
   HireStateEnum,
   LoanStateEnum,
 } from "../../common/types";
-import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
 interface CardProps {
   children: React.ReactNode;

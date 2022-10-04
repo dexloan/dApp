@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useEffect } from "react";
 import { useQuery } from "react-query";
 import bs58 from "bs58";
 
@@ -63,7 +64,7 @@ export const getLoansTakenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["loans_taken", walletAddress?.toBase58()];
 
-export function useLoansTakeQuery() {
+export function useLoansTakenQuery() {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
 
@@ -75,7 +76,7 @@ export function useLoansTakeQuery() {
           {
             memcmp: {
               // filter borrower
-              offset: 8 + 1 + 8,
+              offset: 27, // ??
               bytes: anchorWallet.publicKey.toBase58(),
             },
           },
@@ -105,8 +106,8 @@ export function useLoansGivenQuery() {
           {
             memcmp: {
               // filter lender
-              offset: 8 + 1 + 8 + 32,
-              bytes: anchorWallet?.publicKey.toBase58(),
+              offset: 28 + 32, // ??
+              bytes: anchorWallet.publicKey.toBase58(),
             },
           },
         ]);

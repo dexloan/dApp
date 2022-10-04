@@ -22,6 +22,7 @@ import { CallOptionPretty } from "../../common/model";
 
 interface InitCallOptionMutationVariables {
   mint: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
   options: {
     amount: number;
     strikePrice: number;
@@ -41,6 +42,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.mint,
+          variables.collectionMint,
           variables.options
         );
       }
@@ -62,7 +64,7 @@ export const useInitCallOptionMutation = (onSuccess: () => void) => {
             }
             return data.filter(
               (item: NFTResult) =>
-                !item?.tokenAccount.data.mint.equals(variables.mint)
+                !item?.tokenAccount.mint.equals(variables.mint)
             );
           }
         );

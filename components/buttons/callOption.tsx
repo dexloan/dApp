@@ -3,6 +3,7 @@ import { Button } from "@chakra-ui/react";
 import { useState } from "react";
 import { IoCalendar } from "react-icons/io5";
 
+import { useNFT } from "../../hooks/query";
 import { InitCallOptionModal } from "../form";
 
 interface CallOptionButtonProps {
@@ -15,20 +16,21 @@ export const CallOptionButton = ({
   disabled = false,
 }: CallOptionButtonProps) => {
   const [modal, setModal] = useState(false);
+  const nftQuery = useNFT(mint);
 
   return (
     <>
       <Button
         w="100%"
         rightIcon={<IoCalendar />}
-        disabled={disabled}
+        disabled={disabled || !nftQuery.data}
         onClick={() => setModal(true)}
       >
         Sell call option
       </Button>
       <InitCallOptionModal
         open={modal}
-        mint={mint}
+        selected={nftQuery.data ?? null}
         onRequestClose={() => setModal(false)}
       />
     </>

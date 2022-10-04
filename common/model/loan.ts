@@ -21,22 +21,29 @@ export class Loan implements LoanArgs {
   ) {}
 
   private expiry() {
-    return this.data.startDate.add(this.data.duration);
+    if (this.data.startDate) {
+      return this.data.startDate.add(this.data.duration);
+    }
   }
 
   public isLender(wallet: AnchorWallet) {
-    return this.data.lender.toBase58() === wallet.publicKey.toBase58();
+    if (this.data.lender) {
+      return this.data.lender.equals(wallet.publicKey);
+    }
+    return false;
   }
 
   public isBorrower(wallet?: AnchorWallet) {
     if (wallet) {
-      return this.data.borrower.toBase58() === wallet.publicKey.toBase58();
+      return this.data.borrower.equals(wallet.publicKey);
     }
     return false;
   }
 
   get amount() {
-    return utils.formatAmount(this.data.amount);
+    if (this.data.amount) {
+      return utils.formatAmount(this.data.amount);
+    }
   }
 
   get apy() {
@@ -48,25 +55,36 @@ export class Loan implements LoanArgs {
   }
 
   get expired() {
-    if (this.data.startDate.toNumber() > 0) {
-      return Date.now() / 1000 > this.expiry().toNumber();
+    if (this.data.startDate && this.data.startDate.toNumber() > 0) {
+      const expiry = this.expiry();
+
+      if (expiry) {
+        return Date.now() / 1000 > expiry.toNumber();
+      }
     }
     return false;
   }
 
   get dueDateAndTime() {
-    return utils.formatDueDate(this.data.startDate, this.data.duration, true);
+    if (this.data.startDate) {
+      return utils.formatDueDate(this.data.startDate, this.data.duration, true);
+    }
   }
 
   get dueDate() {
-    if (this.state === LoanStateEnum.Listed) {
+    if (this.data.startDate) {
       return utils.formatDueDate(
-        new BN(Date.now() / 1000),
+        this.data.startDate,
         this.data.duration,
         false
       );
     }
-    return utils.formatDueDate(this.data.startDate, this.data.duration, false);
+
+    return utils.formatDueDate(
+      new BN(Date.now() / 1000),
+      this.data.duration,
+      false
+    );
   }
 
   get proRataInterestRate() {
@@ -77,29 +95,37 @@ export class Loan implements LoanArgs {
   }
 
   get interestDue() {
-    return utils.formatAmount(
-      utils.calculateInterestOnMaturity(
-        this.data.amount,
-        this.data.duration,
-        this.data.basisPoints
-      )
-    );
+    if (this.data.amount && this.data.startDate) {
+      return utils.formatAmount(
+        utils.calculateInterestDue(
+          this.data.amount,
+          this.data.startDate,
+          this.data.basisPoints,
+          this.expired
+        )
+      );
+    }
   }
 
   get totalDue() {
-    return utils.formatTotalDue(
-      this.data.amount,
-      this.data.startDate,
-      this.data.basisPoints
-    );
+    if (this.data.amount && this.data.startDate) {
+      return utils.formatTotalDue(
+        this.data.amount,
+        this.data.startDate,
+        this.data.basisPoints,
+        this.expired
+      );
+    }
   }
 
   get amountOnMaturity() {
-    return utils.formatAmountOnMaturity(
-      this.data.amount,
-      this.data.duration,
-      this.data.basisPoints
-    );
+    if (this.data.amount) {
+      return utils.formatAmountOnMaturity(
+        this.data.amount,
+        this.data.duration,
+        this.data.basisPoints
+      );
+    }
   }
 
   get state(): LoanStateEnum | undefined {
@@ -112,13 +138,19 @@ export class Loan implements LoanArgs {
     return {
       data: {
         state: this.state,
-        amount: this.data.amount.toNumber(),
+        amount: this.data.amount?.toNumber(),
+        outstanding: this.data.outstanding.toNumber(),
+        threshold: this.data.threshold,
         borrower: this.data.borrower.toBase58(),
-        lender: this.data.lender.toBase58(),
+        lender: this.data.lender?.toBase58(),
+        installments: this.data.installments,
+        currentInstallment: this.data.currentInstallment,
         basisPoints: this.data.basisPoints,
+        noticeIssued: this.data.noticeIssued?.toNumber(),
         duration: this.data.duration.toNumber(),
-        startDate: this.data.startDate.toNumber(),
+        startDate: this.data.startDate?.toNumber(),
         mint: this.data.mint.toBase58(),
+        tokenMint: this.data.tokenMint?.toBase58(),
         bump: this.data.bump,
       },
       metadata: this.metadata.pretty(),
@@ -130,14 +162,19 @@ export class Loan implements LoanArgs {
     return new Loan(
       {
         state: { [args.data.state as string]: {} },
-        amount: new BN(args.data.amount),
+        amount: args.data.amount ? new BN(args.data.amount) : null,
+        outstanding: new BN(args.data.outstanding),
+        threshold: null,
         borrower: new web3.PublicKey(args.data.borrower),
-        lender: new web3.PublicKey(args.data.lender),
+        lender: args.data.lender ? new web3.PublicKey(args.data.lender) : null,
+        installments: args.data.installments,
+        currentInstallment: args.data.currentInstallment,
         basisPoints: args.data.basisPoints,
+        noticeIssued: null,
         duration: new BN(args.data.duration),
-        startDate: new BN(args.data.startDate),
+        startDate: args.data.startDate ? new BN(args.data.startDate) : null,
         mint: new web3.PublicKey(args.data.mint),
-        padding: [],
+        tokenMint: null,
         bump: args.data.bump,
       },
       Metadata.fromArgs({

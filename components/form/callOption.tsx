@@ -19,6 +19,7 @@ import {
 import dayjs from "../../common/lib/dayjs";
 import { useInitCallOptionMutation } from "../../hooks/mutation";
 import { useMemo } from "react";
+import { NFTResult } from "../../common/types";
 
 interface FormFields {
   amount: number;
@@ -28,13 +29,13 @@ interface FormFields {
 
 interface ListingFormProps {
   open: boolean;
-  mint: anchor.web3.PublicKey | undefined;
+  selected: NFTResult | null;
   onRequestClose: () => void;
 }
 
 export const InitCallOptionModal = ({
   open,
-  mint,
+  selected,
   onRequestClose,
 }: ListingFormProps) => {
   const {
@@ -60,10 +61,11 @@ export const InitCallOptionModal = ({
         expiry: data.expiry,
       };
 
-      if (mint) {
+      if (selected && selected.metadata.collection) {
         mutation.mutate({
           options,
-          mint,
+          mint: selected.tokenAccount.mint,
+          collectionMint: selected.metadata.collection.key,
         });
       }
     })();

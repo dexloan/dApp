@@ -97,7 +97,7 @@ const LoanPage: NextPage<LoanProps> = () => {
         imageAlt={loan.metadata.data.name}
         url={`loan/${loan.publicKey.toBase58()}`}
         twitterLabels={[
-          { label: "Amount", value: loan.amount },
+          { label: "Amount", value: loan.amount || "" },
           { label: "APY", value: loan.apy },
           { label: "Duration", value: loan.duration },
         ]}
@@ -190,8 +190,8 @@ const LoanLayout = () => {
     return null;
   }
 
-  const ltv = useMemo(() => {
-    if (loan?.data && floorPriceQuery.data?.floorPrice) {
+  const currentLTV = useMemo(() => {
+    if (loan?.data?.amount && floorPriceQuery.data?.floorPrice) {
       const percentage = Number(
         (loan.data.amount.toNumber() / floorPriceQuery.data.floorPrice) * 100
       ).toFixed(2);
@@ -353,20 +353,22 @@ const LoanLayout = () => {
                 </Box>
               </Flex>
               <Flex direction="row" gap="12" mb="12">
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Interest
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {loan.interestDue}
-                  </Heading>
-                </Box>
+                {loan.state === "active" && (
+                  <Box>
+                    <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                      Interest due
+                    </Text>
+                    <Heading size="md" fontWeight="bold" mb="6">
+                      {loan.interestDue}
+                    </Heading>
+                  </Box>
+                )}
                 <Box>
                   <Text fontSize="sm" fontWeight="medium" color="gray.500">
                     Loan to Floor Value
                   </Text>
                   <Heading size="md" fontWeight="bold" mb="6">
-                    {ltv}
+                    {currentLTV}
                   </Heading>
                 </Box>
               </Flex>

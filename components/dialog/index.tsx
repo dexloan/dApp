@@ -93,14 +93,12 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
             </Badge>{" "}
             <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>{" "}
           </Text>
-          <Text mb="4">
-            Loan will mature on <strong>{loan.dueDate}</strong>.
-          </Text>
+          <Text mb="4">Loan will mature on {loan.dueDate}.</Text>
           <Text fontSize="sm">
-            This loan may be repaid in full at any time. Interest will changed
-            at the full maturity amount of <strong>{loan.interestDue}</strong>.
-            If the borrower fails to repay the loan before the expiry date, you
-            may exercise the right to repossess the NFT.
+            This loan may be repaid in full at any time. Interest will be
+            calculated on a pro-rata basis at the time of repayment. If the
+            borrower fails to repay the loan before the expiry date, you may
+            exercise the right to repossess the NFT.
           </Text>
         </>
       }
@@ -155,7 +153,7 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
             <Text as="span" fontWeight="semibold">
               {loan.totalDue}
             </Text>{" "}
-            to recover your NFT.
+            to unlock your NFT.
           </Text>
           <Text fontSize="sm">
             This loan may be repaid in full at any time. Failure to repay the
@@ -268,7 +266,7 @@ export const ExerciseDialog = ({
       content={
         <Text>
           Exercise option to buy {callOption.metadata.data.name} for{" "}
-          {callOption.strikePrice}?
+          <strong>{callOption.strikePrice}</strong>?
         </Text>
       }
       onConfirm={onConfirm}
@@ -327,7 +325,7 @@ export const TakeHireDialog = ({
       content={
         <Text>
           Rent {hire.metadata.data.name} for {days} day{days > 1 ? "s" : ""} at
-          a cost of {hire.getFullAmount(days)}?
+          a cost of <strong>{hire.getFullAmount(days)}</strong>?
         </Text>
       }
       onConfirm={onConfirm}

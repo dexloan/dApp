@@ -4,6 +4,8 @@ import {
   Metadata,
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
+import { getProgram, getProvider } from "../provider";
+import { NFTResult } from "../types";
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
@@ -22,18 +24,6 @@ export async function findMetadataAddress(mint: anchor.web3.PublicKey) {
     [Buffer.from("metadata"), METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
     METADATA_PROGRAM_ID
   );
-}
-
-export async function assertMintIsWhitelisted(mint: anchor.web3.PublicKey) {
-  const origin =
-    typeof window === "undefined" ? process.env.NEXT_PUBLIC_HOST : "";
-
-  const response = await fetch(`${origin}/api/whitelist/${mint.toBase58()}`);
-
-  if (response.ok === false) {
-    const message = await response.json();
-    throw new Error(message);
-  }
 }
 
 export async function fetchMetadata(
@@ -71,54 +61,97 @@ export async function fetchMetadataAccounts(
   );
 }
 
+// Can remove this when we update spl-token lib
+function unpackToken(
+  address: anchor.web3.PublicKey,
+  info: anchor.web3.AccountInfo<Buffer> | null,
+  programId = splToken.TOKEN_PROGRAM_ID
+) {
+  if (!info) throw new splToken.TokenAccountNotFoundError();
+
+  const rawAccount = splToken.AccountLayout.decode(info.data);
+  if (!info.owner.equals(programId))
+    throw new splToken.TokenInvalidAccountOwnerError();
+  if (info.data.length < splToken.ACCOUNT_SIZE)
+    throw new splToken.TokenInvalidAccountSizeError();
+
+  return {
+    address,
+    mint: rawAccount.mint,
+    owner: rawAccount.owner,
+    amount: rawAccount.amount,
+    delegate: rawAccount.delegateOption ? rawAccount.delegate : null,
+    delegatedAmount: rawAccount.delegatedAmount,
+    isInitialized: rawAccount.state !== splToken.AccountState.Uninitialized,
+    isFrozen: rawAccount.state === splToken.AccountState.Frozen,
+    isNative: !!rawAccount.isNativeOption,
+    rentExemptReserve: rawAccount.isNativeOption ? rawAccount.isNative : null,
+    closeAuthority: rawAccount.closeAuthorityOption
+      ? rawAccount.closeAuthority
+      : null,
+  };
+}
+
+export async function fetchNFT(
+  connection: anchor.web3.Connection,
+  mint: anchor.web3.PublicKey
+): Promise<NFTResult> {
+  const largestTokenAccounts = await connection.getTokenLargestAccounts(mint);
+
+  const [tokenAccount, metadata] = await Promise.all([
+    splToken.getAccount(connection, largestTokenAccounts.value[0].address),
+    fetchMetadata(connection, mint),
+  ]);
+
+  return {
+    metadata,
+    tokenAccount,
+  };
+}
+
 export async function fetchNFTs(
   connection: anchor.web3.Connection,
-  publicKey: anchor.web3.PublicKey
-) {
-  const rawTokenAccounts = await connection.getTokenAccountsByOwner(publicKey, {
-    programId: splToken.TOKEN_PROGRAM_ID,
-  });
+  address: anchor.web3.PublicKey
+): Promise<NFTResult[]> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
 
-  const tokenAccounts = await Promise.all(
-    rawTokenAccounts.value.map(({ pubkey, account }) => {
-      const decodedInfo = splToken.AccountLayout.decode(
-        account.data.slice(0, splToken.ACCOUNT_SIZE)
-      );
-
-      return {
-        pubkey,
-        data: decodedInfo,
-      };
-    })
-  ).then((accounts) => {
-    return accounts.filter(
-      (account) =>
-        account.data.amount === BigInt("1") && account.data.state !== 2
-    );
-  });
-
-  const whitelist: { mints: string[] } = await fetch("/api/whitelist/filter", {
-    method: "POST",
-    body: JSON.stringify({
-      mints: tokenAccounts.map((account) => account.data.mint.toBase58()),
-    }),
-  }).then((response) => response.json());
-
-  const filteredTokenAccounts = tokenAccounts.filter((account) =>
-    whitelist.mints.includes(account.data.mint.toBase58())
-  );
+  const [collectionMints, tokenAccounts] = await Promise.all([
+    program.account.collection
+      .all()
+      .then((collections) =>
+        collections.map((collection) => collection.account.mint)
+      ),
+    connection
+      .getTokenAccountsByOwner(address, {
+        programId: splToken.TOKEN_PROGRAM_ID,
+      })
+      .then((rawTokenAccounts) => {
+        return rawTokenAccounts.value
+          .map(({ pubkey, account }) => unpackToken(pubkey, account))
+          .filter(
+            (account) => account.amount === BigInt("1") && !account.isFrozen
+          );
+      }),
+  ]);
 
   const metadataAccounts = await fetchMetadataAccounts(
     connection,
-    filteredTokenAccounts.map((a) => ({ account: { mint: a.data.mint } }))
+    tokenAccounts.map((a) => ({ account: { mint: a.mint } }))
   );
 
   const combinedAccounts = metadataAccounts.map((metadata, index) => {
-    if (metadata) {
-      try {
-        const tokenAccount = filteredTokenAccounts[index];
+    const collectionMint = metadata?.collection?.key;
 
-        if (tokenAccount.data.amount === BigInt("0")) {
+    if (
+      metadata &&
+      collectionMint !== undefined &&
+      collectionMints.some((mint) => mint.equals(collectionMint))
+    ) {
+      try {
+        const tokenAccount = tokenAccounts[index];
+
+        if (tokenAccount.amount === BigInt("0")) {
           return null;
         }
 
@@ -134,7 +167,7 @@ export async function fetchNFTs(
     return null;
   });
 
-  return combinedAccounts.filter(Boolean);
+  return combinedAccounts.filter(Boolean) as NFTResult[];
 }
 
 export async function fetchTokenAccountAddress(

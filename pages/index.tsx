@@ -1,6 +1,5 @@
 import type { NextPage } from "next";
 import { Container, Heading } from "@chakra-ui/react";
-import Head from "next/head";
 import { useMemo } from "react";
 
 import { CallOption, Hire, Loan } from "../common/model";
@@ -25,22 +24,36 @@ const Home: NextPage = () => {
 
   const loans = useMemo(
     () =>
-      (loansQuery.data?.map(Loan.fromJSON) || []).filter(
-        (loan) => loan.state !== LoanStateEnum.Defaulted
-      ),
+      (loansQuery.data?.map(Loan.fromJSON) || [])
+        .filter((loan) => loan.state !== LoanStateEnum.Defaulted)
+        .sort((loan) => {
+          if (loan.state === "listed") return -1;
+          return 1;
+        }),
     [loansQuery.data]
   );
 
   const callOptions = useMemo(
     () =>
-      (callOptionsQuery.data?.map(CallOption.fromJSON) || []).filter(
-        (callOption) => callOption.state !== CallOptionStateEnum.Exercised
-      ),
+      (callOptionsQuery.data?.map(CallOption.fromJSON) || [])
+        .filter(
+          (callOption) => callOption.state !== CallOptionStateEnum.Exercised
+        )
+        .sort((callOption) => {
+          if (callOption.state === "listed") return -1;
+          return 1;
+        }),
     [callOptionsQuery.data]
   );
 
   const hires = useMemo(
-    () => hiresQuery.data?.map(Hire.fromJSON) || [],
+    () =>
+      (hiresQuery.data?.map(Hire.fromJSON) || []).sort((hire) => {
+        if (hire.state === "listed") {
+          return -1;
+        }
+        return 1;
+      }),
     [hiresQuery.data]
   );
 
@@ -51,15 +64,20 @@ const Home: NextPage = () => {
         <Heading id="#listings" as="h2" color="gray.700" size="md" mb="6">
           Current listings
         </Heading>
-        <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
-          Loans
-        </Heading>
 
-        <CardList>
-          {loans.map((l) => {
-            return <LoanCard key={l.publicKey.toBase58()} loan={l} />;
-          })}
-        </CardList>
+        {loans.length ? (
+          <>
+            <Heading id="#listings" as="h3" color="gray.600" size="sm" mb="4">
+              Loans
+            </Heading>
+
+            <CardList>
+              {loans.map((l) => {
+                return <LoanCard key={l.publicKey.toBase58()} loan={l} />;
+              })}
+            </CardList>
+          </>
+        ) : null}
 
         {callOptions.length ? (
           <>
