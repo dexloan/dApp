@@ -49,7 +49,13 @@ function Dexloan({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <Hydrate state={pageProps.dehydratedState}>
-        <ConnectionProvider endpoint={RPC_ENDPOINT}>
+        <ConnectionProvider
+          endpoint={RPC_ENDPOINT}
+          config={{
+            commitment: "confirmed",
+            confirmTransactionInitialTimeout: 90_000,
+          }}
+        >
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
               <ChakraProvider theme={theme}>
