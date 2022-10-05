@@ -14,13 +14,13 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
-import { IoCaretDown, IoCaretUp } from "react-icons/io5";
 import Image from "next/image";
+import { useRouter } from "next/router";
 
 import { Loan } from "../../common/model";
 import { LoanStateEnum } from "../../common/types";
 import { useLoansQuery, useMetadataFileQuery } from "../../hooks/query";
-import { useRouter } from "next/router";
+import { ColumnHeader } from "../../components/table";
 
 type SortCols = "duration" | "ltv" | "apy" | "amount";
 
@@ -29,8 +29,8 @@ const Loans: NextPage = () => {
     "amount",
     1,
   ]);
-  const loansQuery = useLoansQuery();
 
+  const loansQuery = useLoansQuery();
   const loans = useMemo(
     () =>
       (loansQuery.data?.map(Loan.fromJSON) || [])
@@ -50,10 +50,17 @@ const Loans: NextPage = () => {
 
   return (
     <Container maxW="container.lg">
-      <Heading as="h1" color="gray.200" size="sm" mt="12" mb="1">
+      <Heading as="h1" color="gray.200" size="sm" mt="12" mb="2">
         Loan Listings
       </Heading>
-      <TableContainer maxW="100%" mt="2" mb="6" width="100%">
+      <TableContainer
+        maxW="100%"
+        mt="2"
+        mb="6"
+        borderTop="1px"
+        borderColor="gray.800"
+        width="100%"
+      >
         <Table size="sm">
           <Thead>
             <Tr>
@@ -95,47 +102,6 @@ const Loans: NextPage = () => {
         </Table>
       </TableContainer>
     </Container>
-  );
-};
-
-interface ColumnHeaderProps {
-  children: string;
-  direction?: number;
-  isNumeric?: boolean;
-  onClick: () => void;
-}
-
-const ColumnHeader = ({
-  children,
-  isNumeric,
-  direction,
-  onClick,
-}: ColumnHeaderProps) => {
-  return (
-    <Th>
-      <Box
-        display="flex"
-        alignItems="center"
-        cursor="pointer"
-        justifyContent={isNumeric ? "flex-end" : "flex-start"}
-        onClick={onClick}
-      >
-        <Box textAlign={isNumeric ? "right" : undefined}>{children}</Box>
-        <Box
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-          ml="2"
-        >
-          <Box as="span" position="relative" top="2px">
-            <IoCaretUp color={direction === 1 ? "red.600" : undefined} />
-          </Box>
-          <Box as="span" position="relative" bottom="2px">
-            <IoCaretDown color={direction === -1 ? "red.600" : undefined} />
-          </Box>
-        </Box>
-      </Box>
-    </Th>
   );
 };
 

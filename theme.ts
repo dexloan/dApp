@@ -60,7 +60,6 @@ const theme = extendTheme({
         thead: {
           tr: {
             th: {
-              borderColor: "gray.900",
               py: "4",
               textTransform: "none",
               fontWeight: "medium",
@@ -71,7 +70,6 @@ const theme = extendTheme({
       variants: {
         simple: {
           th: {
-            borderTop: "1px",
             borderBottom: "none",
           },
           td: {
