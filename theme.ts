@@ -2,6 +2,14 @@ import { extendTheme } from "@chakra-ui/react";
 
 const theme = extendTheme({
   components: {
+    Tag: {
+      parts: ["container"],
+      baseStyle: {
+        container: {
+          borderRadius: "sm",
+        },
+      },
+    },
     Button: {
       baseStyle: {
         borderRadius: "sm",
@@ -32,7 +40,7 @@ const theme = extendTheme({
       },
     },
     Table: {
-      parts: ["th", "td"],
+      // parts: ["th", "td"],
       baseStyle: {
         th: {
           color: "gray.200",

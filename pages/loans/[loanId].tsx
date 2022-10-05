@@ -71,7 +71,7 @@ const LoanPage: NextPage<LoanProps> = () => {
 
   if (loanQueryResult.error instanceof Error) {
     return (
-      <Container maxW="container.lg">
+      <Container maxW="container.md">
         <Box mt="2">
           <Flex direction="column" alignItems="center">
             <Heading size="xl" fontWeight="black" mt="6" mb="6">
@@ -208,15 +208,15 @@ const LoanLayout = () => {
       case LoanStateEnum.Listed:
         return (
           <>
-            <Box display="flex" pb="4">
-              <Tag colorScheme="green">
-                <TagLeftIcon boxSize="12px" as={IoList} />
-                <TagLabel>Listed</TagLabel>
-              </Tag>
-            </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Box
+              p="4"
+              borderRadius="xs"
+              bgColor="blue.900"
+              border="1px"
+              borderColor="gray.800"
+            >
               <Text>
-                Total amount due for repayment by {loan.dueDate} is&nbsp;
+                Total amount due for repayment by {loan.dueDate} will be&nbsp;
                 <Text as="span" fontWeight="semibold">
                   {loan.amountOnMaturity}
                 </Text>
@@ -245,7 +245,7 @@ const LoanLayout = () => {
                 </Tag>
               )}
             </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Box p="4" borderRadius="lg" bgColor="blue.900">
               <Text>
                 Repayment {loan.expired ? "was due before " : "due by "}
                 <Text as="span" fontWeight="semibold">
@@ -264,7 +264,7 @@ const LoanLayout = () => {
       case LoanStateEnum.Repaid:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Box p="4" borderRadius="lg" bgColor="blue.900">
               <Text>Loan has ended. The loan was repaid.</Text>
             </Box>
           </>
@@ -273,7 +273,7 @@ const LoanLayout = () => {
       case LoanStateEnum.Cancelled:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Box p="4" borderRadius="lg" bgColor="blue.900">
               <Text>Loan account closed.</Text>
             </Box>
           </>
@@ -282,7 +282,7 @@ const LoanLayout = () => {
       case LoanStateEnum.Defaulted:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
+            <Box p="4" borderRadius="lg" bgColor="blue.900" mb="4">
               <Text>
                 Listing has ended. The NFT was repossessed by the lender.
               </Text>
@@ -297,7 +297,7 @@ const LoanLayout = () => {
   }
 
   return (
-    <Container maxW={{ md: "container.md", lg: "container.xl" }}>
+    <Container maxW={{ md: "container.md", lg: "container.lg" }}>
       <Flex
         direction={{
           base: "column",
@@ -308,16 +308,17 @@ const LoanLayout = () => {
           lg: "flex-start",
         }}
         wrap="wrap"
+        pt="9"
       >
         <Box w={{ base: "100%", lg: "auto" }} maxW={{ base: "xl", lg: "100%" }}>
           <ListingImage uri={loan?.metadata.data.uri} />
           <ExternalLinks mint={loan?.data.mint} />
         </Box>
-        <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
-          <Badge colorScheme="green" mb="2">
+        <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }}>
+          {/* <Badge colorScheme="orange" mb="2">
             Peer-to-peer Loan
-          </Badge>
-          <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
+          </Badge> */}
+          <Heading as="h1" size="lg" color="gray.200" fontWeight="black">
             {loan?.metadata.data.name}
           </Heading>
           <Box mb="8">
@@ -415,7 +416,7 @@ const LendButton = ({ loan }: LoanButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="green" w="100%" onClick={onLend}>
+      <Button colorScheme="orange" w="100%" onClick={onLend}>
         Lend SOL
       </Button>
       <LoanDialog

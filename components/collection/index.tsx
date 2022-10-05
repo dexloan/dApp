@@ -20,7 +20,7 @@ export function VerifiedCollection({
 
   return (
     <Flex direction="row" alignItems="center">
-      <Icon as={IoShieldCheckmark} color="green.500" mr="1" />
+      <Icon as={IoShieldCheckmark} color="orange.500" mr="1" />
       <Text color="gray.500" fontSize={size} fontWeight="medium">
         {title}
       </Text>

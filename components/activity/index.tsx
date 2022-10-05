@@ -40,14 +40,14 @@ export const Activity = ({ mint }: ActivityProps) => {
     switch (activity.type) {
       case "repossess":
         return (
-          <Text fontWeight="bold" fontSize="lg">
+          <Text fontWeight="medium" fontSize="md">
             -
           </Text>
         );
 
       default:
         return (
-          <Text fontWeight="bold" fontSize="lg">
+          <Text fontWeight="medium" fontSize="md">
             {utils.formatAmount(activity.lamports)}
           </Text>
         );
@@ -74,7 +74,7 @@ export const Activity = ({ mint }: ActivityProps) => {
   function renderLeftCol(activity: Activity) {
     return (
       <Box>
-        <Text color="gray.600" fontSize="md" fontWeight="medium">
+        <Text color="gray.300" fontSize="md" fontWeight="medium">
           {renderLabel(activity)}
         </Text>
         <Text color="gray.500" fontSize="sm" fontWeight="medium">
@@ -95,32 +95,39 @@ export const Activity = ({ mint }: ActivityProps) => {
   }
 
   return (
-    <Box pt="6" pb="6">
-      <Heading color="gray.400" size="sm" mt="8" mb="4">
-        Activity
-      </Heading>
-      {activityQuery.isLoading ? (
-        <Flex justify="center" pt="8">
-          <Spinner
-            emptyColor="green.100"
-            color="green.500"
-            thickness="4px"
-            size="md"
-          />
-        </Flex>
-      ) : (
-        activityQuery.data?.map(
-          (activity, index, arry) =>
-            activity && (
-              <Box key={activity.key}>
-                <Flex justifyContent="space-between" pt="3" pb="3">
-                  {renderActivityDetails(activity)}
-                </Flex>
-                {index !== arry?.length - 1 && <Divider mb="1" mt="1" />}
-              </Box>
-            )
-        )
-      )}
+    <Box mt="8" mb="4">
+      <Box
+        bg="blue.900"
+        border="1px"
+        borderColor="gray.800"
+        borderRadius="sm"
+        p="4"
+      >
+        <Heading color="gray.400" size="sm" mb="4">
+          Activity
+        </Heading>
+        {activityQuery.isLoading ? (
+          <Flex justify="center" pt="8">
+            <Spinner
+              emptyColor="gray.200"
+              color="gray.500"
+              thickness="4px"
+              size="md"
+            />
+          </Flex>
+        ) : (
+          activityQuery.data?.map(
+            (activity) =>
+              activity && (
+                <Box key={activity.key}>
+                  <Flex justifyContent="space-between" pt="3" pb="3">
+                    {renderActivityDetails(activity)}
+                  </Flex>
+                </Box>
+              )
+          )
+        )}
+      </Box>
     </Box>
   );
 };
