@@ -36,11 +36,12 @@ const theme = extendTheme({
       baseStyle: {
         th: {
           color: "gray.200",
-          borderBottom: "none",
         },
         td: {
           color: "gray.200",
           borderBottom: "none",
+          py: "1",
+          px: "4",
         },
         tbody: {
           tr: {
@@ -51,7 +52,7 @@ const theme = extendTheme({
             },
             "&:last-of-type": {
               td: {
-                borderColor: "gray.800",
+                borderColor: "gray.900",
               },
             },
           },
@@ -59,9 +60,32 @@ const theme = extendTheme({
         thead: {
           tr: {
             th: {
-              borderColor: "gray.800",
+              borderColor: "gray.900",
               py: "4",
+              textTransform: "none",
+              fontWeight: "medium",
             },
+          },
+        },
+      },
+      variants: {
+        simple: {
+          th: {
+            borderTop: "1px",
+            borderBottom: "none",
+          },
+          td: {
+            pb: "4",
+          },
+        },
+      },
+      sizes: {
+        sm: {
+          th: {
+            px: "1",
+          },
+          td: {
+            px: "1",
           },
         },
       },

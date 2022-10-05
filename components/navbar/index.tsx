@@ -176,8 +176,13 @@ function NavItem({ href, children }: NavItemProps) {
         <Button
           as="a"
           backgroundColor={isActive ? "rgba(255,255,255,0.1)" : "transparent"}
+          color={isActive ? "gray.200" : undefined}
           _hover={{
             backgroundColor: isActive ? "rgba(255,255,255,0.1)" : "transparent",
+            color: "gray.100",
+          }}
+          _focus={{
+            outline: "none",
             color: "gray.100",
           }}
           cursor="pointer"
