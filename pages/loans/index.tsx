@@ -235,6 +235,10 @@ function sortByLTV(direction: number) {
 
 function sortByDuration(direction: number) {
   return (...args: Loan[]) => {
+    if (direction === -1) {
+      args.reverse();
+    }
+
     return args[0].data.duration.sub(args[1].data.duration).toNumber();
   };
 }

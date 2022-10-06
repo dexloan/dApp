@@ -26,9 +26,9 @@ export function ListingImage({ uri }: ListingImageProps) {
   return (
     <Box
       position="relative"
-      w="lg"
+      w="md"
       maxW="100%"
-      borderRadius="lg"
+      borderRadius="sm"
       overflow="hidden"
     >
       <Skeleton w="100%" isLoaded={loaded}>

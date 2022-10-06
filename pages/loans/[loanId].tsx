@@ -2,7 +2,6 @@ import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
-  Badge,
   Button,
   Container,
   Heading,
@@ -17,7 +16,7 @@ import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
-import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
+import { IoLeaf, IoAlert } from "react-icons/io5";
 
 import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
 import { LoanStateEnum } from "../../common/types";
@@ -50,6 +49,8 @@ import { ListingImage } from "../../components/image";
 import { VerifiedCollection } from "../../components/collection";
 import { EllipsisProgress } from "../../components/progress";
 import { DocumentHead } from "../../components/document";
+import { Detail } from "../../components/detail";
+import { Attributes } from "../../components/attributes";
 
 interface LoanProps {
   dehydratedState: DehydratedState | undefined;
@@ -208,25 +209,20 @@ const LoanLayout = () => {
       case LoanStateEnum.Listed:
         return (
           <>
-            <Box
-              p="4"
-              borderRadius="xs"
-              bgColor="blue.900"
-              border="1px"
-              borderColor="gray.800"
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderListedButton()}
+                </Box>
+              }
             >
-              <Text>
-                Total amount due for repayment by {loan.dueDate} will be&nbsp;
-                <Text as="span" fontWeight="semibold">
-                  {loan.amountOnMaturity}
-                </Text>
-                . Failure to repay the loan by this date may result in
-                repossession of the NFT by the lender.
+              Total amount due for repayment by {loan.dueDate} will be&nbsp;
+              <Text as="span" fontWeight="semibold">
+                {loan.amountOnMaturity}
               </Text>
-            </Box>
-            <Box mt="4" mb="4">
-              {renderListedButton()}
-            </Box>
+              . Failure to repay the loan by this date may result in
+              repossession of the NFT by the lender.
+            </Detail>
           </>
         );
 
@@ -234,12 +230,12 @@ const LoanLayout = () => {
         return (
           <>
             <Box display="flex" pb="4">
-              <Tag colorScheme="green">
+              <Tag>
                 <TagLeftIcon boxSize="12px" as={IoLeaf} />
                 <TagLabel>Loan Active</TagLabel>
               </Tag>
               {loan.expired && (
-                <Tag colorScheme="red" ml="2">
+                <Tag ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Repayment Overdue</TagLabel>
                 </Tag>
@@ -310,24 +306,29 @@ const LoanLayout = () => {
         wrap="wrap"
         pt="9"
       >
-        <Box w={{ base: "100%", lg: "auto" }} maxW={{ base: "xl", lg: "100%" }}>
+        <Box
+          flex={0}
+          w={{ base: "100%", lg: "auto" }}
+          maxW={{ base: "xl", lg: "100%" }}
+        >
           <ListingImage uri={loan?.metadata.data.uri} />
           <ExternalLinks mint={loan?.data.mint} />
+          <Attributes uri={loan?.metadata.data.uri} />
         </Box>
         <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }}>
           {/* <Badge colorScheme="orange" mb="2">
             Peer-to-peer Loan
           </Badge> */}
-          <Heading as="h1" size="lg" color="gray.200" fontWeight="black">
-            {loan?.metadata.data.name}
-          </Heading>
-          <Box mb="8">
-            <VerifiedCollection symbol={loan?.metadata.data.symbol} />
-          </Box>
 
           {loan && (
-            <>
-              <Flex direction="row" gap="12" mt="12">
+            <Detail>
+              <Heading as="h1" size="md" color="gray.200" fontWeight="black">
+                {loan?.metadata.data.name}
+              </Heading>
+              <Box mb="8">
+                <VerifiedCollection symbol={loan?.metadata.data.symbol} />
+              </Box>
+              <Flex direction="row" gap="12" mt="6">
                 <Box>
                   <Text fontSize="sm" fontWeight="medium" color="gray.500">
                     Borrowing
@@ -353,7 +354,7 @@ const LoanLayout = () => {
                   </Heading>
                 </Box>
               </Flex>
-              <Flex direction="row" gap="12" mb="12">
+              <Flex direction="row" gap="12" mb="6">
                 {loan.state === "active" && (
                   <Box>
                     <Text fontSize="sm" fontWeight="medium" color="gray.500">
@@ -373,10 +374,9 @@ const LoanLayout = () => {
                   </Heading>
                 </Box>
               </Flex>
-            </>
+              {renderByState()}
+            </Detail>
           )}
-
-          {renderByState()}
 
           {loan?.isBorrower(anchorWallet) &&
             loan?.expired !== true &&
@@ -416,7 +416,7 @@ const LendButton = ({ loan }: LoanButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="orange" w="100%" onClick={onLend}>
+      <Button color="blue.900" w="100%" onClick={onLend}>
         Lend SOL
       </Button>
       <LoanDialog
@@ -450,7 +450,7 @@ const CancelButton = ({ loan }: CancelButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="blue" w="100%" onClick={onCancel}>
+      <Button color="gray.200" w="100%" onClick={onCancel}>
         Cancel Listing
       </Button>
       <CancelDialog
@@ -490,7 +490,7 @@ const RepayButton = ({ loan }: RepayButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="blue" w="100%" onClick={onRepay}>
+      <Button color="gray.200" w="100%" onClick={onRepay}>
         Repay Loan
       </Button>
       <RepayDialog
@@ -524,7 +524,7 @@ const RepossessButton: React.FC<RepossessButtonProps> = ({ loan }) => {
 
   return (
     <>
-      <Button colorScheme="red" w="100%" onClick={onRepossess}>
+      <Button color="gray.200" w="100%" onClick={onRepossess}>
         Repossess NFT
       </Button>
       <RepossessDialog
@@ -566,7 +566,7 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
 
   return (
     <>
-      <Button w="100%" onClick={onClose}>
+      <Button color="gray.200" w="100%" onClick={onClose}>
         Close loan account
       </Button>
       <CloseAccountDialog

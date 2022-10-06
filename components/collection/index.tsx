@@ -10,7 +10,7 @@ interface VerifiedCollectionProps {
 
 export function VerifiedCollection({
   symbol,
-  size = "md",
+  size = "sm",
 }: VerifiedCollectionProps) {
   if (!symbol) return null;
 
@@ -20,7 +20,7 @@ export function VerifiedCollection({
 
   return (
     <Flex direction="row" alignItems="center">
-      <Icon as={IoShieldCheckmark} color="orange.500" mr="1" />
+      <Icon as={IoShieldCheckmark} color="orange.300" mr="1" />
       <Text color="gray.500" fontSize={size} fontWeight="medium">
         {title}
       </Text>
