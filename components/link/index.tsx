@@ -25,11 +25,11 @@ export function ExternalLinks({ mint }: SolscanLinks) {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          boxSize="6"
+          boxSize="4"
         >
-          <Image src="/solscan.png" alt="Solscan Logo" h="6" />
+          <Image src="/solscan.png" alt="Solscan Logo" h="4" />
         </Box>
-        <Text size="lg" fontWeight="semibold" pl="2">
+        <Text color="gray.400" size="sm" fontWeight="semibold" pl="2">
           <LinkOverlay
             href={`https://solscan.io/token/${mint?.toBase58()}`}
             isExternal
@@ -55,11 +55,11 @@ export function ExternalLinks({ mint }: SolscanLinks) {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          boxSize="6"
+          boxSize="4"
         >
-          <Image src="/solana.png" alt="Solana Explorer Logo" h="4" />
+          <Image src="/solana.png" alt="Solana Explorer Logo" h="3" />
         </Box>
-        <Text size="lg" fontWeight="semibold" pl="2">
+        <Text color="gray.400" size="sm" fontWeight="semibold" pl="2">
           <LinkOverlay
             href={`https://explorer.solana.com/address/${mint?.toBase58()}`}
             isExternal
