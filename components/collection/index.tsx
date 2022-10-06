@@ -1,5 +1,5 @@
 import { Icon, Flex, Text } from "@chakra-ui/react";
-import { IoShieldCheckmark } from "react-icons/io5";
+import { IoAtCircleOutline } from "react-icons/io5";
 
 import * as utils from "../../common/utils";
 
@@ -20,8 +20,13 @@ export function VerifiedCollection({
 
   return (
     <Flex direction="row" alignItems="center">
-      <Icon as={IoShieldCheckmark} color="orange.300" mr="1" />
-      <Text color="gray.500" fontSize={size} fontWeight="medium">
+      <Icon as={IoAtCircleOutline} color="orange.300" mr="1" />
+      <Text
+        color="gray.500"
+        fontSize={size}
+        fontWeight="medium"
+        // _groupHover={{ color: "orange.300", textDecoration: "underline" }}
+      >
         {title}
       </Text>
     </Flex>

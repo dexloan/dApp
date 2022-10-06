@@ -42,15 +42,11 @@ import {
   RepayDialog,
   RepossessDialog,
 } from "../../components/dialog";
+import { NFTLayout } from "../../components/layout";
 import { SecondaryHireButton } from "../../components/buttons";
-import { Activity } from "../../components/activity";
-import { ExternalLinks } from "../../components/link";
-import { ListingImage } from "../../components/image";
-import { VerifiedCollection } from "../../components/collection";
 import { EllipsisProgress } from "../../components/progress";
 import { DocumentHead } from "../../components/document";
 import { Detail } from "../../components/detail";
-import { Attributes } from "../../components/attributes";
 
 interface LoanProps {
   dehydratedState: DehydratedState | undefined;
@@ -293,106 +289,22 @@ const LoanLayout = () => {
   }
 
   return (
-    <Container maxW={{ md: "container.md", lg: "container.lg" }}>
-      <Flex
-        direction={{
-          base: "column",
-          lg: "row",
-        }}
-        align={{
-          base: "center",
-          lg: "flex-start",
-        }}
-        wrap="wrap"
-        pt="9"
-      >
-        <Box
-          flex={0}
-          w={{ base: "100%", lg: "auto" }}
-          maxW={{ base: "xl", lg: "100%" }}
-        >
-          <ListingImage uri={loan?.metadata.data.uri} />
-          <ExternalLinks mint={loan?.data.mint} />
-          <Attributes uri={loan?.metadata.data.uri} />
-        </Box>
-        <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }}>
-          {/* <Badge colorScheme="orange" mb="2">
-            Peer-to-peer Loan
-          </Badge> */}
-
-          {loan && (
-            <Detail>
-              <Heading as="h1" size="md" color="gray.200" fontWeight="black">
-                {loan?.metadata.data.name}
-              </Heading>
-              <Box mb="8">
-                <VerifiedCollection symbol={loan?.metadata.data.symbol} />
-              </Box>
-              <Flex direction="row" gap="12" mt="6">
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Borrowing
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {loan.amount}
-                  </Heading>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Duration
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {loan.duration}
-                  </Heading>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    APY
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {loan.data.basisPoints / 100}%
-                  </Heading>
-                </Box>
-              </Flex>
-              <Flex direction="row" gap="12" mb="6">
-                {loan.state === "active" && (
-                  <Box>
-                    <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                      Interest due
-                    </Text>
-                    <Heading size="md" fontWeight="bold" mb="6">
-                      {loan.interestDue}
-                    </Heading>
-                  </Box>
-                )}
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Loan to Floor Value
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {currentLTV}
-                  </Heading>
-                </Box>
-              </Flex>
-              {renderByState()}
-            </Detail>
-          )}
-
-          {loan?.isBorrower(anchorWallet) &&
-            loan?.expired !== true &&
-            loan?.state !== LoanStateEnum.Defaulted && (
-              <Box mt="2" mb="2">
-                <SecondaryHireButton
-                  mint={loan?.data.mint}
-                  issuer={loan?.data.borrower}
-                />
-              </Box>
-            )}
-
-          <Activity mint={loan?.data.mint} />
-        </Box>
-      </Flex>
-    </Container>
+    <NFTLayout
+      metadata={loan?.metadata}
+      stats={
+        loan
+          ? [
+              [
+                { label: "Borrowing", value: loan.amount },
+                { label: "Duration", value: loan.duration },
+                { label: "APY", value: loan.apy },
+              ],
+              [{ label: "Loan to Floor Value", value: currentLTV }],
+            ]
+          : undefined
+      }
+      action={renderByState()}
+    />
   );
 };
 
