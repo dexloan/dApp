@@ -97,20 +97,20 @@ const theme = extendTheme({
       },
     },
   },
-  colors: {
-    blue: {
-      50: "#CCCDF0",
-      100: "#999CE1",
-      200: "#4D51CB",
-      300: "#383CC0",
-      400: "#3034A7",
-      500: "#292C8D",
-      600: "#222474",
-      700: "#1A1C5A",
-      800: "#131441",
-      900: "#0C0D29",
-    },
-  },
+  // colors: {
+  //   blue: {
+  //     50: "#CCCDF0",
+  //     100: "#999CE1",
+  //     200: "#4D51CB",
+  //     300: "#383CC0",
+  //     400: "#3034A7",
+  //     500: "#292C8D",
+  //     600: "#222474",
+  //     700: "#1A1C5A",
+  //     800: "#131441",
+  //     900: "#0C0D29",
+  //   },
+  // },
   fonts: {
     heading: "Inter, sans-serif",
     body: "Inter, sans-serif",
@@ -120,7 +120,7 @@ const theme = extendTheme({
       body: {
         WebkitFontSmoothing: "antialiased",
         MozOsxFontSmoothing: "grayscale",
-        bg: "blue.900",
+        bg: "#0C0D29",
       },
     }),
   },

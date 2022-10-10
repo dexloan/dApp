@@ -12,6 +12,7 @@ import {
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import NextLink from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo } from "react";
 import { IoWallet } from "react-icons/io5";
 import toast from "react-hot-toast";
@@ -131,14 +132,21 @@ export function Navbar() {
           alignItems="center"
           justifyContent="space-between"
         >
-          <Box>
-            <Box>
+          <Box display="flex" flexDir="row" alignItems="center">
+            <Box position="relative">
               <NextLink href="/">
-                <a>{/* LOGO GOES HERE */}</a>
+                <a style={{ display: "inline-block", height: 30 }}>
+                  <Image
+                    src="/onda-logo.svg"
+                    width={150}
+                    height={30}
+                    alt="onda logo"
+                  />
+                </a>
               </NextLink>
             </Box>
 
-            <Box>
+            <Box ml="1">
               <Box as="ul" display="flex" listStyleType="none">
                 <NavItem href="/loans">Loans</NavItem>
                 <NavItem href="/options">Call Options</NavItem>
@@ -171,7 +179,7 @@ function NavItem({ href, children }: NavItemProps) {
   const isActive = asPath === href;
 
   return (
-    <Box as="li">
+    <Box as="li" ml="1">
       <NextLink href={href} passHref>
         <Button
           as="a"
