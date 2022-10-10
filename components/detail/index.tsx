@@ -9,8 +9,8 @@ interface DetailProps {
 export const Detail = ({ children, footer, size = "md" }: DetailProps) => {
   return (
     <Box
-      borderRadius="xs"
-      bgColor="blue.900"
+      borderRadius="sm"
+      bgColor="rgba(0,0,0,0.2)"
       border="1px"
       borderColor="gray.800"
       maxW="100%"

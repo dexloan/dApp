@@ -97,7 +97,7 @@ export const Activity = ({ mint }: ActivityProps) => {
   return (
     <Box mt="8" mb="4">
       <Box
-        bg="blue.900"
+        bg="rgba(0,0,0,0.2)"
         border="1px"
         borderColor="gray.800"
         borderRadius="sm"

@@ -60,8 +60,8 @@ function Dexloan({ Component, pageProps }: AppProps) {
             <WalletModalProvider>
               <ChakraProvider theme={theme}>
                 <DocumentHead
-                  title="Dexloan | Borrow and lend against NFTs on Solana"
-                  description="Dexloan is a DeFi protocol on the Solana blockchain for escrowless NFT borrowing &amp; lending. Users can take loans by collateralizing their NFT and simultaneously rent out the same NFT to earn passive income. We also support call options and (coming soon) NFT &amp; SOL staking."
+                  title="Onda | The utility layer for NFT communities"
+                  description="Onda is a DeFi protocol on the Solana blockchain for escrowless NFT borrowing &amp; lending, call options and social staking. Users can take loans by collateralizing their NFT and simultaneously rent out the same NFT to earn passive income."
                   url={``}
                 />
                 <Navbar />

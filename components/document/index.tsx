@@ -34,7 +34,7 @@ export const DocumentHead = ({
         rel="icon"
         type="image/png"
         sizes="192x192"
-        href="/logo192.png"
+        href="/android-chrome-192.png"
       />
 
       <meta key="og:title" property="og:title" content={title} />
@@ -47,7 +47,7 @@ export const DocumentHead = ({
       <meta
         key="og:url"
         property="og:url"
-        content={`https://dexloan.io/${url}`}
+        content={`https://onda.finance/${url}`}
       />
       {image && <meta key="og:image" property="og:image" content={image} />}
 
@@ -60,7 +60,7 @@ export const DocumentHead = ({
       <meta
         key="twitter:url"
         property="twitter:url"
-        content={`https://dexloan.io/${url}}`}
+        content={`https://onda.finance/${url}}`}
       />
       <meta
         key="twitter:card"
