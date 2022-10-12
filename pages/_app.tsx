@@ -22,7 +22,7 @@ import theme from "../theme";
 import { RPC_ENDPOINT } from "../common/constants";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
-import { DocumentHead } from "../components/document";
+import { DocumentHead, Footer } from "../components/document";
 
 function Dexloan({ Component, pageProps }: AppProps) {
   const wallets = useMemo(
@@ -66,6 +66,7 @@ function Dexloan({ Component, pageProps }: AppProps) {
                 />
                 <Navbar />
                 <Component {...pageProps} />
+                <Footer />
                 <Toaster />
                 <FontFace />
               </ChakraProvider>

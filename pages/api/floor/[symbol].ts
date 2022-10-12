@@ -18,14 +18,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const symbol = req.query.symbol as string;
-  const floorPrice = await client.get<string>(symbol);
-
-  if (floorPrice) {
-    return res.status(200).json({ floorPrice: parseInt(floorPrice) });
-  }
-
   try {
+    const symbol = req.query.symbol as string;
+    const floorPrice = await client.get<string>(symbol);
+
+    if (floorPrice) {
+      return res.status(200).json({ floorPrice: parseInt(floorPrice) });
+    }
+
     const name = utils.mapSymbolToCollectionName(symbol);
     const stats = await queuedTimeout(() =>
       fetchMagicEdenCollectionStats(name)
@@ -34,6 +34,7 @@ export default async function handler(
 
     return res.status(200).json({ floorPrice: stats.floorPrice });
   } catch (error) {
+    console.log(error);
     const errorMessage =
       error instanceof Error ? error.message : "Internal Server Error";
 

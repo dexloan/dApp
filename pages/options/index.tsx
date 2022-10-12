@@ -14,7 +14,6 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 import { CallOption } from "../../common/model";
-import { CallOptionStateEnum } from "../../common/types";
 import { useCallOptionsQuery } from "../../hooks/query";
 import { ColumnHeader, NFTCell } from "../../components/table";
 

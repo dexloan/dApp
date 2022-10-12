@@ -118,10 +118,15 @@ const theme = extendTheme({
   },
   styles: {
     global: () => ({
+      html: {
+        minHeight: "100%",
+        display: "flex",
+      },
       body: {
         WebkitFontSmoothing: "antialiased",
         MozOsxFontSmoothing: "grayscale",
         bg: "#090A20",
+        flex: 1,
       },
     }),
   },

@@ -1,9 +1,9 @@
 import type { NextPage } from "next";
+import * as anchor from "@project-serum/anchor";
 import {
+  Box,
   Container,
   Heading,
-  Box,
-  Skeleton,
   Table,
   TableContainer,
   Thead,
@@ -14,13 +14,13 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { Loan } from "../../common/model";
 import { LoanStateEnum } from "../../common/types";
-import { useLoansQuery, useMetadataFileQuery } from "../../hooks/query";
-import { ColumnHeader } from "../../components/table";
+import { useFloorPriceQuery, useLoansQuery } from "../../hooks/query";
+import { useLTV } from "../../hooks/render";
+import { ColumnHeader, NFTCell } from "../../components/table";
 
 type SortCols = "duration" | "ltv" | "apy" | "amount";
 
@@ -73,17 +73,17 @@ const Loans: NextPage = () => {
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
+                direction={sortCol === "apy" ? direction : 0}
+                onClick={() => sort("apy")}
+              >
+                APY
+              </ColumnHeader>
+              <ColumnHeader
+                isNumeric
                 direction={sortCol === "ltv" ? direction : 0}
                 onClick={() => sort("ltv")}
               >
                 LTV
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "apy" ? direction : 0}
-                onClick={() => sort("apy")}
-              >
-                Loan APY
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
@@ -111,8 +111,15 @@ interface LoanRowProps {
 
 const LoanRow = ({ loan }: LoanRowProps) => {
   const router = useRouter();
-  const [isVisible, setVisible] = useState(false);
-  const metadataQuery = useMetadataFileQuery(loan.metadata.data.uri);
+  const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
+
+  const floorPrice = useMemo(() => {
+    if (floorPriceQuery.data?.floorPrice) {
+      return floorPriceQuery.data.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+    }
+  }, [floorPriceQuery.data]);
+
+  const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
 
   return (
     <Tr
@@ -121,50 +128,18 @@ const LoanRow = ({ loan }: LoanRowProps) => {
       _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
       onClick={() => router.push(`/loans/${loan.publicKey.toBase58()}`)}
     >
-      <Td>
-        <Box display="flex" alignItems="center">
-          <Box
-            as="span"
-            display="block"
-            position="relative"
-            width="12"
-            height="12"
-            borderRadius="sm"
-            overflow="hidden"
-          >
-            <Box
-              as="span"
-              position="absolute"
-              left="0"
-              top="0"
-              right="0"
-              bottom="0"
-            >
-              <Skeleton
-                height="100%"
-                width="100%"
-                isLoaded={metadataQuery.data?.image && isVisible}
-              >
-                {metadataQuery.data?.image && (
-                  <Image
-                    quality={100}
-                    layout="fill"
-                    objectFit="cover"
-                    src={metadataQuery.data?.image}
-                    alt={loan.metadata.data.name}
-                    onLoad={() => setVisible(true)}
-                  />
-                )}
-              </Skeleton>
-            </Box>
-          </Box>
-          <Text ml="4">{loan.metadata.data.name}</Text>
+      <NFTCell metadata={loan?.metadata} />
+      <Td>{loan.duration}</Td>
+      <Td isNumeric>{loan.apy}</Td>
+      <Td isNumeric>{ltv}</Td>
+      <Td isNumeric>
+        <Box>
+          <Text mb="1">{loan.amount}</Text>
+          <Text fontSize="xs" color="gray.500">
+            Floor {floorPrice ?? "..."}
+          </Text>
         </Box>
       </Td>
-      <Td>{loan.duration}</Td>
-      <Td isNumeric>50%</Td>
-      <Td isNumeric>{loan.apy}</Td>
-      <Td isNumeric>{loan.amount}</Td>
     </Tr>
   );
 };
