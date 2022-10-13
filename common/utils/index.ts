@@ -164,7 +164,7 @@ export function formatMonths(duration?: anchor.BN) {
   return duration ? toMonths(duration.toNumber()) + " months" : null;
 }
 
-const nameMap = new Map();
+export const nameMap = new Map();
 nameMap.set("CHKN", "chicken_tribe");
 nameMap.set("CHKCOP", "chicken_tribe_coops");
 nameMap.set("XAPE", "exiled_degen_ape_academy");
@@ -173,6 +173,15 @@ nameMap.set("NOOT", "pesky_penguins");
 
 export function mapSymbolToCollectionName(symbol: string) {
   return nameMap.get(trimNullChars(symbol));
+}
+
+export function getFloorPrice(
+  floorPrices?: Record<string, number>,
+  symbol?: string
+) {
+  if (floorPrices && symbol) {
+    return floorPrices[trimNullChars(symbol).toLowerCase()];
+  }
 }
 
 const titleMap = new Map();

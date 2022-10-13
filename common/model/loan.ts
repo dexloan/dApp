@@ -3,7 +3,7 @@ import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 import * as utils from "../utils";
-import { LoanData, LoanStateEnum } from "../types";
+import { LoanData, LoanOfferData, LoanStateEnum } from "../types";
 
 export type LoanArgs = {
   data: LoanData;
@@ -191,5 +191,32 @@ export class Loan implements LoanArgs {
       }),
       new web3.PublicKey(args.publicKey)
     );
+  }
+}
+
+export type LoanOfferArgs = {
+  data: LoanOfferData;
+  publicKey: web3.PublicKey;
+};
+
+export class LoanOffer implements LoanOfferArgs {
+  constructor(
+    public readonly data: LoanOfferData,
+    public readonly metadata: Metadata,
+    public readonly publicKey: web3.PublicKey
+  ) {}
+
+  get apy() {
+    return this.data.basisPoints / 100 + "%";
+  }
+
+  get duration() {
+    return utils.formatDuration(this.data.duration);
+  }
+
+  get amount() {
+    if (this.data.amount) {
+      return utils.formatAmount(this.data.amount);
+    }
   }
 }

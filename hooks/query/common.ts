@@ -4,7 +4,7 @@ import {
   useAnchorWallet,
   useConnection,
 } from "@solana/wallet-adapter-react";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery, useQueries, useQueryClient } from "react-query";
 
 import {
   fetchNFT,
@@ -110,10 +110,9 @@ export function useMetadataFileQuery(uri?: string) {
 export const useFloorPriceQuery = (symbol?: string) => {
   return useQuery(
     ["floorPrice", symbol],
-    async () => {
+    () => {
       if (symbol) {
-        const response = await fetch(`/api/floor/${symbol}`);
-        return response.json() as Promise<{ floorPrice: number }>;
+        return fetchFloorPrice(symbol);
       }
     },
     {
@@ -123,3 +122,15 @@ export const useFloorPriceQuery = (symbol?: string) => {
     }
   );
 };
+
+export const useFloorPricesQuery = () => {
+  return useQuery(["floorPrices"], async () => {
+    const response = await fetch(`/api/floor`);
+    return response.json() as Promise<Record<string, number>>;
+  });
+};
+
+async function fetchFloorPrice(symbol: string) {
+  const response = await fetch(`/api/floor/${symbol}`);
+  return response.json() as Promise<{ floorPrice: number }>;
+}

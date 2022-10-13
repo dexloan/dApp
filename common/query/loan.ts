@@ -2,8 +2,8 @@ import * as anchor from "@project-serum/anchor";
 
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { LoanData } from "../types";
-import { Loan, LoanPretty } from "../model";
+import { LoanData, LoanOfferData } from "../types";
+import { Loan, LoanOffer, LoanPretty } from "../model";
 import { getProgram, getProvider } from "../provider";
 import { fetchMetadata, fetchMetadataAccounts } from "./common";
 
@@ -79,4 +79,41 @@ export async function fetchMultipleLoans(
   });
 
   return combinedAccounts.filter(Boolean) as LoanPretty[];
+}
+
+export async function fetchMultipleLoanOffers(
+  connection: anchor.web3.Connection,
+  filter: anchor.web3.GetProgramAccountsFilter[] = []
+): Promise<LoanOffer[]> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
+  const [listings, collections] = await Promise.all([
+    program.account.loanOffer.all(filter),
+    program.account.collection.all(),
+  ]);
+  const metadataAccounts = await fetchMetadataAccounts(connection, collections);
+
+  return listings
+    .map((listing) => {
+      const collection = collections.find((col) =>
+        col.publicKey.equals(listing.account.collection)
+      );
+
+      if (collection) {
+        const metadata = metadataAccounts.find((acc) =>
+          acc?.mint.equals(collection.account.mint)
+        );
+
+        if (metadata) {
+          return new LoanOffer(
+            listing.account as LoanOfferData,
+            metadata,
+            listing.publicKey
+          );
+        }
+      }
+
+      return null;
+    })
+    .filter(Boolean) as LoanOffer[];
 }

@@ -1,6 +1,5 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { useEffect } from "react";
 import { useQuery } from "react-query";
 import bs58 from "bs58";
 
@@ -54,6 +53,20 @@ export function useLoansQuery() {
         //   },
         // },
       ]),
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
+}
+
+export const getLoanOffersCacheKey = () => ["loan_offers"];
+
+export function useLoanOffersQuery() {
+  const { connection } = useConnection();
+
+  return useQuery(
+    getLoanOffersCacheKey(),
+    () => query.fetchMultipleLoanOffers(connection, []),
     {
       refetchOnWindowFocus: false,
     }
