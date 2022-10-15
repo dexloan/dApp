@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { Collection } from "../types";
+import { Collection, CollectionPretty } from "../model";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import { fetchMetadata, fetchMetadataAccounts } from "./common";
@@ -16,28 +16,22 @@ export async function findCollectionAddress(
   return collectionAddress;
 }
 
-type CollectionResult = {
-  data: Collection;
-  metadata: Metadata;
-  publicKey: anchor.web3.PublicKey;
-};
-
 export async function fetchCollection(
   connection: anchor.web3.Connection,
   address: anchor.web3.PublicKey
-): Promise<CollectionResult> {
+): Promise<CollectionPretty> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
   const data = await program.account.collection.fetch(address);
   const metadata = await fetchMetadata(connection, data.mint);
 
-  return { data, metadata, publicKey: address };
+  return new Collection(data, metadata, address).pretty();
 }
 
 export async function fetchMultipleCollections(
   connection: anchor.web3.Connection
-): Promise<CollectionResult[]> {
+): Promise<CollectionPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
@@ -46,14 +40,16 @@ export async function fetchMultipleCollections(
 
   return collections
     .map((collection, index) => {
-      if (metadataAccounts[index]) {
-        return {
-          data: collection.account,
-          publicKey: collection.publicKey,
-          metadata: metadataAccounts[index],
-        };
+      const metadata = metadataAccounts[index];
+
+      if (metadata) {
+        return new Collection(
+          collection.account,
+          metadata,
+          collection.publicKey
+        ).pretty();
       }
       return null;
     })
-    .filter(Boolean) as CollectionResult[];
+    .filter(Boolean) as CollectionPretty[];
 }

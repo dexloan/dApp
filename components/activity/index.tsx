@@ -160,9 +160,7 @@ function mapTransaction(
         isCallOption = log.includes("InitCallOption");
 
         return (
-          log.includes("InitListing") ||
-          log.includes("InitLoan") ||
-          isCallOption
+          log.includes("InitListing") || log.includes("askLoan") || isCallOption
         );
       })
     ) {

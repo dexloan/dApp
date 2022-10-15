@@ -3,7 +3,7 @@ import * as anchor from "@project-serum/anchor";
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { LoanData, LoanOfferData } from "../types";
-import { Loan, LoanOffer, LoanPretty } from "../model";
+import { Loan, LoanPretty, LoanOffer, LoanOfferPretty } from "../model";
 import { getProgram, getProvider } from "../provider";
 import { fetchMetadata, fetchMetadataAccounts } from "./common";
 
@@ -13,6 +13,35 @@ export async function findLoanAddress(
 ): Promise<anchor.web3.PublicKey> {
   const [loanAddress] = await anchor.web3.PublicKey.findProgramAddress(
     [Buffer.from("loan"), mint.toBuffer(), borrower.toBuffer()],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return loanAddress;
+}
+
+export async function findLoanOfferAddress(
+  collection: anchor.web3.PublicKey,
+  lender: anchor.web3.PublicKey,
+  id: number
+): Promise<anchor.web3.PublicKey> {
+  const [loanOfferAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [
+      Buffer.from("loan_offer"),
+      collection.toBuffer(),
+      lender.toBuffer(),
+      new anchor.BN(id).toArrayLike(Buffer),
+    ],
+    LISTINGS_PROGRAM_ID
+  );
+
+  return loanOfferAddress;
+}
+
+export async function findLoanOfferVaultAddress(
+  loanOffer: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  const [loanAddress] = await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from("loan_offer_vault"), loanOffer.toBuffer()],
     LISTINGS_PROGRAM_ID
   );
 
@@ -84,7 +113,7 @@ export async function fetchMultipleLoans(
 export async function fetchMultipleLoanOffers(
   connection: anchor.web3.Connection,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
-): Promise<LoanOffer[]> {
+): Promise<LoanOfferPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const [listings, collections] = await Promise.all([
@@ -109,11 +138,11 @@ export async function fetchMultipleLoanOffers(
             listing.account as LoanOfferData,
             metadata,
             listing.publicKey
-          );
+          ).pretty();
         }
       }
 
       return null;
     })
-    .filter(Boolean) as LoanOffer[];
+    .filter(Boolean) as LoanOfferPretty[];
 }

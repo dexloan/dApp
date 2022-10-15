@@ -52,7 +52,7 @@ import { VerifiedCollection } from "../components/collection";
 import {
   InitCallOptionModal,
   InitHireModal,
-  InitLoanModal,
+  AskLoanModal,
 } from "../components/form";
 import { EllipsisProgress } from "../components/progress";
 
@@ -624,7 +624,7 @@ const MyItems = () => {
         }}
       />
 
-      <InitLoanModal
+      <AskLoanModal
         open={type === "loan"}
         selected={selected}
         onRequestClose={() => {

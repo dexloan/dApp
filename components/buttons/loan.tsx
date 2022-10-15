@@ -4,7 +4,7 @@ import { useState } from "react";
 import { IoCash } from "react-icons/io5";
 
 import { useNFT } from "../../hooks/query";
-import { InitLoanModal } from "../form";
+import { AskLoanModal } from "../form";
 
 interface LoanButtonProps {
   mint: anchor.web3.PublicKey;
@@ -25,7 +25,7 @@ export const LoanButton = ({ mint, disabled = false }: LoanButtonProps) => {
       >
         Borrow against
       </Button>
-      <InitLoanModal
+      <AskLoanModal
         open={modal}
         selected={nftQuery.data ?? null}
         onRequestClose={() => setModal(false)}

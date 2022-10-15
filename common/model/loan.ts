@@ -199,6 +199,8 @@ export type LoanOfferArgs = {
   publicKey: web3.PublicKey;
 };
 
+export type LoanOfferPretty = ReturnType<LoanOffer["pretty"]>;
+
 export class LoanOffer implements LoanOfferArgs {
   constructor(
     public readonly data: LoanOfferData,
@@ -218,5 +220,54 @@ export class LoanOffer implements LoanOfferArgs {
     if (this.data.amount) {
       return utils.formatAmount(this.data.amount);
     }
+  }
+
+  pretty() {
+    return {
+      data: {
+        id: this.data.id,
+        lender: this.data.lender?.toBase58(),
+        amount: this.data.amount?.toNumber(),
+        basisPoints: this.data.basisPoints,
+        duration: this.data.duration.toNumber(),
+        collection: this.data.collection.toBase58(),
+        ltv: this.data.ltv,
+        threshold: this.data.threshold,
+        bump: this.data.bump,
+        escrowBump: this.data.escrowBump,
+      },
+      metadata: this.metadata.pretty(),
+      publicKey: this.publicKey.toBase58(),
+    };
+  }
+
+  static fromJSON(args: LoanOfferPretty) {
+    return new LoanOffer(
+      {
+        id: args.data.id,
+        lender: new web3.PublicKey(args.data.lender),
+        amount: args.data.amount ? new BN(args.data.amount) : null,
+        basisPoints: args.data.basisPoints,
+        duration: new BN(args.data.duration),
+        collection: new web3.PublicKey(args.data.collection),
+        ltv: null,
+        threshold: null,
+        bump: args.data.bump,
+        escrowBump: args.data.escrowBump,
+      },
+      Metadata.fromArgs({
+        key: 0 as Key, // TODO
+        updateAuthority: new web3.PublicKey(args.metadata.updateAuthority),
+        mint: new web3.PublicKey(args.metadata.mint),
+        data: args.metadata.data,
+        primarySaleHappened: args.metadata.primarySaleHappened,
+        isMutable: args.metadata.isMutable,
+        editionNonce: args.metadata.editionNonce,
+        tokenStandard: args.metadata.tokenStandard,
+        collection: args.metadata.collection,
+        uses: args.metadata.uses,
+      }),
+      new web3.PublicKey(args.publicKey)
+    );
   }
 }

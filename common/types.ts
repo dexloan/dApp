@@ -57,7 +57,10 @@ export type CallOptionBidData = TypeDef<
   typeof IDL["accounts"][1],
   DexloanListings
 >;
-export type Collection = TypeDef<typeof IDL["accounts"][2], DexloanListings>;
+export type CollectionData = TypeDef<
+  typeof IDL["accounts"][2],
+  DexloanListings
+>;
 export type HireData = TypeDef<typeof IDL["accounts"][3], DexloanListings>;
 export type LoanData = TypeDef<typeof IDL["accounts"][4], DexloanListings>;
 export type LoanOfferData = TypeDef<typeof IDL["accounts"][5], DexloanListings>;
@@ -65,16 +68,3 @@ export type TokenManagerData = TypeDef<
   typeof IDL["accounts"][6],
   DexloanListings
 >;
-
-interface Result {
-  publicKey: anchor.web3.PublicKey;
-  metadata: Metadata;
-}
-
-export interface LoanResult extends Result {
-  data: LoanData;
-}
-
-export interface CallOptionResult extends Result {
-  data: CallOptionData;
-}

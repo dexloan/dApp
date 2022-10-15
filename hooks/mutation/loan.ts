@@ -19,7 +19,7 @@ import {
   getNFTByOwnerCacheKey,
 } from "../query";
 
-interface InitLoanMutationVariables {
+interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {
@@ -29,15 +29,15 @@ interface InitLoanMutationVariables {
   };
 }
 
-export const useInitLoanMutation = (onSuccess: () => void) => {
+export const useAskLoanMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
 
   return useMutation(
-    (variables: InitLoanMutationVariables) => {
+    (variables: AskLoanMutationVariables) => {
       if (anchorWallet) {
-        return actions.initLoan(
+        return actions.askLoan(
           connection,
           anchorWallet,
           variables.mint,
@@ -80,6 +80,63 @@ export const useInitLoanMutation = (onSuccess: () => void) => {
             await queryClient.setQueryData(getLoanCacheKey(loanAddress), loan);
           } catch {}
         }
+
+        toast.success("Listing created");
+
+        onSuccess();
+      },
+    }
+  );
+};
+
+interface OfferLoanMutationVariables {
+  collection: anchor.web3.PublicKey;
+  options: {
+    amount: number;
+    basisPoints: number;
+    duration: number;
+  };
+  ids: number[];
+}
+
+export const useOfferLoanMutation = (onSuccess: () => void) => {
+  const queryClient = useQueryClient();
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+
+  return useMutation(
+    (variables: OfferLoanMutationVariables) => {
+      if (anchorWallet) {
+        return actions.offerLoan(
+          connection,
+          anchorWallet,
+          variables.collection,
+          variables.options,
+          variables.ids
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onError(err) {
+        console.error("Error: " + err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+      async onSuccess(_, variables) {
+        // if (anchorWallet) {
+        //   const loanAddress = await query.findLoanAddress(
+        //     variables.mint,
+        //     anchorWallet.publicKey
+        //   );
+
+        //   try {
+        //     const loan = await query.waitForLoan(connection, loanAddress);
+
+        //     await queryClient.setQueryData(getLoanCacheKey(loanAddress), loan);
+        //   } catch {}
+        // }
 
         toast.success("Listing created");
 

@@ -1,3 +1,4 @@
+import * as utils from "../../common/utils";
 import { Loan, LoanOffer } from "../../common/model";
 
 export type LoanSortCols = "duration" | "ltv" | "apy" | "amount";
@@ -12,7 +13,11 @@ export function sortReducer(col: LoanSortCols) {
   };
 }
 
-export function compareBy(sortCol: LoanSortCols, direction: number) {
+export function compareBy(
+  sortCol: LoanSortCols,
+  direction: number,
+  floorPrices?: Record<string, number>
+) {
   switch (sortCol) {
     case "duration": {
       return sortByDuration(direction);
@@ -20,7 +25,7 @@ export function compareBy(sortCol: LoanSortCols, direction: number) {
 
     case "ltv": {
       // TODO
-      return sortByLTV(direction);
+      return sortByLTV(direction, floorPrices);
     }
 
     case "apy":
@@ -38,7 +43,7 @@ export function compareBy(sortCol: LoanSortCols, direction: number) {
 }
 
 function sortByAmount(direction: number) {
-  return (...args: (Loan | LoanOffer)[]) => {
+  return (...args: Loan[] | LoanOffer[]) => {
     if (direction === -1) {
       args.reverse();
     }
@@ -54,7 +59,7 @@ function sortByAmount(direction: number) {
 }
 
 function sortByBasisPoints(direction: number) {
-  return (...args: (Loan | LoanOffer)[]) => {
+  return (...args: Loan[] | LoanOffer[]) => {
     if (direction === -1) {
       args.reverse();
     }
@@ -63,18 +68,40 @@ function sortByBasisPoints(direction: number) {
   };
 }
 
-function sortByLTV(direction: number) {
-  return (...args: (Loan | LoanOffer)[]) => {
+function sortByLTV(direction: number, floorPrices?: Record<string, number>) {
+  return (...args: Loan[] | LoanOffer[]) => {
     if (direction === -1) {
       args.reverse();
     }
 
-    return args[0].data.duration.sub(args[1].data.duration).toNumber();
+    if (!floorPrices) {
+      return -1;
+    }
+
+    const floorPriceA = utils.getFloorPrice(
+      floorPrices,
+      args[0]?.metadata.data.symbol
+    );
+    const floorPriceB = utils.getFloorPrice(
+      floorPrices,
+      args[1]?.metadata.data.symbol
+    );
+    const amountA = args[0].data.amount;
+    const amountB = args[1].data.amount;
+
+    if (floorPriceA && floorPriceB && amountA && amountB) {
+      const ltvA = Number((amountA.toNumber() / floorPriceA) * 100);
+      const ltvB = Number((amountB.toNumber() / floorPriceB) * 100);
+
+      return ltvA - ltvB;
+    }
+
+    return -1;
   };
 }
 
 function sortByDuration(direction: number) {
-  return (...args: (Loan | LoanOffer)[]) => {
+  return (...args: Loan[] | LoanOffer[]) => {
     if (direction === -1) {
       args.reverse();
     }

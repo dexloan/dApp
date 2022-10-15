@@ -1,6 +1,9 @@
 import { extendTheme } from "@chakra-ui/react";
 
 const theme = extendTheme({
+  config: {
+    initialColorMode: "dark",
+  },
   components: {
     Tag: {
       parts: ["container"],
@@ -32,6 +35,16 @@ const theme = extendTheme({
     Heading: {
       baseStyle: {
         color: "gray.100",
+      },
+    },
+    Modal: {
+      baseStyle: {
+        dialog: {
+          bg: "#090A20",
+        },
+        header: {
+          color: "gray.100",
+        },
       },
     },
     Text: {

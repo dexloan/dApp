@@ -23,10 +23,12 @@ import {
   useFloorPricesQuery,
 } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
-import { ColumnHeader, NFTCell } from "../../components/table";
+import { ColumnHeader, NFTCell } from "../table";
+import { OfferLoanModal } from "../form/loan";
 import { compareBy, sortReducer, LoanSortState, LoanSortCols } from "./common";
 
 export const LoanOffers = () => {
+  const [offerModal, setOfferModal] = useState<boolean>(false);
   const [[sortCol, direction], setSortBy] = useState<LoanSortState>([
     "amount",
     1,
@@ -40,8 +42,11 @@ export const LoanOffers = () => {
   const floorPriceQueries = useFloorPricesQuery();
 
   const offers = useMemo(
-    () => (offersQuery.data ?? []).sort(compareBy(sortCol, direction)),
-    [offersQuery.data, sortCol, direction]
+    () =>
+      (offersQuery.data ?? []).sort(
+        compareBy(sortCol, direction, floorPriceQueries.data)
+      ),
+    [offersQuery.data, floorPriceQueries.data, sortCol, direction]
   );
 
   return (
@@ -55,7 +60,11 @@ export const LoanOffers = () => {
         <Heading as="h3" color="gray.200" size="sm">
           Offers
         </Heading>
-        <Button size="sm" leftIcon={<Icon as={IoAdd} />}>
+        <Button
+          size="sm"
+          leftIcon={<Icon as={IoAdd} />}
+          onClick={() => setOfferModal(true)}
+        >
           Create Offer
         </Button>
       </Box>
@@ -107,6 +116,10 @@ export const LoanOffers = () => {
           </Tbody>
         </Table>
       </TableContainer>
+      <OfferLoanModal
+        open={offerModal}
+        onRequestClose={() => setOfferModal(false)}
+      />
     </>
   );
 };

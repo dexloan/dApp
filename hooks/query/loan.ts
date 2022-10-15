@@ -73,6 +73,32 @@ export function useLoanOffersQuery() {
   );
 }
 
+export function useLoanOffersByLenderQuery(
+  lender?: anchor.web3.PublicKey | null
+) {
+  const { connection } = useConnection();
+
+  return useQuery(
+    getLoanOffersCacheKey(),
+    () => {
+      if (lender) {
+        return query.fetchMultipleLoanOffers(connection, [
+          {
+            memcmp: {
+              offset: 8 + 1,
+              bytes: lender.toBase58(),
+            },
+          },
+        ]);
+      }
+    },
+    {
+      enabled: Boolean(lender),
+      refetchOnWindowFocus: false,
+    }
+  );
+}
+
 export const getLoansTakenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["loans_taken", walletAddress?.toBase58()];

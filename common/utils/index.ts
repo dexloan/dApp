@@ -169,6 +169,7 @@ nameMap.set("CHKN", "chicken_tribe");
 nameMap.set("CHKCOP", "chicken_tribe_coops");
 nameMap.set("XAPE", "exiled_degen_ape_academy");
 nameMap.set("BH", "lgtb");
+nameMap.set("LGTB", "lgtb");
 nameMap.set("NOOT", "pesky_penguins");
 
 export function mapSymbolToCollectionName(symbol: string) {

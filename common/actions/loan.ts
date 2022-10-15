@@ -9,7 +9,7 @@ import { HireData } from "../types";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
 
-export async function initLoan(
+export async function askLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -39,7 +39,7 @@ export async function initLoan(
   const [edition] = await query.findEditionAddress(mint);
 
   const transaction = await program.methods
-    .initLoan(amount, basisPoint, duration)
+    .askLoan(amount, basisPoint, duration)
     .accounts({
       loan,
       tokenManager,
@@ -58,6 +58,53 @@ export async function initLoan(
     .transaction();
 
   await submitTransaction(connection, wallet, transaction);
+}
+
+export async function offerLoan(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  collection: anchor.web3.PublicKey,
+  options: {
+    amount: number;
+    duration: number;
+    basisPoints: number;
+  },
+  ids: number[]
+) {
+  const tx = new anchor.web3.Transaction();
+
+  for (const id of ids) {
+    const amount = new anchor.BN(options.amount);
+    const basisPoint = options.basisPoints;
+    const duration = new anchor.BN(options.duration);
+
+    const provider = getProvider(connection, wallet);
+    const program = getProgram(provider);
+
+    const loanOffer = await query.findLoanOfferAddress(
+      collection,
+      wallet.publicKey,
+      1
+    );
+    const loanOfferVault = await query.findLoanOfferVaultAddress(loanOffer);
+
+    const ix = await program.methods
+      .offerLoan(amount, basisPoint, duration, 1)
+      .accounts({
+        loanOffer,
+        collection,
+        escrowPaymentAccount: loanOfferVault,
+        lender: wallet.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        signer: SIGNER,
+      })
+      .instruction();
+
+    tx.add(ix);
+  }
+
+  await submitTransaction(connection, wallet, tx);
 }
 
 export async function giveLoan(
