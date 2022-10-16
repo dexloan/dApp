@@ -24,7 +24,7 @@ import {
 } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
 import { ColumnHeader, NFTCell } from "../table";
-import { OfferLoanModal } from "../form/loan";
+import { OfferLoanModal } from "../form/offerLoan";
 import { compareBy, sortReducer, LoanSortState, LoanSortCols } from "./common";
 
 export const LoanOffers = () => {
@@ -43,9 +43,9 @@ export const LoanOffers = () => {
 
   const offers = useMemo(
     () =>
-      (offersQuery.data ?? []).sort(
-        compareBy(sortCol, direction, floorPriceQueries.data)
-      ),
+      (offersQuery.data ?? [])
+        .map(LoanOffer.fromJSON)
+        .sort(compareBy(sortCol, direction, floorPriceQueries.data)),
     [offersQuery.data, floorPriceQueries.data, sortCol, direction]
   );
 

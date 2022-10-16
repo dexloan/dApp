@@ -84,12 +84,12 @@ export async function offerLoan(
     const loanOffer = await query.findLoanOfferAddress(
       collection,
       wallet.publicKey,
-      1
+      id
     );
     const loanOfferVault = await query.findLoanOfferVaultAddress(loanOffer);
 
     const ix = await program.methods
-      .offerLoan(amount, basisPoint, duration, 1)
+      .offerLoan(amount, basisPoint, duration, id)
       .accounts({
         loanOffer,
         collection,

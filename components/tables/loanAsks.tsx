@@ -22,9 +22,11 @@ import { Loan } from "../../common/model";
 import { useLoansQuery, useFloorPricesQuery } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
 import { ColumnHeader, NFTCell } from "../../components/table";
+import { AskLoanModal } from "../form/askLoan";
 import { compareBy, sortReducer, LoanSortState, LoanSortCols } from "./common";
 
 export const LoanAsks = () => {
+  const [loanModal, setLoanModal] = useState(false);
   const [[sortCol, direction], setSortBy] = useState<LoanSortState>([
     "amount",
     1,
@@ -56,7 +58,11 @@ export const LoanAsks = () => {
         <Heading as="h3" color="gray.200" size="sm">
           Asks
         </Heading>
-        <Button size="sm" leftIcon={<Icon as={IoAdd} />}>
+        <Button
+          size="sm"
+          leftIcon={<Icon as={IoAdd} />}
+          onClick={() => setLoanModal(true)}
+        >
           Create Ask
         </Button>
       </Box>
@@ -112,6 +118,10 @@ export const LoanAsks = () => {
           </Tbody>
         </Table>
       </TableContainer>
+      <AskLoanModal
+        open={loanModal}
+        onRequestClose={() => setLoanModal(true)}
+      />
     </>
   );
 };

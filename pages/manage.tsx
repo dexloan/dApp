@@ -485,20 +485,6 @@ const Hires = () => {
           </Box>
         </>
       )}
-
-      {/* {deprecatedListings.length ? (
-        <>
-          <SectionHeader
-            title="Deprecated v1 Listings"
-            subtitle="Please close the following accounts"
-          />
-          <CardList>
-            {deprecatedListings.map((item) => (
-              <ListingCard key={item.publicKey.toBase58()} listing={item} />
-            ))}
-          </CardList>
-        </>
-      ) : null} */}
     </>
   );
 };

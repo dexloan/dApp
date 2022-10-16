@@ -17,9 +17,10 @@ import {
   getLoansQueryKey,
   getLoansGivenCacheKey,
   getNFTByOwnerCacheKey,
+  getLoanOffersCacheKey,
 } from "../query";
 
-interface AskLoanMutationVariables {
+export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {
@@ -89,7 +90,7 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
   );
 };
 
-interface OfferLoanMutationVariables {
+export interface OfferLoanMutationVariables {
   collection: anchor.web3.PublicKey;
   options: {
     amount: number;
@@ -125,18 +126,9 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        // if (anchorWallet) {
-        //   const loanAddress = await query.findLoanAddress(
-        //     variables.mint,
-        //     anchorWallet.publicKey
-        //   );
-
-        //   try {
-        //     const loan = await query.waitForLoan(connection, loanAddress);
-
-        //     await queryClient.setQueryData(getLoanCacheKey(loanAddress), loan);
-        //   } catch {}
-        // }
+        if (anchorWallet) {
+          queryClient.invalidateQueries(getLoanOffersCacheKey());
+        }
 
         toast.success("Listing created");
 
