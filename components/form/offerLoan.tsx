@@ -213,15 +213,8 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
         </ModalBody>
         <ModalFooter>
           <Button
-            color="gray.900"
-            bg="gray.50"
-            _hover={{
-              bg: "gray.100",
-            }}
-            _active={{
-              bg: "gray.100",
-            }}
-            w="100%"
+            isFullWidth
+            variant="primary"
             disabled={floorPricesQuery.isLoading || loanOffersQuery.isLoading}
             isLoading={mutation.isLoading}
             onClick={onSubmit}

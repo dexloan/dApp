@@ -30,6 +30,16 @@ const theme = extendTheme({
             color: "gray.50",
           },
         },
+        primary: {
+          color: "gray.900",
+          bg: "gray.50",
+          _hover: {
+            bg: "gray.100",
+          },
+          _active: {
+            bg: "gray.100",
+          },
+        },
       },
     },
     Heading: {

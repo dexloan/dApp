@@ -272,6 +272,7 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
           key={item?.tokenAccount.address.toBase58()}
           uri={item?.metadata.data.uri}
           imageAlt={item?.metadata.data.name}
+          onClick={() => onSelectItem(item)}
         >
           <Box p="4" pb="6">
             <Box
@@ -284,11 +285,6 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
               {item?.metadata.data.name}
             </Box>
             <VerifiedCollection size="xs" symbol={item?.metadata.data.symbol} />
-          </Box>
-          <Box m="2">
-            <Button w="100%" onClick={() => onSelectItem(item)}>
-              Select
-            </Button>
           </Box>
         </Card>
       );
@@ -325,7 +321,7 @@ const SectionHeader = ({
       {title}
     </Heading>
     {subtitle && (
-      <Text fontSize="sm" fontWeight="medium">
+      <Text color="gray.400" fontSize="xs">
         {subtitle}
       </Text>
     )}

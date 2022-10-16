@@ -4,34 +4,23 @@ import {
   Box,
   Button,
   FormControl,
-  Heading,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalFooter,
   ModalBody,
+  SimpleGrid,
   Spinner,
-  Text,
 } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import {
-  IoAnalytics,
-  IoCalendar,
-  IoPricetag,
-  IoArrowForwardCircle,
-} from "react-icons/io5";
-import { IconType } from "react-icons";
-import * as utils from "../../common/utils";
+import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 import { NFTResult } from "../../common/types";
-import { useCollectionsQuery, useFloorPriceQuery } from "../../hooks/query";
+import { useFloorPriceQuery } from "../../hooks/query";
 import {
   AskLoanMutationVariables,
   useAskLoanMutation,
-  useOfferLoanMutation,
 } from "../../hooks/mutation/loan";
-import { Collection, LoanOfferPretty } from "../../common/model";
-import { EllipsisProgress } from "../progress";
 import {
   LoanFormFields,
   LoanForecast,
@@ -54,7 +43,7 @@ export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
   return (
     <Modal
       isCentered
-      size="2xl"
+      size={selected ? "2xl" : "4xl"}
       isOpen={open}
       onClose={() => {
         if (!mutation.isLoading) {
@@ -65,13 +54,14 @@ export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          Create Listing
+          {selected ? "Create Ask" : "Select NFT"}
         </ModalHeader>
         {selected ? (
           <AskLoanForm
             isLoading={mutation.isLoading}
             selected={selected}
             onRequestClose={onRequestClose}
+            onCancel={() => setSelected(null)}
             onSubmit={(vars) => mutation.mutate(vars)}
           />
         ) : (
@@ -85,12 +75,14 @@ export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
 interface AskLoanFormProps extends Pick<ModalProps, "onRequestClose"> {
   isLoading: boolean;
   selected: NFTResult;
+  onCancel: () => void;
   onSubmit: (data: AskLoanMutationVariables) => void;
 }
 
 const AskLoanForm = ({
   isLoading,
   selected,
+  onCancel,
   onRequestClose,
   ...other
 }: AskLoanFormProps) => {
@@ -143,7 +135,7 @@ const AskLoanForm = ({
                 floorPrice={floorPriceQuery.data?.floorPrice}
               />
             )}
-            <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
+            <Box pb="4" pt="6" pl="6" pr="6">
               <form onSubmit={onSubmit}>
                 <FormControl isInvalid={!isValid}>
                   <SliderField
@@ -187,15 +179,24 @@ const AskLoanForm = ({
         )}
       </ModalBody>
       <ModalFooter>
-        <Button
-          colorScheme="green"
-          w="100%"
-          disabled={floorPriceQuery.isLoading}
-          isLoading={isLoading}
-          onClick={onSubmit}
-        >
-          Confirm
-        </Button>
+        <SimpleGrid columns={2} spacing={1} width="100%">
+          <Box>
+            <Button isFullWidth disabled={isLoading} onClick={onCancel}>
+              Cancel
+            </Button>
+          </Box>
+          <Box>
+            <Button
+              isFullWidth
+              variant="primary"
+              disabled={floorPriceQuery.isLoading}
+              isLoading={isLoading}
+              onClick={onSubmit}
+            >
+              Confirm
+            </Button>
+          </Box>
+        </SimpleGrid>
       </ModalFooter>
     </>
   );
@@ -215,12 +216,6 @@ const AskListingForecast = ({
   if (!ltv || !apy || !duration) return null;
 
   const amount = new anchor.BN((ltv / 100) * floorPrice);
-
-  const interest = utils.calculateInterestOnMaturity(
-    amount,
-    new anchor.BN(duration * 24 * 60 * 60),
-    apy * 100
-  );
 
   return (
     <LoanForecast
