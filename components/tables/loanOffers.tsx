@@ -105,7 +105,7 @@ export const LoanOffers = () => {
                 direction={sortCol === "amount" ? direction : 0}
                 onClick={() => sort("amount")}
               >
-                Borrowing
+                Lending
               </ColumnHeader>
             </Tr>
           </Thead>

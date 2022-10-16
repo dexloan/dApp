@@ -74,15 +74,21 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
       );
 
       if (collection?.metadata?.data.symbol) {
-        const floorPrice =
-          floorPricesQuery.data[collection.metadata.data.symbol];
+        const floorPrice = utils.getFloorPrice(
+          floorPricesQuery.data,
+          collection.metadata.data.symbol
+        );
+
+        if (!floorPrice) {
+          throw new Error("floor price not found");
+        }
 
         const options = {
           amount: (data.ltv / 100) * floorPrice,
           basisPoints: data.apy * 100,
           duration: data.duration * 24 * 60 * 60,
         };
-        console.log("loanOffersQuery: ", loanOffersQuery.data);
+
         const ids = loanOffersQuery.data?.length
           ? pickIds(loanOffersQuery.data, data.offers)
           : [0];

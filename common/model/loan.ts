@@ -206,7 +206,9 @@ export class LoanOffer implements LoanOfferArgs {
     public readonly data: LoanOfferData,
     public readonly metadata: Metadata,
     public readonly publicKey: web3.PublicKey
-  ) {}
+  ) {
+    console.log("data: ", data);
+  }
 
   get apy() {
     return this.data.basisPoints / 100 + "%";
