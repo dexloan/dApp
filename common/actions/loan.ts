@@ -97,11 +97,6 @@ export async function offerLoan(
       signer: SIGNER,
     };
 
-    for (let acc in accounts) {
-      // @ts-ignore
-      console.log(acc, accounts[acc].toBase58());
-    }
-
     const ix = await program.methods
       .offerLoan(amount, basisPoint, duration, id)
       .accounts(accounts)
