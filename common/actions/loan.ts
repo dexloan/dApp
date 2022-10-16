@@ -88,17 +88,24 @@ export async function offerLoan(
     );
     const loanOfferVault = await query.findLoanOfferVaultAddress(loanOffer);
 
+    const accounts = {
+      loanOffer,
+      collection,
+      escrowPaymentAccount: loanOfferVault,
+      lender: wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      signer: SIGNER,
+    };
+
+    for (let acc in accounts) {
+      // @ts-ignore
+      console.log(acc, accounts[acc].toBase58());
+    }
+
     const ix = await program.methods
       .offerLoan(amount, basisPoint, duration, id)
-      .accounts({
-        loanOffer,
-        collection,
-        escrowPaymentAccount: loanOfferVault,
-        lender: wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        signer: SIGNER,
-      })
+      .accounts(accounts)
       .instruction();
 
     tx.add(ix);

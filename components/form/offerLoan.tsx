@@ -82,8 +82,8 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
           basisPoints: data.apy * 100,
           duration: data.duration * 24 * 60 * 60,
         };
-
-        const ids = loanOffersQuery.data
+        console.log("loanOffersQuery: ", loanOffersQuery.data);
+        const ids = loanOffersQuery.data?.length
           ? pickIds(loanOffersQuery.data, data.offers)
           : [0];
 
@@ -232,12 +232,11 @@ function pickIds(offers: LoanOfferPretty[], count: number) {
   const existingIds = offers.map((o) => o.data.id);
 
   let id = 0;
-  while (ids.length <= count && id <= 255) {
-    if (existingIds.includes(id)) {
-      continue;
-    } else {
+  while (ids.length < count && id <= 255) {
+    if (!existingIds.includes(id)) {
       ids.push(id);
     }
+    id++;
   }
 
   return ids;

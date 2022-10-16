@@ -51,6 +51,7 @@ export default async function handler(
   const connection = new web3.Connection(BACKEND_RPC_ENDPOINT);
   const buffer = Buffer.from(serializedTransaction, "base64");
   const transaction = web3.Transaction.from(buffer);
+  console.log(transaction);
 
   const accounts = transaction.instructions[0].keys;
   const payload = jwt.verify(token, process.env.AUTH_TOKEN_SECRET as string);
