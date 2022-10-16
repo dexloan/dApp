@@ -90,6 +90,7 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
         mutation.mutate({
           ids,
           options,
+          collectionMint: collection.metadata.mint,
           collection: collection.publicKey,
         });
       }

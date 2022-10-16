@@ -92,6 +92,7 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
 
 export interface OfferLoanMutationVariables {
   collection: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
   options: {
     amount: number;
     basisPoints: number;
@@ -112,6 +113,7 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
           connection,
           anchorWallet,
           variables.collection,
+          variables.collectionMint,
           variables.options,
           variables.ids
         );

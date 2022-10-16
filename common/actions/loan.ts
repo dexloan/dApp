@@ -64,6 +64,7 @@ export async function offerLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   collection: anchor.web3.PublicKey,
+  collectionMint: anchor.web3.PublicKey,
   options: {
     amount: number;
     duration: number;
@@ -82,7 +83,7 @@ export async function offerLoan(
     const program = getProgram(provider);
 
     const loanOffer = await query.findLoanOfferAddress(
-      collection,
+      collectionMint,
       wallet.publicKey,
       id
     );
@@ -93,8 +94,6 @@ export async function offerLoan(
       collection,
       escrowPaymentAccount: loanOfferVault,
       lender: wallet.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       signer: SIGNER,
     };
 
