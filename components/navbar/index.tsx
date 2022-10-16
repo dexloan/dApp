@@ -74,32 +74,14 @@ export function Navbar() {
   function UserMenuButton() {
     return (
       <ButtonGroup spacing="0">
-        {wallet.publicKey && (
-          <NextLink href="/manage">
-            <Button
-              as="a"
-              borderRightRadius="0"
-              borderRightWidth="thin"
-              borderColor="gray.200"
-              cursor="pointer"
-              px="0.25"
-              size="sm"
-            >
-              <Box as={IoWallet} />
-            </Button>
-          </NextLink>
-        )}
         {wallet.publicKey ? (
           <Menu>
-            <MenuButton as={Button} borderLeftRadius="none">
+            <MenuButton as={Button} size="sm" leftIcon={<Box as={IoWallet} />}>
               {displayAddress}
             </MenuButton>
-            <MenuList>
-              <NextLink href="/manage">
-                <MenuItem>My Items</MenuItem>
-              </NextLink>
-
+            <MenuList borderRadius="sm">
               <MenuItem
+                fontSize="sm"
                 onClick={async () => {
                   try {
                     await wallet.disconnect();

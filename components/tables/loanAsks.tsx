@@ -120,7 +120,7 @@ export const LoanAsks = () => {
       </TableContainer>
       <AskLoanModal
         open={loanModal}
-        onRequestClose={() => setLoanModal(true)}
+        onRequestClose={() => setLoanModal(false)}
       />
     </>
   );
