@@ -81,6 +81,11 @@ const theme = extendTheme({
                 borderBottomWidth: "0px",
               },
             },
+            "&:nth-of-type(even)": {
+              "th, td": {
+                borderBottomWidth: "0px",
+              },
+            },
             "&:last-of-type": {
               td: {
                 borderColor: "gray.900",
