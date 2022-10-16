@@ -4,7 +4,6 @@ import { useCallback, useState, useMemo } from "react";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 import {
   Box,
-  Button,
   Heading,
   Flex,
   FormLabel,
@@ -17,7 +16,6 @@ import {
   Text,
   Tooltip,
 } from "@chakra-ui/react";
-import { IoArrowForwardCircle } from "react-icons/io5";
 import { IconType } from "react-icons";
 import * as utils from "../../common/utils";
 import { NFTResult, CollectionItem, CollectionMap } from "../../common/types";
@@ -62,60 +60,31 @@ export const LoanForecast = ({
   }, [amount, duration, apy]);
 
   return (
-    <Flex
-      direction="row"
-      gap="4"
-      align="center"
-      justify="space-between"
-      p={{ base: "0", md: "6" }}
-      wrap="wrap"
-    >
-      <Box>
-        <Text fontSize="sm" fontWeight="medium" color="gray.500">
+    <Flex direction="column" gap="2" justify="space-between">
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500">
           {amountLabel}
         </Text>
-        <Heading size="md" fontWeight="bold" mb="6" whiteSpace="nowrap">
+        <Text fontSize="sm" whiteSpace="nowrap">
           {amount ? utils.formatAmount(amount) : <EllipsisProgress />}
-        </Heading>
-      </Box>
-      <Box
-        size="2rem"
-        as={IoArrowForwardCircle}
-        mb="2"
-        display={{ base: "none", md: "block" }}
-      />
-      <Box>
-        <Text
-          fontSize="sm"
-          fontWeight="medium"
-          color="gray.500"
-          whiteSpace="nowrap"
-        >
+        </Text>
+      </Flex>
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
+          Interest on Maturity
+        </Text>
+        <Text fontSize="sm" whiteSpace="nowrap">
+          {interest ? utils.formatAmount(interest) : <EllipsisProgress />}
+        </Text>
+      </Flex>
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
           Duration
         </Text>
-        <Heading size="md" fontWeight="bold" mb="6" whiteSpace="nowrap">
+        <Text fontSize="sm" whiteSpace="nowrap">
           {duration} days
-        </Heading>
-      </Box>
-      <Box
-        size="2rem"
-        as={IoArrowForwardCircle}
-        mb="2"
-        display={{ base: "none", md: "block" }}
-      />
-      <Box>
-        <Text
-          fontSize="sm"
-          fontWeight="medium"
-          color="gray.500"
-          whiteSpace="nowrap"
-        >
-          Interest
         </Text>
-        <Heading size="md" fontWeight="bold" mb="6" whiteSpace="nowrap">
-          {interest ? utils.formatAmount(interest) : <EllipsisProgress />}
-        </Heading>
-      </Box>
+      </Flex>
     </Flex>
   );
 };
@@ -219,11 +188,20 @@ export const SelectNFTForm = ({ onSelect }: SelectNFTFormProps) => {
       return cols;
     }, {} as CollectionMap);
 
-    return Object.values(collectionMap ?? {}).sort((a, b) => {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-      return 0;
-    });
+    return Object.values(collectionMap ?? {})
+      .sort((a, b) => {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
+      })
+      .map((col) => {
+        col.items.sort((a, b) => {
+          if (a.metadata.data.name < b.metadata.data.name) return -1;
+          if (a.metadata.data.name > b.metadata.data.name) return 1;
+          return 0;
+        });
+        return col;
+      });
   }, [nftQuery.data]);
 
   return (

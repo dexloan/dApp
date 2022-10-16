@@ -1,9 +1,10 @@
 import * as anchor from "@project-serum/anchor";
-import { useForm, useWatch, Control } from "react-hook-form";
 import {
   Box,
   Button,
+  Flex,
   FormControl,
+  Heading,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -11,16 +12,21 @@ import {
   ModalFooter,
   ModalBody,
   SimpleGrid,
+  Skeleton,
   Spinner,
 } from "@chakra-ui/react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import Image from "next/image";
+import { useMemo, useState } from "react";
+import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
+import * as utils from "../../common/utils";
 import { NFTResult } from "../../common/types";
-import { useFloorPriceQuery } from "../../hooks/query";
+import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import {
   AskLoanMutationVariables,
   useAskLoanMutation,
 } from "../../hooks/mutation/loan";
+import { VerifiedCollection } from "../collection";
 import {
   LoanFormFields,
   LoanForecast,
@@ -28,7 +34,6 @@ import {
   SliderField,
   SelectNFTForm,
 } from "./common";
-import { useState } from "react";
 
 const defaultValues = {
   ltv: 30,
@@ -95,7 +100,16 @@ const AskLoanForm = ({
     defaultValues,
   });
 
+  const [isVisible, setVisible] = useState(false);
   const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
+  const metadataQuery = useMetadataFileQuery(selected?.metadata?.data.uri);
+
+  const collection = useMemo(() => {
+    if (selected.metadata?.data.symbol) {
+      return utils.mapSymbolToCollectionTitle(selected.metadata.data.symbol);
+    }
+    return null;
+  }, [selected?.metadata.data.symbol]);
 
   const onSubmit = handleSubmit((data) => {
     if (floorPriceQuery.data) {
@@ -129,12 +143,63 @@ const AskLoanForm = ({
           </Box>
         ) : (
           <>
-            {floorPriceQuery.data?.floorPrice && (
-              <AskListingForecast
-                control={control}
-                floorPrice={floorPriceQuery.data?.floorPrice}
-              />
-            )}
+            <Box pb="4" pt="6" pl="6" pr="6">
+              <Flex width="100%" gap="4">
+                <Flex flex={1}>
+                  <Box
+                    h="36"
+                    w="36"
+                    position="relative"
+                    borderRadius="sm"
+                    overflow="hidden"
+                  >
+                    <Box
+                      position="absolute"
+                      left="0"
+                      top="0"
+                      right="0"
+                      bottom="0"
+                    >
+                      <Skeleton
+                        height="100%"
+                        width="100%"
+                        isLoaded={metadataQuery.data?.image && isVisible}
+                      >
+                        {metadataQuery.data?.image && (
+                          <Image
+                            quality={100}
+                            layout="fill"
+                            objectFit="cover"
+                            src={metadataQuery.data?.image}
+                            alt={selected?.metadata.data.name}
+                            onLoad={() => setVisible(true)}
+                          />
+                        )}
+                      </Skeleton>
+                    </Box>
+                  </Box>
+                </Flex>
+                <Flex flex={3} flexGrow={1}>
+                  <Box w="100%">
+                    <Box pb="4">
+                      <Heading size="md">
+                        {selected?.metadata.data.name}
+                      </Heading>
+                      <VerifiedCollection
+                        size="xs"
+                        symbol={selected?.metadata.data.symbol}
+                      />
+                    </Box>
+                    {floorPriceQuery.data?.floorPrice && (
+                      <AskListingForecast
+                        control={control}
+                        floorPrice={floorPriceQuery.data?.floorPrice}
+                      />
+                    )}
+                  </Box>
+                </Flex>
+              </Flex>
+            </Box>
             <Box pb="4" pt="6" pl="6" pr="6">
               <form onSubmit={onSubmit}>
                 <FormControl isInvalid={!isValid}>
