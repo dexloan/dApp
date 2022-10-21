@@ -12,18 +12,23 @@ import {
   SliderTrack,
   SliderFilledTrack,
   SliderThumb,
+  Skeleton,
   Spinner,
   Text,
   Tooltip,
 } from "@chakra-ui/react";
 import { IconType } from "react-icons";
+import Image from "next/image";
 import * as utils from "../../common/utils";
 import { NFTResult, CollectionItem, CollectionMap } from "../../common/types";
-import { useNFTByOwnerQuery, useFloorPriceQuery } from "../../hooks/query";
+import {
+  useNFTByOwnerQuery,
+  useFloorPriceQuery,
+  useMetadataFileQuery,
+} from "../../hooks/query";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
 import { EllipsisProgress } from "../progress";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 export interface ModalProps {
   open: boolean;
@@ -38,26 +43,28 @@ export interface LoanFormFields {
 
 interface LoanForecastProps {
   amountLabel?: string;
-  duration: number;
-  amount?: anchor.BN;
-  apy: number;
+  duration?: anchor.BN;
+  amount?: anchor.BN | null;
+  basisPoints?: number;
 }
 
 export const LoanForecast = ({
   amount,
   amountLabel = "Borrowing",
   duration,
-  apy,
+  basisPoints,
 }: LoanForecastProps) => {
   const interest = useMemo(() => {
-    if (amount) {
-      return utils.calculateInterestOnMaturity(
-        amount,
-        new anchor.BN(duration * 24 * 60 * 60),
-        apy * 100
-      );
+    if (amount && basisPoints && duration) {
+      return utils.calculateInterestOnMaturity(amount, duration, basisPoints);
     }
-  }, [amount, duration, apy]);
+  }, [amount, duration, basisPoints]);
+
+  const days = useMemo(() => {
+    if (duration) {
+      return duration.toNumber() / 86_400;
+    }
+  }, [duration]);
 
   return (
     <Flex direction="column" gap="2" justify="space-between">
@@ -82,7 +89,7 @@ export const LoanForecast = ({
           Duration
         </Text>
         <Text fontSize="sm" whiteSpace="nowrap">
-          {duration} days
+          {days} days
         </Text>
       </Flex>
     </Flex>
@@ -160,33 +167,46 @@ export const SliderField = <Fields extends FieldValues>({
 };
 
 interface SelectNFTFormProps {
+  collectionMint?: anchor.web3.PublicKey;
   onSelect: (selected: NFTResult) => void;
 }
 
-export const SelectNFTForm = ({ onSelect }: SelectNFTFormProps) => {
-  const modal = useWalletModal();
+export const SelectNFTForm = ({
+  collectionMint,
+  onSelect,
+}: SelectNFTFormProps) => {
   const wallet = useAnchorWallet();
   const nftQuery = useNFTByOwnerQuery(wallet);
 
   const collections = useMemo(() => {
-    const collectionMap = nftQuery.data?.reduce((cols, nft) => {
-      if (nft) {
-        const symbol = nft.metadata.data.symbol;
-
-        if (cols[symbol]) {
-          cols[symbol].items.push(nft);
+    const collectionMap = nftQuery.data
+      ?.filter((nft) => {
+        if (collectionMint) {
+          return (
+            nft.metadata.collection?.verified &&
+            nft.metadata.collection?.key.equals(collectionMint)
+          );
         }
+        return true;
+      })
+      .reduce((cols, nft) => {
+        if (nft) {
+          const symbol = nft.metadata.data.symbol;
 
-        if (!cols[symbol]) {
-          cols[symbol] = {
-            symbol,
-            name: utils.mapSymbolToCollectionTitle(symbol) as string,
-            items: [nft],
-          };
+          if (cols[symbol]) {
+            cols[symbol].items.push(nft);
+          }
+
+          if (!cols[symbol]) {
+            cols[symbol] = {
+              symbol,
+              name: utils.mapSymbolToCollectionTitle(symbol) as string,
+              items: [nft],
+            };
+          }
         }
-      }
-      return cols;
-    }, {} as CollectionMap);
+        return cols;
+      }, {} as CollectionMap);
 
     return Object.values(collectionMap ?? {})
       .sort((a, b) => {
@@ -202,7 +222,7 @@ export const SelectNFTForm = ({ onSelect }: SelectNFTFormProps) => {
         });
         return col;
       });
-  }, [nftQuery.data]);
+  }, [collectionMint, nftQuery.data]);
 
   return (
     <ModalBody>
@@ -305,3 +325,60 @@ const SectionHeader = ({
     )}
   </Box>
 );
+
+interface LoanDetailsProps {
+  nft: NFTResult;
+  forecast: React.ReactNode;
+}
+
+export const LoanDetails = ({ nft, forecast }: LoanDetailsProps) => {
+  const [isVisible, setVisible] = useState(false);
+  const metadataQuery = useMetadataFileQuery(nft?.metadata?.data.uri);
+
+  return (
+    <Box pb="4" pt="6" pl="6" pr="6">
+      <Flex width="100%" gap="4">
+        <Flex flex={1}>
+          <Box
+            h="36"
+            w="36"
+            position="relative"
+            borderRadius="sm"
+            overflow="hidden"
+          >
+            <Box position="absolute" left="0" top="0" right="0" bottom="0">
+              <Skeleton
+                height="100%"
+                width="100%"
+                isLoaded={metadataQuery.data?.image && isVisible}
+              >
+                {metadataQuery.data?.image && (
+                  <Image
+                    quality={100}
+                    layout="fill"
+                    objectFit="cover"
+                    src={metadataQuery.data?.image}
+                    alt={nft?.metadata.data.name}
+                    onLoad={() => setVisible(true)}
+                  />
+                )}
+              </Skeleton>
+            </Box>
+          </Box>
+        </Flex>
+        <Flex flex={3} flexGrow={1}>
+          <Box w="100%">
+            <Box pb="4">
+              <Heading size="md">{nft?.metadata.data.name}</Heading>
+              <VerifiedCollection
+                size="xs"
+                symbol={nft?.metadata.data.symbol}
+              />
+            </Box>
+            {forecast}
+          </Box>
+        </Flex>
+      </Flex>
+    </Box>
+  );
+};

@@ -108,6 +108,62 @@ export async function offerLoan(
   await submitTransaction(connection, wallet, tx);
 }
 
+export async function takeLoan(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  options: {
+    id: number;
+    mint: anchor.web3.PublicKey;
+    collectionMint: anchor.web3.PublicKey;
+    lender: anchor.web3.PublicKey;
+  }
+): Promise<void> {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const collection = await query.findCollectionAddress(options.collectionMint);
+  const loan = await query.findLoanAddress(options.mint, wallet.publicKey);
+  const loanOffer = await query.findLoanOfferAddress(
+    options.collectionMint,
+    wallet.publicKey,
+    options.id
+  );
+  const loanOfferVault = await query.findLoanOfferVaultAddress(loanOffer);
+  const tokenManager = await query.findTokenManagerAddress(
+    options.mint,
+    wallet.publicKey
+  );
+  const tokenAccount = (await connection.getTokenLargestAccounts(options.mint))
+    .value[0].address;
+  const [metadata] = await query.findMetadataAddress(options.mint);
+  const [edition] = await query.findEditionAddress(options.mint);
+
+  const transaction = await program.methods
+    .takeLoanOffer(options.id)
+    .accounts({
+      collection,
+      loan,
+      loanOffer,
+      tokenManager,
+      metadata,
+      edition,
+      borrower: wallet.publicKey,
+      depositTokenAccount: tokenAccount,
+      escrowPaymentAccount: loanOfferVault,
+      lender: options.lender,
+      mint: options.mint,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      metadataProgram: METADATA_PROGRAM_ID,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
+    })
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
+}
+
 export async function giveLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,

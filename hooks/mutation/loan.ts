@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import { NFTResult, LoanStateEnum } from "../../common/types";
-import { LoanPretty } from "../../common/model";
+import { LoanOfferPretty, LoanPretty } from "../../common/model";
 import {
   getLoansTakenCacheKey,
   getLoanCacheKey,
@@ -135,6 +135,62 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
         toast.success("Listing created");
 
         onSuccess();
+      },
+    }
+  );
+};
+
+interface TakeLoanVariables {
+  id: number;
+  mint: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
+  lender: anchor.web3.PublicKey;
+}
+
+export const useTakeLoanMutation = (onSuccess: () => void) => {
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, TakeLoanVariables>(
+    async (variables) => {
+      if (anchorWallet) {
+        return actions.takeLoan(connection, anchorWallet, variables);
+      }
+      throw new Error("Not ready");
+    },
+    {
+      async onSuccess(_, variables) {
+        const collection = await query.findCollectionAddress(
+          variables.collectionMint
+        );
+
+        queryClient.setQueryData<LoanOfferPretty[] | undefined>(
+          getLoanOffersCacheKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) =>
+                  collection.toBase58() !== item.data.collection &&
+                  item.data.id !== variables.id
+              );
+            }
+          }
+        );
+
+        queryClient.invalidateQueries(
+          getLoansTakenCacheKey(anchorWallet?.publicKey)
+        );
+
+        toast.success("Loan taken");
+
+        onSuccess();
+      },
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
       },
     }
   );

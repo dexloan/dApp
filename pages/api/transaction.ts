@@ -69,7 +69,7 @@ export default async function handler(
   try {
     const signer = await getSigner();
     transaction.partialSign(signer);
-    console.log(transaction);
+
     const signature = await connection.sendRawTransaction(
       transaction.serialize(),
       {

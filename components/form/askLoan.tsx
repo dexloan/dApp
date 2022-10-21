@@ -104,13 +104,6 @@ const AskLoanForm = ({
   const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
   const metadataQuery = useMetadataFileQuery(selected?.metadata?.data.uri);
 
-  const collection = useMemo(() => {
-    if (selected.metadata?.data.symbol) {
-      return utils.mapSymbolToCollectionTitle(selected.metadata.data.symbol);
-    }
-    return null;
-  }, [selected?.metadata.data.symbol]);
-
   const onSubmit = handleSubmit((data) => {
     if (floorPriceQuery.data) {
       const options = {
@@ -281,13 +274,15 @@ const AskListingForecast = ({
   if (!ltv || !apy || !duration) return null;
 
   const amount = new anchor.BN((ltv / 100) * floorPrice);
+  const durationSeconds = new anchor.BN(duration * 86_400);
+  const basisPoints = apy * 100;
 
   return (
     <LoanForecast
       amountLabel="Lending"
       amount={amount}
-      apy={apy}
-      duration={duration}
+      basisPoints={basisPoints}
+      duration={durationSeconds}
     />
   );
 };

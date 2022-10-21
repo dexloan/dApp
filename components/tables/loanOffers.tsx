@@ -24,11 +24,12 @@ import {
 } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
 import { ColumnHeader, NFTCell } from "../table";
-import { OfferLoanModal } from "../form/offerLoan";
+import { OfferLoanModal, TakeLoanModal } from "../form";
 import { compareBy, sortReducer, LoanSortState, LoanSortCols } from "./common";
 
 export const LoanOffers = () => {
   const [offerModal, setOfferModal] = useState<boolean>(false);
+  const [offer, setOffer] = useState<LoanOffer | null>(null);
   const [[sortCol, direction], setSortBy] = useState<LoanSortState>([
     "amount",
     1,
@@ -111,7 +112,11 @@ export const LoanOffers = () => {
           </Thead>
           <Tbody>
             {offers.map((offer) => (
-              <LoanOfferRow key={offer.publicKey.toBase58()} offer={offer} />
+              <LoanOfferRow
+                key={offer.publicKey.toBase58()}
+                offer={offer}
+                onSelect={() => setOffer(offer)}
+              />
             ))}
           </Tbody>
         </Table>
@@ -120,15 +125,21 @@ export const LoanOffers = () => {
         open={offerModal}
         onRequestClose={() => setOfferModal(false)}
       />
+      <TakeLoanModal
+        offer={offer}
+        open={Boolean(offer)}
+        onRequestClose={() => setOffer(null)}
+      />
     </>
   );
 };
 
 interface LoanOfferRowProps {
   offer: LoanOffer;
+  onSelect: () => void;
 }
 
-const LoanOfferRow = ({ offer }: LoanOfferRowProps) => {
+const LoanOfferRow = ({ offer, onSelect }: LoanOfferRowProps) => {
   const floorPriceQuery = useFloorPriceQuery(offer?.metadata.data.symbol);
 
   const floorPrice = useMemo(() => {
@@ -140,26 +151,26 @@ const LoanOfferRow = ({ offer }: LoanOfferRowProps) => {
   const ltv = useLTV(offer?.data.amount, floorPriceQuery.data?.floorPrice);
 
   return (
-    <Tr
-      key={offer.publicKey.toBase58()}
-      cursor="pointer"
-      _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
-      onClick={() => {
-        /* take offer */
-      }}
-    >
-      <NFTCell metadata={offer?.metadata} />
-      <Td>{offer.duration}</Td>
-      <Td isNumeric>{offer.apy}</Td>
-      <Td isNumeric>{ltv}</Td>
-      <Td isNumeric>
-        <Box>
-          <Text mb="1">{offer.amount}</Text>
-          <Text fontSize="xs" color="gray.500">
-            Floor {floorPrice ?? "..."}
-          </Text>
-        </Box>
-      </Td>
-    </Tr>
+    <>
+      <Tr
+        key={offer.publicKey.toBase58()}
+        cursor="pointer"
+        _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
+        onClick={() => onSelect()}
+      >
+        <NFTCell metadata={offer?.metadata} />
+        <Td>{offer.duration}</Td>
+        <Td isNumeric>{offer.apy}</Td>
+        <Td isNumeric>{ltv}</Td>
+        <Td isNumeric>
+          <Box>
+            <Text mb="1">{offer.amount}</Text>
+            <Text fontSize="xs" color="gray.500">
+              Floor {floorPrice ?? "..."}
+            </Text>
+          </Box>
+        </Td>
+      </Tr>
+    </>
   );
 };

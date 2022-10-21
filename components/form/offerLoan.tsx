@@ -277,13 +277,15 @@ const OfferListingForecast = ({
   const amount = floorPrice
     ? new anchor.BN((ltv / 100) * floorPrice * offers)
     : undefined;
+  const basisPoints = apy * 100;
+  const durationSeconds = new anchor.BN(duration * 86_400);
 
   return (
     <LoanForecast
       amountLabel="Lending"
       amount={amount}
-      apy={apy}
-      duration={duration}
+      basisPoints={basisPoints}
+      duration={durationSeconds}
     />
   );
 };
