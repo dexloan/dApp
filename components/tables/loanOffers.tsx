@@ -13,43 +13,33 @@ import {
   Td,
   Text,
 } from "@chakra-ui/react";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { IoAdd } from "react-icons/io5";
 import { useMemo, useState } from "react";
 
 import { LoanOffer } from "../../common/model";
-import {
-  useFloorPriceQuery,
-  useLoanOffersQuery,
-  useFloorPricesQuery,
-} from "../../hooks/query";
+import { useFloorPriceQuery } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
 import { ColumnHeader, NFTCell } from "../table";
 import { OfferLoanModal, TakeLoanModal } from "../form";
-import { compareBy, sortReducer, LoanSortState, LoanSortCols } from "./common";
+import { SortFn, LoanSortCols } from "./common";
 
-export const LoanOffers = () => {
+interface LoanOffersProps {
+  heading: string;
+  offers: LoanOffer[];
+  direction: number;
+  sortCol: LoanSortCols;
+  onSort: SortFn;
+}
+
+export const LoanOffers = ({
+  heading,
+  offers,
+  sortCol,
+  direction,
+  onSort,
+}: LoanOffersProps) => {
   const [offerModal, setOfferModal] = useState<boolean>(false);
   const [offer, setOffer] = useState<LoanOffer | null>(null);
-  const [[sortCol, direction], setSortBy] = useState<LoanSortState>([
-    "amount",
-    1,
-  ]);
-
-  function sort(col: LoanSortCols) {
-    setSortBy(sortReducer(col));
-  }
-
-  const offersQuery = useLoanOffersQuery();
-  const floorPriceQueries = useFloorPricesQuery();
-
-  const offers = useMemo(
-    () =>
-      (offersQuery.data ?? [])
-        .map(LoanOffer.fromJSON)
-        .sort(compareBy(sortCol, direction, floorPriceQueries.data)),
-    [offersQuery.data, floorPriceQueries.data, sortCol, direction]
-  );
 
   return (
     <>
@@ -60,7 +50,7 @@ export const LoanOffers = () => {
         mb="2"
       >
         <Heading as="h3" color="gray.200" size="sm">
-          Offers
+          {heading}
         </Heading>
         <Button
           size="sm"
@@ -84,28 +74,28 @@ export const LoanOffers = () => {
               <Th>Collection</Th>
               <ColumnHeader
                 direction={sortCol === "duration" ? direction : 0}
-                onClick={() => sort("duration")}
+                onClick={() => onSort("duration")}
               >
                 Duration
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
                 direction={sortCol === "apy" ? direction : 0}
-                onClick={() => sort("apy")}
+                onClick={() => onSort("apy")}
               >
                 APY
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
                 direction={sortCol === "ltv" ? direction : 0}
-                onClick={() => sort("ltv")}
+                onClick={() => onSort("ltv")}
               >
                 LTV
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
                 direction={sortCol === "amount" ? direction : 0}
-                onClick={() => sort("amount")}
+                onClick={() => onSort("amount")}
               >
                 Lending
               </ColumnHeader>

@@ -1,8 +1,54 @@
+import { useState, useCallback, useMemo } from "react";
 import * as utils from "../../common/utils";
-import { Loan, LoanOffer } from "../../common/model";
+import {
+  Loan,
+  LoanOffer,
+  LoanOfferPretty,
+  LoanPretty,
+} from "../../common/model";
+import { useFloorPricesQuery } from "../../hooks/query";
 
 export type LoanSortCols = "duration" | "ltv" | "apy" | "amount";
 export type LoanSortState = [LoanSortCols, number];
+export type SortFn = (col: LoanSortCols) => void;
+
+export const useLoanSortState = (): [LoanSortState, SortFn] => {
+  const [state, setState] = useState<LoanSortState>(["amount", 1]);
+
+  const onSort = useCallback((col) => setState(sortReducer(col)), []);
+
+  return [state, onSort];
+};
+
+export const useSortedLoanOffers = (
+  offers: LoanOfferPretty[] = [],
+  state: LoanSortState
+) => {
+  const floorPriceQueries = useFloorPricesQuery();
+
+  return useMemo(() => {
+    const [sortCol, direction] = state;
+
+    return offers
+      .map(LoanOffer.fromJSON)
+      .sort(compareBy(sortCol, direction, floorPriceQueries.data));
+  }, [offers, state, floorPriceQueries.data]);
+};
+
+export const useSortedLoans = (
+  offers: LoanPretty[] = [],
+  state: LoanSortState
+) => {
+  const floorPriceQueries = useFloorPricesQuery();
+
+  return useMemo(() => {
+    const [sortCol, direction] = state;
+
+    return offers
+      .map(Loan.fromJSON)
+      .sort(compareBy(sortCol, direction, floorPriceQueries.data));
+  }, [offers, state, floorPriceQueries.data]);
+};
 
 export function sortReducer(col: LoanSortCols) {
   return (state: LoanSortState): LoanSortState => {

@@ -1,9 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import {
   Box,
-  Button,
   Heading,
-  Icon,
   Table,
   TableContainer,
   Thead,
@@ -13,41 +11,32 @@ import {
   Td,
   Text,
 } from "@chakra-ui/react";
-import { IoAdd } from "react-icons/io5";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/router";
 
-import * as utils from "../../common/utils";
-import { SerializedLoanState } from "../../common/constants";
 import { Loan } from "../../common/model";
-import { useLoansQuery, useFloorPricesQuery } from "../../hooks/query";
+import { useFloorPriceQuery } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
-import { ColumnHeader, NFTCell } from "../../components/table";
-import { AskLoanModal } from "../form/askLoan";
-import { compareBy, sortReducer, LoanSortState, LoanSortCols } from "./common";
+import { ColumnHeader, NFTCell } from "../table";
+import { SortFn, LoanSortCols } from "./common";
 
-export const LoanAsks = () => {
-  const [loanModal, setLoanModal] = useState(false);
-  const [[sortCol, direction], setSortBy] = useState<LoanSortState>([
-    "amount",
-    1,
-  ]);
+interface LoanListingsProps {
+  heading: string;
+  action?: React.ReactNode;
+  loans: Loan[];
+  direction: number;
+  sortCol: LoanSortCols;
+  onSort: SortFn;
+}
 
-  const loansQuery = useLoansQuery(SerializedLoanState.Listed);
-  const floorPricesQuery = useFloorPricesQuery();
-
-  const loans = useMemo(
-    () =>
-      (loansQuery.data?.map(Loan.fromJSON) ?? []).sort(
-        compareBy(sortCol, direction, floorPricesQuery.data)
-      ),
-    [loansQuery.data, floorPricesQuery.data, sortCol, direction]
-  );
-
-  function sort(col: LoanSortCols) {
-    setSortBy(sortReducer(col));
-  }
-
+export const LoanListings = ({
+  heading,
+  action = null,
+  loans,
+  sortCol,
+  direction,
+  onSort,
+}: LoanListingsProps) => {
   return (
     <>
       <Box
@@ -57,15 +46,9 @@ export const LoanAsks = () => {
         mb="2"
       >
         <Heading as="h3" color="gray.200" size="sm">
-          Asks
+          {heading}
         </Heading>
-        <Button
-          size="sm"
-          leftIcon={<Icon as={IoAdd} />}
-          onClick={() => setLoanModal(true)}
-        >
-          Create Ask
-        </Button>
+        {action}
       </Box>
       <TableContainer
         maxW="100%"
@@ -81,28 +64,28 @@ export const LoanAsks = () => {
               <Th>Collateral</Th>
               <ColumnHeader
                 direction={sortCol === "duration" ? direction : 0}
-                onClick={() => sort("duration")}
+                onClick={() => onSort("duration")}
               >
                 Duration
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
                 direction={sortCol === "apy" ? direction : 0}
-                onClick={() => sort("apy")}
+                onClick={() => onSort("apy")}
               >
                 APY
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
                 direction={sortCol === "ltv" ? direction : 0}
-                onClick={() => sort("ltv")}
+                onClick={() => onSort("ltv")}
               >
                 LTV
               </ColumnHeader>
               <ColumnHeader
                 isNumeric
                 direction={sortCol === "amount" ? direction : 0}
-                onClick={() => sort("amount")}
+                onClick={() => onSort("amount")}
               >
                 Borrowing
               </ColumnHeader>
@@ -110,19 +93,11 @@ export const LoanAsks = () => {
           </Thead>
           <Tbody>
             {loans.map((loan) => (
-              <LoanRow
-                key={loan.publicKey.toBase58()}
-                loan={loan}
-                floorPrices={floorPricesQuery.data}
-              />
+              <LoanRow key={loan.publicKey.toBase58()} loan={loan} />
             ))}
           </Tbody>
         </Table>
       </TableContainer>
-      <AskLoanModal
-        open={loanModal}
-        onRequestClose={() => setLoanModal(false)}
-      />
     </>
   );
 };
@@ -132,20 +107,18 @@ interface LoanRowProps {
   floorPrices?: Record<string, number>;
 }
 
-const LoanRow = ({ loan, floorPrices = {} }: LoanRowProps) => {
+const LoanRow = ({ loan }: LoanRowProps) => {
   const router = useRouter();
 
-  const floorPrice = utils.getFloorPrice(
-    floorPrices,
-    loan?.metadata.data.symbol
-  );
-  const floorPriceSol = useMemo(() => {
-    if (floorPrice) {
-      return floorPrice / anchor.web3.LAMPORTS_PER_SOL;
-    }
-  }, [floorPrice]);
+  const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
 
-  const ltv = useLTV(loan?.data.amount, floorPrice);
+  const floorPriceSol = useMemo(() => {
+    if (floorPriceQuery.data?.floorPrice) {
+      return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+    }
+  }, [floorPriceQuery.data]);
+
+  const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
 
   return (
     <Tr

@@ -42,7 +42,6 @@ import {
   RepossessDialog,
 } from "../../components/dialog";
 import { NFTLayout } from "../../components/layout";
-// import { SecondaryHireButton } from "../../components/buttons";
 import { EllipsisProgress } from "../../components/progress";
 import { DocumentHead } from "../../components/document";
 import { Detail } from "../../components/detail";
