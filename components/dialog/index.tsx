@@ -48,7 +48,7 @@ export function MutationDialog({
           <Button
             mr="2"
             isLoading={loading}
-            colorScheme="green"
+            variant="primary"
             onClick={onConfirm}
           >
             Confirm
