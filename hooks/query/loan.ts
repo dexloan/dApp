@@ -36,22 +36,22 @@ export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
   );
 }
 
-export const getLoansQueryKey = () => ["loans"];
+export const getLoansQueryKey = (state: number) => ["loans", state];
 
-export function useLoansQuery() {
+export function useLoansQuery(state: number) {
   const { connection } = useConnection();
 
   return useQuery(
-    getLoansQueryKey(),
+    getLoansQueryKey(state),
     () =>
       query.fetchMultipleLoans(connection, [
-        // {
-        //   memcmp: {
-        //     // filter listed
-        //     offset: 8,
-        //     bytes: bs58.encode([0]),
-        //   },
-        // },
+        {
+          memcmp: {
+            // filter listed
+            offset: 8,
+            bytes: bs58.encode([state]),
+          },
+        },
       ]),
     {
       refetchOnWindowFocus: false,

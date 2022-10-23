@@ -18,6 +18,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 import * as utils from "../../common/utils";
+import { SerializedLoanState } from "../../common/constants";
 import { Loan } from "../../common/model";
 import { useLoansQuery, useFloorPricesQuery } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
@@ -32,7 +33,7 @@ export const LoanAsks = () => {
     1,
   ]);
 
-  const loansQuery = useLoansQuery();
+  const loansQuery = useLoansQuery(SerializedLoanState.Listed);
   const floorPricesQuery = useFloorPricesQuery();
 
   const loans = useMemo(

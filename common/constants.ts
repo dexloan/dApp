@@ -7,9 +7,9 @@ export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
 export const SECONDS_PER_DAY = new anchor.BN(86_400);
 
 export const SerializedLoanState = {
-  Listed: 0,
-  Active: 1,
-  Defaulted: 2,
+  Listed: 1,
+  Active: 2,
+  Defaulted: 3,
 };
 
 export const SerializedCallOptionState = {

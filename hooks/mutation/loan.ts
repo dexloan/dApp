@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import { NFTResult, LoanStateEnum } from "../../common/types";
-import { LoanOfferPretty, LoanPretty } from "../../common/model";
+import { LoanOfferPretty, LoanPretty, LoanOffer } from "../../common/model";
 import {
   getLoansTakenCacheKey,
   getLoanCacheKey,
@@ -19,6 +19,7 @@ import {
   getNFTByOwnerCacheKey,
   getLoanOffersCacheKey,
 } from "../query";
+import { SerializedLoanState } from "../../common/constants";
 
 export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -141,10 +142,8 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
 };
 
 interface TakeLoanVariables {
-  id: number;
   mint: anchor.web3.PublicKey;
-  collectionMint: anchor.web3.PublicKey;
-  lender: anchor.web3.PublicKey;
+  offer: LoanOffer;
 }
 
 export const useTakeLoanMutation = (onSuccess: () => void) => {
@@ -155,24 +154,24 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
   return useMutation<void, Error, TakeLoanVariables>(
     async (variables) => {
       if (anchorWallet) {
-        return actions.takeLoan(connection, anchorWallet, variables);
+        return actions.takeLoan(
+          connection,
+          anchorWallet,
+          variables.mint,
+          variables.offer
+        );
       }
       throw new Error("Not ready");
     },
     {
       async onSuccess(_, variables) {
-        const collection = await query.findCollectionAddress(
-          variables.collectionMint
-        );
-
         queryClient.setQueryData<LoanOfferPretty[] | undefined>(
           getLoanOffersCacheKey(),
           (data) => {
             if (data) {
               return data?.filter(
                 (item) =>
-                  collection.toBase58() !== item.data.collection &&
-                  item.data.id !== variables.id
+                  item.publicKey !== variables.offer.publicKey.toBase58()
               );
             }
           }
@@ -183,6 +182,45 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
         );
 
         toast.success("Loan taken");
+
+        onSuccess();
+      },
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+    }
+  );
+};
+
+export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, LoanOffer>(
+    async (variables) => {
+      if (anchorWallet) {
+        return actions.closeOffer(connection, anchorWallet, variables);
+      }
+      throw new Error("Not ready");
+    },
+    {
+      async onSuccess(_, variables) {
+        queryClient.setQueryData<LoanOfferPretty[] | undefined>(
+          getLoanOffersCacheKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) => item.publicKey !== variables.publicKey.toBase58()
+              );
+            }
+          }
+        );
+
+        toast.success("Offer closed");
 
         onSuccess();
       },
@@ -216,7 +254,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
     {
       async onSuccess(_, variables) {
         queryClient.setQueryData<LoanPretty[] | undefined>(
-          getLoansQueryKey(),
+          getLoansQueryKey(SerializedLoanState.Listed),
           (data) => {
             if (data) {
               return data?.filter(
@@ -308,7 +346,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<LoanPretty[] | undefined>(
-          getLoansQueryKey(),
+          getLoansQueryKey(SerializedLoanState.Listed),
           (data) => {
             if (data) {
               return data?.filter(

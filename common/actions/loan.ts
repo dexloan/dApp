@@ -6,6 +6,7 @@ import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-toke
 import * as query from "../query";
 import { SIGNER } from "../constants";
 import { HireData } from "../types";
+import { LoanOffer } from "../model";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
 
@@ -108,50 +109,73 @@ export async function offerLoan(
   await submitTransaction(connection, wallet, tx);
 }
 
+export async function closeOffer(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  offer: LoanOffer
+) {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const escrowPaymentAccount = await query.findLoanOfferVaultAddress(
+    offer.publicKey
+  );
+
+  const transaction = await program.methods
+    .closeLoanOffer(offer.data.id)
+    .accounts({
+      signer: SIGNER,
+      lender: wallet.publicKey,
+      loanOffer: offer.publicKey,
+      escrowPaymentAccount,
+      collection: offer.data.collection,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    })
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
+}
+
 export async function takeLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
-  options: {
-    id: number;
-    mint: anchor.web3.PublicKey;
-    collectionMint: anchor.web3.PublicKey;
-    lender: anchor.web3.PublicKey;
-  }
+  mint: anchor.web3.PublicKey,
+  offer: LoanOffer
 ): Promise<void> {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const collection = await query.findCollectionAddress(options.collectionMint);
-  const loan = await query.findLoanAddress(options.mint, wallet.publicKey);
+  const loan = await query.findLoanAddress(mint, wallet.publicKey);
   const loanOffer = await query.findLoanOfferAddress(
-    options.collectionMint,
-    options.lender,
-    options.id
+    offer.metadata.mint,
+    offer.data.lender,
+    offer.data.id
   );
   const loanOfferVault = await query.findLoanOfferVaultAddress(loanOffer);
   const tokenManager = await query.findTokenManagerAddress(
-    options.mint,
+    mint,
     wallet.publicKey
   );
-  const tokenAccount = (await connection.getTokenLargestAccounts(options.mint))
-    .value[0].address;
-  const [metadata] = await query.findMetadataAddress(options.mint);
-  const [edition] = await query.findEditionAddress(options.mint);
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
+  const [metadata] = await query.findMetadataAddress(mint);
+  const [edition] = await query.findEditionAddress(mint);
 
   const transaction = await program.methods
-    .takeLoanOffer(options.id)
+    .takeLoanOffer(offer.data.id)
     .accounts({
-      collection,
       loan,
       loanOffer,
       tokenManager,
+      mint,
       metadata,
       edition,
       borrower: wallet.publicKey,
+      lender: offer.data.lender,
+      collection: offer.data.collection,
       depositTokenAccount: tokenAccount,
       escrowPaymentAccount: loanOfferVault,
-      lender: options.lender,
-      mint: options.mint,
       systemProgram: anchor.web3.SystemProgram.programId,
       metadataProgram: METADATA_PROGRAM_ID,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,

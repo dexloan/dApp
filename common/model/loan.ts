@@ -206,8 +206,13 @@ export class LoanOffer implements LoanOfferArgs {
     public readonly data: LoanOfferData,
     public readonly metadata: Metadata,
     public readonly publicKey: web3.PublicKey
-  ) {
-    console.log("data: ", data);
+  ) {}
+
+  public isLender(wallet: AnchorWallet) {
+    if (this.data.lender) {
+      return this.data.lender.equals(wallet.publicKey);
+    }
+    return false;
   }
 
   get apy() {

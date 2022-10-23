@@ -13,6 +13,7 @@ import {
   Td,
   Text,
 } from "@chakra-ui/react";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { IoAdd } from "react-icons/io5";
 import { useMemo, useState } from "react";
 
