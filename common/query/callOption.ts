@@ -2,10 +2,15 @@ import * as anchor from "@project-serum/anchor";
 
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { CallOptionData } from "../types";
+import { CallOptionData, CallOptionBidData } from "../types";
 import { getProgram, getProvider } from "../provider";
 import { fetchMetadata, fetchMetadataAccounts } from "./common";
-import { CallOption, CallOptionPretty } from "../model/callOption";
+import {
+  CallOption,
+  CallOptionBid,
+  CallOptionBidPretty,
+  CallOptionPretty,
+} from "../model/callOption";
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,
@@ -83,4 +88,33 @@ export async function fetchMultipleCallOptions(
   });
 
   return combinedAccounts.filter(Boolean) as CallOptionPretty[];
+}
+
+export async function fetchMultipleCallOptionBids(
+  connection: anchor.web3.Connection,
+  filter: anchor.web3.GetProgramAccountsFilter[] = []
+): Promise<CallOptionBidPretty[]> {
+  const provider = getProvider(connection);
+  const program = getProgram(provider);
+  const callOptionBids = await program.account.callOptionBid.all(filter);
+
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    callOptionBids
+  );
+
+  const combinedAccounts = callOptionBids.map((bid, index) => {
+    const metadataAccount = metadataAccounts[index];
+
+    if (metadataAccount) {
+      return new CallOptionBid(
+        bid.account as CallOptionBidData,
+        metadataAccount,
+        bid.publicKey
+      ).pretty();
+    }
+    return null;
+  });
+
+  return combinedAccounts.filter(Boolean) as CallOptionBidPretty[];
 }

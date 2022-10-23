@@ -4,7 +4,11 @@ import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 import * as utils from "../utils";
 import dayjs from "../../common/lib/dayjs";
-import type { CallOptionData, CallOptionStateEnum } from "../types";
+import type {
+  CallOptionData,
+  CallOptionBidData,
+  CallOptionStateEnum,
+} from "../types";
 
 export type CallOptionArgs = {
   data: CallOptionData;
@@ -106,6 +110,84 @@ export class CallOption implements CallOptionArgs {
         strikePrice: new BN(args.data.strikePrice),
         mint: new web3.PublicKey(args.data.mint),
         tokenMint: null,
+        bump: args.data.bump,
+      },
+      Metadata.fromArgs({
+        key: 0 as Key, // TODO
+        updateAuthority: new web3.PublicKey(args.metadata.updateAuthority),
+        mint: new web3.PublicKey(args.metadata.mint),
+        data: args.metadata.data,
+        primarySaleHappened: args.metadata.primarySaleHappened,
+        isMutable: args.metadata.isMutable,
+        editionNonce: args.metadata.editionNonce,
+        tokenStandard: args.metadata.tokenStandard,
+        collection: args.metadata.collection,
+        uses: args.metadata.uses,
+      }),
+      new web3.PublicKey(args.publicKey)
+    );
+  }
+}
+
+export type CallOptionBidArgs = {
+  data: CallOptionBidData;
+  metadata: Metadata;
+  publicKey: web3.PublicKey;
+};
+
+export type CallOptionBidPretty = ReturnType<CallOptionBid["pretty"]>;
+
+export class CallOptionBid implements CallOptionBidArgs {
+  constructor(
+    public readonly data: CallOptionBidData,
+    public readonly metadata: Metadata,
+    public readonly publicKey: web3.PublicKey
+  ) {}
+
+  get expiry() {
+    return dayjs.unix(this.data.expiry.toNumber()).format("DD/MM/YYYY");
+  }
+
+  get expiryLongFormat() {
+    const date = dayjs.unix(this.data.expiry.toNumber()).tz("America/New_York");
+    return date.format("MMM D, YYYY") + " at " + date.format("h:mm A z");
+  }
+
+  get strikePrice() {
+    return utils.formatAmount(this.data.strikePrice);
+  }
+
+  get cost() {
+    return utils.formatAmount(this.data.amount);
+  }
+
+  pretty() {
+    return {
+      data: {
+        id: this.data.id,
+        buyer: this.data.buyer.toBase58(),
+        expiry: this.data.expiry.toNumber(),
+        strikePrice: this.data.strikePrice.toNumber(),
+        amount: this.data.amount.toNumber(),
+        collection: this.data.collection.toBase58(),
+        escrowBump: this.data.escrowBump,
+        bump: this.data.bump,
+      },
+      metadata: this.metadata.pretty(),
+      publicKey: this.publicKey.toBase58(),
+    };
+  }
+
+  static fromJSON(args: CallOptionBidPretty) {
+    return new CallOptionBid(
+      {
+        id: args.data.id,
+        buyer: new web3.PublicKey(args.data.buyer),
+        expiry: new BN(args.data.expiry),
+        strikePrice: new BN(args.data.strikePrice),
+        amount: new BN(args.data.amount),
+        collection: new web3.PublicKey(args.data.collection),
+        escrowBump: args.data.escrowBump,
         bump: args.data.bump,
       },
       Metadata.fromArgs({

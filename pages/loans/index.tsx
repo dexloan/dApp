@@ -27,7 +27,7 @@ import {
   useLoanSortState,
   useSortedLoans,
   useSortedLoanOffers,
-} from "../../components/tables";
+} from "../../components/tables/loans";
 import { AskLoanModal } from "../../components/form";
 
 const Loans: NextPage = () => {

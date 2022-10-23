@@ -73,13 +73,17 @@ export function useLoanOffersQuery() {
   );
 }
 
+export const getLoanOffersByLenderCacheKey = (
+  lender?: anchor.web3.PublicKey | null
+) => ["loan_offers", lender?.toBase58()];
+
 export function useLoanOffersByLenderQuery(
   lender?: anchor.web3.PublicKey | null
 ) {
   const { connection } = useConnection();
 
   return useQuery(
-    getLoanOffersCacheKey(),
+    getLoanOffersByLenderCacheKey(lender),
     () => {
       if (lender) {
         return query.fetchMultipleLoanOffers(connection, [

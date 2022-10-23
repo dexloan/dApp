@@ -16,12 +16,12 @@ import {
 import { IoAdd } from "react-icons/io5";
 import { useMemo, useState } from "react";
 
-import { LoanOffer } from "../../common/model";
-import { useFloorPriceQuery } from "../../hooks/query";
-import { useLTV } from "../../hooks/render";
-import { ColumnHeader, NFTCell } from "../table";
-import { OfferLoanModal, TakeLoanModal } from "../form";
-import { EmptyMessage } from "../table";
+import { LoanOffer } from "../../../common/model";
+import { useFloorPriceQuery } from "../../../hooks/query";
+import { useLTV } from "../../../hooks/render";
+import { ColumnHeader, NFTCell } from "../../table";
+import { OfferLoanModal, TakeLoanModal } from "../../form";
+import { EmptyMessage } from "../../table";
 import { SortFn, LoanSortCols } from "./common";
 
 interface LoanOffersProps {

@@ -17,8 +17,6 @@ import { CallOption } from "../../common/model";
 import { useCallOptionsQuery } from "../../hooks/query";
 import { ColumnHeader, NFTCell } from "../../components/table";
 
-type SortCols = "expiry" | "strikePrice" | "cost";
-
 const CallOptions: NextPage = () => {
   const [[sortCol, direction], setSortBy] = useState<[SortCols, number]>([
     "expiry",
@@ -116,58 +114,3 @@ const OptionRow = ({ option }: OptionRowProps) => {
 };
 
 export default CallOptions;
-
-function compareBy(sortCol: SortCols, direction: number) {
-  switch (sortCol) {
-    case "expiry":
-      return sortByExpiry(direction);
-
-    case "strikePrice":
-      return sortByStrikePrice(direction);
-
-    case "cost":
-      return sortByCost(direction);
-
-    default:
-      return (a: CallOption) => {
-        if (a.state === "listed") return -1;
-        return 1;
-      };
-  }
-}
-
-function sortByExpiry(direction: number) {
-  return (...args: CallOption[]) => {
-    if (direction === -1) {
-      args.reverse();
-    }
-
-    if (args[0].data.amount) {
-      if (args[1].data.amount) {
-        return args[0].data.amount.sub(args[1].data.amount).toNumber();
-      }
-      return 1;
-    }
-    return -1;
-  };
-}
-
-function sortByStrikePrice(direction: number) {
-  return (...args: CallOption[]) => {
-    if (direction === -1) {
-      args.reverse();
-    }
-
-    return args[0].data.strikePrice.sub(args[1].data.strikePrice).toNumber();
-  };
-}
-
-function sortByCost(direction: number) {
-  return (...args: CallOption[]) => {
-    if (direction === -1) {
-      args.reverse();
-    }
-
-    return args[0].data.amount.sub(args[1].data.amount).toNumber();
-  };
-}

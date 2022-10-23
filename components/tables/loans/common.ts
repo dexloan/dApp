@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo } from "react";
 
-import * as utils from "../../common/utils";
+import * as utils from "../../../common/utils";
 import {
   Loan,
   LoanOffer,
   LoanOfferPretty,
   LoanPretty,
-} from "../../common/model";
-import { useFloorPricesQuery } from "../../hooks/query";
+} from "../../../common/model";
+import { useFloorPricesQuery } from "../../../hooks/query";
 
 export type LoanSortCols = "duration" | "ltv" | "apy" | "amount";
 export type LoanSortState = [LoanSortCols, number];

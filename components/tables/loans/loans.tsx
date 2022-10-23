@@ -14,11 +14,10 @@ import {
 import { useMemo } from "react";
 import { useRouter } from "next/router";
 
-import { Loan } from "../../common/model";
-import { useFloorPriceQuery } from "../../hooks/query";
-import { useLTV } from "../../hooks/render";
-import { ColumnHeader, NFTCell } from "../table";
-import { EmptyMessage } from "../table";
+import { Loan } from "../../../common/model";
+import { useFloorPriceQuery } from "../../../hooks/query";
+import { useLTV } from "../../../hooks/render";
+import { ColumnHeader, EmptyMessage, NFTCell } from "../../table";
 import { SortFn, LoanSortCols } from "./common";
 
 interface LoanListingsProps {
