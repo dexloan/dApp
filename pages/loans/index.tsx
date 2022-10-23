@@ -11,7 +11,7 @@ import {
   TabPanel,
 } from "@chakra-ui/react";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { IoAdd } from "react-icons/io5";
 
 import { SerializedLoanState } from "../../common/constants";
@@ -34,23 +34,24 @@ import { AskLoanModal } from "../../components/form";
 const Loans: NextPage = () => {
   return (
     <Container maxW="container.lg">
-      <Heading as="h1" color="gray.200" size="md" mt="12" mb="12">
+      {/* <Heading as="h1" color="gray.200" size="md" mt="12" mb="12">
         Loans
-      </Heading>
-      <Tabs>
-        <TabList>
+      </Heading> */}
+      <Tabs isLazy>
+        <TabList mt="6">
           <Tab>Listings</Tab>
           <Tab>My Items</Tab>
         </TabList>
-        <TabPanels>
+        <TabPanels my="6">
           <TabPanel>
             <Offers />
             <Listings />
           </TabPanel>
           <TabPanel>
             <YourOffers />
-            <LoansGiven />
+            <LoanAsks />
             <LoansTaken />
+            <LoansGiven />
           </TabPanel>
         </TabPanels>
       </Tabs>
@@ -114,7 +115,7 @@ const YourOffers = () => {
 
   return (
     <LoanOffers
-      heading="Offers Made"
+      heading="Your Offers"
       offers={sortedOffers}
       sortCol={sortState[0]}
       direction={sortState[1]}
@@ -141,12 +142,36 @@ const LoansGiven = () => {
 
 const LoansTaken = () => {
   const loansQuery = useLoansTakenQuery();
+  const filteredLoans = useMemo(
+    () => loansQuery.data?.filter((loan) => loan.data.state !== "listed"),
+    [loansQuery.data]
+  );
   const [sortState, onSort] = useLoanSortState();
-  const sortedLoans = useSortedLoans(loansQuery.data, sortState);
+  const sortedLoans = useSortedLoans(filteredLoans, sortState);
 
   return (
     <LoanListings
       heading="Loans Taken"
+      loans={sortedLoans}
+      sortCol={sortState[0]}
+      direction={sortState[1]}
+      onSort={onSort}
+    />
+  );
+};
+
+const LoanAsks = () => {
+  const loansQuery = useLoansTakenQuery();
+  const filteredLoans = useMemo(
+    () => loansQuery.data?.filter((loan) => loan.data.state === "listed"),
+    [loansQuery.data]
+  );
+  const [sortState, onSort] = useLoanSortState();
+  const sortedLoans = useSortedLoans(filteredLoans, sortState);
+
+  return (
+    <LoanListings
+      heading="Your Asks"
       loans={sortedLoans}
       sortCol={sortState[0]}
       direction={sortState[1]}
