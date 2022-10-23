@@ -125,7 +125,7 @@ export async function takeLoan(
   const loan = await query.findLoanAddress(options.mint, wallet.publicKey);
   const loanOffer = await query.findLoanOfferAddress(
     options.collectionMint,
-    wallet.publicKey,
+    options.lender,
     options.id
   );
   const loanOfferVault = await query.findLoanOfferVaultAddress(loanOffer);

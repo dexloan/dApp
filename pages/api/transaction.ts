@@ -7,8 +7,6 @@ import { Redis } from "@upstash/redis";
 import nookies from "nookies";
 import jwt from "jsonwebtoken";
 
-import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
-
 const client = new Redis({
   url: process.env.REDIS_URL as string,
   token: process.env.REDIS_TOKEN as string,
@@ -48,7 +46,9 @@ export default async function handler(
   const { transaction: serializedTransaction } = JSON.parse(req.body) as {
     transaction: string;
   };
-  const connection = new web3.Connection(BACKEND_RPC_ENDPOINT);
+  const connection = new web3.Connection(
+    process.env.BACKEND_RPC_ENDPOINT as string
+  );
   const buffer = Buffer.from(serializedTransaction, "base64");
   const transaction = web3.Transaction.from(buffer);
 
@@ -69,7 +69,7 @@ export default async function handler(
   try {
     const signer = await getSigner();
     transaction.partialSign(signer);
-
+    console.log("transaction: ", transaction);
     const signature = await connection.sendRawTransaction(
       transaction.serialize(),
       {

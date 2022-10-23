@@ -16,10 +16,9 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
-import * as utils from "../../common/utils";
 import { NFTResult } from "../../common/types";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import {
@@ -237,7 +236,7 @@ const AskLoanForm = ({
         )}
       </ModalBody>
       <ModalFooter>
-        <SimpleGrid columns={2} spacing={1} width="100%">
+        <SimpleGrid columns={2} spacing={2} width="100%">
           <Box>
             <Button isFullWidth disabled={isLoading} onClick={onCancel}>
               Cancel

@@ -19,7 +19,6 @@ import { Toaster } from "react-hot-toast";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 import theme from "../theme";
-import { RPC_ENDPOINT } from "../common/constants";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
 import { DocumentHead, Footer } from "../components/document";
@@ -50,7 +49,7 @@ function Dexloan({ Component, pageProps }: AppProps) {
     <QueryClientProvider client={queryClient}>
       <Hydrate state={pageProps.dehydratedState}>
         <ConnectionProvider
-          endpoint={RPC_ENDPOINT}
+          endpoint={process.env.NEXT_PUBLIC_RPC_ENDPOINT as string}
           config={{
             commitment: "confirmed",
             confirmTransactionInitialTimeout: 90_000,

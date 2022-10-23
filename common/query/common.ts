@@ -148,10 +148,12 @@ export async function fetchNFTs(
       collectionMint !== undefined &&
       collectionMints.some((mint) => mint.equals(collectionMint))
     ) {
+      console.log(metadata.data.name);
       try {
         const tokenAccount = tokenAccounts[index];
 
         if (tokenAccount.amount === BigInt("0")) {
+          debugger;
           return null;
         }
 
@@ -161,6 +163,7 @@ export async function fetchNFTs(
         };
       } catch (err) {
         console.error(err);
+        debugger;
         return null;
       }
     }

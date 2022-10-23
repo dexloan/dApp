@@ -178,6 +178,9 @@ export const SelectNFTForm = ({
   const wallet = useAnchorWallet();
   const nftQuery = useNFTByOwnerQuery(wallet);
 
+  console.log("collectionMint: ", collectionMint?.toBase58());
+  console.log("nftQuery: ", nftQuery);
+
   const collections = useMemo(() => {
     const collectionMap = nftQuery.data
       ?.filter((nft) => {
@@ -336,7 +339,7 @@ export const LoanDetails = ({ nft, forecast }: LoanDetailsProps) => {
   const metadataQuery = useMetadataFileQuery(nft?.metadata?.data.uri);
 
   return (
-    <Box pb="4" pt="6" pl="6" pr="6">
+    <Box pb="4" pt="6" px="6">
       <Flex width="100%" gap="4">
         <Flex flex={1}>
           <Box

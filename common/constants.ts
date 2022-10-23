@@ -4,12 +4,6 @@ export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
   "GDNxgyEcP6b2FtTtCGrGhmoy5AQEiwuv26hV1CLmL1yu"
 );
 
-export const RPC_ENDPOINT =
-  "https://fragrant-capable-theorem.solana-mainnet.discover.quiknode.pro/";
-
-export const BACKEND_RPC_ENDPOINT =
-  "https://fragrant-capable-theorem.solana-mainnet.discover.quiknode.pro/";
-
 export const SECONDS_PER_DAY = new anchor.BN(86_400);
 
 export const SerializedLoanState = {

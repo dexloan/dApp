@@ -21,7 +21,6 @@ import { IoLeaf, IoAlert, IoList, IoCheckmark } from "react-icons/io5";
 
 import * as utils from "../../common/utils";
 import { CallOptionStateEnum } from "../../common/types";
-import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
 import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
@@ -109,7 +108,9 @@ CallOptionPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
-      const connection = new anchor.web3.Connection(BACKEND_RPC_ENDPOINT);
+      const connection = new anchor.web3.Connection(
+        process.env.BACKEND_RPC_ENDPOINT as string
+      );
       const callOptionAddress = new anchor.web3.PublicKey(
         ctx.query.optionId as string
       );

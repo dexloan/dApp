@@ -11,6 +11,7 @@ import {
   ModalHeader,
   ModalFooter,
   ModalBody,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { NFTResult } from "../../common/types";
 import { Collection, LoanOffer } from "../../common/model";
@@ -30,8 +31,13 @@ export const TakeLoanModal = ({
   const mutation = useTakeLoanMutation(onRequestClose);
 
   function onSubmit() {
-    if (offer) {
-      mutation.mutate(offer.data);
+    if (offer && selected?.metadata.collection) {
+      mutation.mutate({
+        id: offer.data.id,
+        lender: offer.data.lender,
+        mint: selected?.metadata.mint,
+        collectionMint: selected?.metadata.collection?.key,
+      });
     }
   }
 
@@ -68,19 +74,32 @@ export const TakeLoanModal = ({
               />
             </ModalBody>
             <ModalFooter>
-              <Button
-                isFullWidth
-                variant="primary"
-                isLoading={mutation.isLoading}
-                onClick={onSubmit}
-              >
-                Confirm
-              </Button>
+              <SimpleGrid columns={2} spacing={2} width="100%">
+                <Box>
+                  <Button
+                    isFullWidth
+                    disabled={mutation.isLoading}
+                    onClick={() => setSelected(null)}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+                <Box>
+                  <Button
+                    isFullWidth
+                    variant="primary"
+                    isLoading={mutation.isLoading}
+                    onClick={onSubmit}
+                  >
+                    Confirm
+                  </Button>
+                </Box>
+              </SimpleGrid>
             </ModalFooter>
           </>
         ) : (
           <SelectNFTForm
-            collectionMint={offer?.metadata.collection?.key}
+            collectionMint={offer?.metadata.mint}
             onSelect={setSelected}
           />
         )}

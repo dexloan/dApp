@@ -18,7 +18,6 @@ import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
 import { LoanStateEnum } from "../../common/types";
 import { fetchLoan } from "../../common/query";
 import { Loan } from "../../common/model";
@@ -108,7 +107,9 @@ LoanPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
-      const connection = new anchor.web3.Connection(BACKEND_RPC_ENDPOINT);
+      const connection = new anchor.web3.Connection(
+        process.env.BACKEND_RPC_ENDPOINT as string
+      );
       const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
 
       const loan = await queryClient.fetchQuery(
