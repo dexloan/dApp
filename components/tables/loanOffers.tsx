@@ -21,6 +21,7 @@ import { useFloorPriceQuery } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
 import { ColumnHeader, NFTCell } from "../table";
 import { OfferLoanModal, TakeLoanModal } from "../form";
+import { EmptyMessage } from "../table";
 import { SortFn, LoanSortCols } from "./common";
 
 interface LoanOffersProps {
@@ -60,58 +61,62 @@ export const LoanOffers = ({
           Create Offer
         </Button>
       </Box>
-      <TableContainer
-        maxW="100%"
-        mt="2"
-        mb="6"
-        borderTop="1px"
-        borderColor="gray.800"
-        width="100%"
-      >
-        <Table size="sm">
-          <Thead>
-            <Tr>
-              <Th>Collection</Th>
-              <ColumnHeader
-                direction={sortCol === "duration" ? direction : 0}
-                onClick={() => onSort("duration")}
-              >
-                Duration
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "apy" ? direction : 0}
-                onClick={() => onSort("apy")}
-              >
-                APY
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "ltv" ? direction : 0}
-                onClick={() => onSort("ltv")}
-              >
-                LTV
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "amount" ? direction : 0}
-                onClick={() => onSort("amount")}
-              >
-                Lending
-              </ColumnHeader>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {offers.map((offer) => (
-              <LoanOfferRow
-                key={offer.publicKey.toBase58()}
-                offer={offer}
-                onSelect={() => setOffer(offer)}
-              />
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
+      {offers.length ? (
+        <TableContainer
+          maxW="100%"
+          mt="2"
+          mb="6"
+          borderTop="1px"
+          borderColor="gray.800"
+          width="100%"
+        >
+          <Table size="sm">
+            <Thead>
+              <Tr>
+                <Th>Collection</Th>
+                <ColumnHeader
+                  direction={sortCol === "duration" ? direction : 0}
+                  onClick={() => onSort("duration")}
+                >
+                  Duration
+                </ColumnHeader>
+                <ColumnHeader
+                  isNumeric
+                  direction={sortCol === "apy" ? direction : 0}
+                  onClick={() => onSort("apy")}
+                >
+                  APY
+                </ColumnHeader>
+                <ColumnHeader
+                  isNumeric
+                  direction={sortCol === "ltv" ? direction : 0}
+                  onClick={() => onSort("ltv")}
+                >
+                  LTV
+                </ColumnHeader>
+                <ColumnHeader
+                  isNumeric
+                  direction={sortCol === "amount" ? direction : 0}
+                  onClick={() => onSort("amount")}
+                >
+                  Lending
+                </ColumnHeader>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {offers.map((offer) => (
+                <LoanOfferRow
+                  key={offer.publicKey.toBase58()}
+                  offer={offer}
+                  onSelect={() => setOffer(offer)}
+                />
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <EmptyMessage>No offers currently</EmptyMessage>
+      )}
       <OfferLoanModal
         open={offerModal}
         onRequestClose={() => setOfferModal(false)}

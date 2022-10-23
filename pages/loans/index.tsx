@@ -2,7 +2,6 @@ import type { NextPage } from "next";
 import {
   Button,
   Container,
-  Heading,
   Icon,
   Tabs,
   TabList,
@@ -94,6 +93,7 @@ const Listings = () => {
           </Button>
         }
         heading="Asks"
+        placeholderMessage="No asks currently"
         loans={sortedLoans}
         sortCol={sortState[0]}
         direction={sortState[1]}
@@ -132,6 +132,7 @@ const LoansGiven = () => {
   return (
     <LoanListings
       heading="Loans Given"
+      placeholderMessage="No active loans"
       loans={sortedLoans}
       sortCol={sortState[0]}
       direction={sortState[1]}
@@ -152,6 +153,7 @@ const LoansTaken = () => {
   return (
     <LoanListings
       heading="Loans Taken"
+      placeholderMessage="No active loans"
       loans={sortedLoans}
       sortCol={sortState[0]}
       direction={sortState[1]}
@@ -172,6 +174,7 @@ const LoanAsks = () => {
   return (
     <LoanListings
       heading="Your Asks"
+      placeholderMessage="You have no listed asks"
       loans={sortedLoans}
       sortCol={sortState[0]}
       direction={sortState[1]}

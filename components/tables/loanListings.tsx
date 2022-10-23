@@ -18,10 +18,12 @@ import { Loan } from "../../common/model";
 import { useFloorPriceQuery } from "../../hooks/query";
 import { useLTV } from "../../hooks/render";
 import { ColumnHeader, NFTCell } from "../table";
+import { EmptyMessage } from "../table";
 import { SortFn, LoanSortCols } from "./common";
 
 interface LoanListingsProps {
   heading: string;
+  placeholderMessage: string;
   action?: React.ReactNode;
   loans: Loan[];
   direction: number;
@@ -31,6 +33,7 @@ interface LoanListingsProps {
 
 export const LoanListings = ({
   heading,
+  placeholderMessage,
   action = null,
   loans,
   sortCol,
@@ -50,54 +53,58 @@ export const LoanListings = ({
         </Heading>
         {action}
       </Box>
-      <TableContainer
-        maxW="100%"
-        mt="2"
-        mb="6"
-        borderTop="1px"
-        borderColor="gray.800"
-        width="100%"
-      >
-        <Table size="sm">
-          <Thead>
-            <Tr>
-              <Th>Collateral</Th>
-              <ColumnHeader
-                direction={sortCol === "duration" ? direction : 0}
-                onClick={() => onSort("duration")}
-              >
-                Duration
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "apy" ? direction : 0}
-                onClick={() => onSort("apy")}
-              >
-                APY
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "ltv" ? direction : 0}
-                onClick={() => onSort("ltv")}
-              >
-                LTV
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "amount" ? direction : 0}
-                onClick={() => onSort("amount")}
-              >
-                Borrowing
-              </ColumnHeader>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {loans.map((loan) => (
-              <LoanRow key={loan.publicKey.toBase58()} loan={loan} />
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
+      {loans.length ? (
+        <TableContainer
+          maxW="100%"
+          mt="2"
+          mb="6"
+          borderTop="1px"
+          borderColor="gray.800"
+          width="100%"
+        >
+          <Table size="sm">
+            <Thead>
+              <Tr>
+                <Th>Collateral</Th>
+                <ColumnHeader
+                  direction={sortCol === "duration" ? direction : 0}
+                  onClick={() => onSort("duration")}
+                >
+                  Duration
+                </ColumnHeader>
+                <ColumnHeader
+                  isNumeric
+                  direction={sortCol === "apy" ? direction : 0}
+                  onClick={() => onSort("apy")}
+                >
+                  APY
+                </ColumnHeader>
+                <ColumnHeader
+                  isNumeric
+                  direction={sortCol === "ltv" ? direction : 0}
+                  onClick={() => onSort("ltv")}
+                >
+                  LTV
+                </ColumnHeader>
+                <ColumnHeader
+                  isNumeric
+                  direction={sortCol === "amount" ? direction : 0}
+                  onClick={() => onSort("amount")}
+                >
+                  Borrowing
+                </ColumnHeader>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {loans.map((loan) => (
+                <LoanRow key={loan.publicKey.toBase58()} loan={loan} />
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <EmptyMessage>{placeholderMessage}</EmptyMessage>
+      )}
     </>
   );
 };

@@ -117,3 +117,19 @@ export const NFTCell = ({ metadata }: NFTCellProps) => {
     </Td>
   );
 };
+
+interface EmptyMessageProps {
+  children: string;
+}
+
+export const EmptyMessage = ({
+  children = "No listings currently",
+}: EmptyMessageProps) => {
+  return (
+    <Box w="100%" p="6" mb="6" display="flex" justifyContent="center">
+      <Text fontSize="xs" maxW="22ch">
+        {children}
+      </Text>
+    </Box>
+  );
+};
