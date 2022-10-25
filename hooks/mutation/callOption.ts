@@ -91,7 +91,7 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
   return useMutation<void, Error, TakeCallOptionVariables>(
     async (variables) => {
       if (anchorWallet) {
-        return actions.takeCallOption(
+        return actions.sellCallOption(
           connection,
           anchorWallet,
           variables.mint,

@@ -61,7 +61,7 @@ export async function bidCallOption(
   await submitTransaction(connection, wallet, tx);
 }
 
-export async function takeCallOption(
+export async function sellCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -89,7 +89,7 @@ export async function takeCallOption(
   const [edition] = await query.findEditionAddress(mint);
 
   const transaction = await program.methods
-    .takeCallOption(bid.data.id)
+    .sellCallOption(bid.data.id)
     .accounts({
       callOption,
       callOptionBid,
@@ -97,7 +97,7 @@ export async function takeCallOption(
       mint,
       metadata,
       edition,
-      borrower: wallet.publicKey,
+      seller: wallet.publicKey,
       buyer: bid.data.buyer,
       collection: bid.data.collection,
       depositTokenAccount: tokenAccount,
