@@ -11,9 +11,9 @@ import { useFloorPricesQuery } from "../../../hooks/query";
 
 export type LoanSortCols = "duration" | "ltv" | "apy" | "amount";
 export type LoanSortState = [LoanSortCols, number];
-export type SortFn = (col: LoanSortCols) => void;
+export type LoanSortFn = (col: LoanSortCols) => void;
 
-export const useLoanSortState = (): [LoanSortState, SortFn] => {
+export const useLoanSortState = (): [LoanSortState, LoanSortFn] => {
   const [state, setState] = useState<LoanSortState>(["amount", 1]);
 
   const onSort = useCallback((col) => setState(sortReducer(col)), []);

@@ -18,7 +18,7 @@ import { Loan } from "../../../common/model";
 import { useFloorPriceQuery } from "../../../hooks/query";
 import { useLTV } from "../../../hooks/render";
 import { ColumnHeader, EmptyMessage, NFTCell } from "../../table";
-import { SortFn, LoanSortCols } from "./common";
+import { LoanSortFn, LoanSortCols } from "./common";
 
 interface LoanListingsProps {
   heading: string;
@@ -27,7 +27,7 @@ interface LoanListingsProps {
   loans: Loan[];
   direction: number;
   sortCol: LoanSortCols;
-  onSort: SortFn;
+  onSort: LoanSortFn;
 }
 
 export const LoanListings = ({

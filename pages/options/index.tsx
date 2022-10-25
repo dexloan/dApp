@@ -1,21 +1,22 @@
 import type { NextPage } from "next";
 import {
   Container,
-  Heading,
-  Table,
-  TableContainer,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 import { CallOption } from "../../common/model";
-import { useCallOptionsQuery } from "../../hooks/query";
+import { useCallOptionBidsQuery, useCallOptionsQuery } from "../../hooks/query";
 import { ColumnHeader, NFTCell } from "../../components/table";
+import {
+  useCallOptionSortState,
+  useSortedCallOptions,
+} from "../../components/tables/callOptions/common";
 
 const CallOptions: NextPage = () => {
   const [[sortCol, direction], setSortBy] = useState<[SortCols, number]>([
@@ -43,73 +44,158 @@ const CallOptions: NextPage = () => {
 
   return (
     <Container maxW="container.lg">
-      <Heading as="h1" color="gray.200" size="sm" mt="12" mb="2">
+      {/* <Heading as="h1" color="gray.200" size="sm" mt="12" mb="2">
         Call Options
-      </Heading>
-      <TableContainer
-        maxW="100%"
-        mt="2"
-        mb="6"
-        borderTop="1px"
-        borderColor="gray.800"
-        width="100%"
-      >
-        <Table size="sm">
-          <Thead>
-            <Tr>
-              <Th>Asset</Th>
-              <ColumnHeader
-                direction={sortCol === "expiry" ? direction : 0}
-                onClick={() => sort("expiry")}
-              >
-                Expiry
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "strikePrice" ? direction : 0}
-                onClick={() => sort("strikePrice")}
-              >
-                Strike Price
-              </ColumnHeader>
-              <ColumnHeader
-                isNumeric
-                direction={sortCol === "cost" ? direction : 0}
-                onClick={() => sort("cost")}
-              >
-                Cost
-              </ColumnHeader>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {callOptions.map((option) => (
-              <OptionRow key={option.publicKey.toBase58()} option={option} />
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
+      </Heading> */}
+      <Container maxW="container.lg">
+        {/* <Heading as="h1" color="gray.200" size="md" mt="12" mb="12">
+        Loans
+      </Heading> */}
+        <Tabs isLazy>
+          <TabList mt="6">
+            <Tab>Listings</Tab>
+            <Tab>My Items</Tab>
+          </TabList>
+          <TabPanels my="6">
+            <TabPanel>
+              <Bids />
+              <Listings />
+            </TabPanel>
+            <TabPanel>
+              <YourOffers />
+              <LoanAsks />
+              <LoansTaken />
+              <LoansGiven />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </Container>
     </Container>
   );
 };
 
-interface OptionRowProps {
-  option: CallOption;
-}
-
-const OptionRow = ({ option }: OptionRowProps) => {
-  const router = useRouter();
+const Bids = () => {
+  const offersQuery = useCallOptionBidsQuery();
+  const [sortState, onSort] = useCallOptionSortState();
+  const sortedOffers = useSortedCallOptions(offersQuery.data, sortState);
 
   return (
-    <Tr
-      key={option.publicKey.toBase58()}
-      cursor="pointer"
-      _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
-      onClick={() => router.push(`/options/${option.publicKey.toBase58()}`)}
-    >
-      <NFTCell metadata={option?.metadata} />
-      <Td>{option.expiry}</Td>
-      <Td isNumeric>{option.strikePrice}</Td>
-      <Td isNumeric>{option.cost}</Td>
-    </Tr>
+    <CallOptionBids
+      heading="Offers"
+      offers={sortedOffers}
+      sortCol={sortState[0]}
+      direction={sortState[1]}
+      onSort={onSort}
+    />
+  );
+};
+
+const Listings = () => {
+  const [loanModal, setLoanModal] = useState(false);
+  const loansQuery = useLoansQuery(SerializedLoanState.Listed);
+  const [sortState, onSort] = useLoanSortState();
+  const sortedLoans = useSortedLoans(loansQuery.data, sortState);
+
+  return (
+    <>
+      <LoanListings
+        action={
+          <Button
+            size="sm"
+            leftIcon={<Icon as={IoAdd} />}
+            onClick={() => setLoanModal(true)}
+          >
+            Create Ask
+          </Button>
+        }
+        heading="Asks"
+        placeholderMessage="No asks currently"
+        loans={sortedLoans}
+        sortCol={sortState[0]}
+        direction={sortState[1]}
+        onSort={onSort}
+      />
+      <AskLoanModal
+        open={loanModal}
+        onRequestClose={() => setLoanModal(false)}
+      />
+    </>
+  );
+};
+
+const YourOffers = () => {
+  const anchorWallet = useAnchorWallet();
+  const myOffersQuery = useLoanOffersByLenderQuery(anchorWallet?.publicKey);
+  const [sortState, onSort] = useLoanSortState();
+  const sortedOffers = useSortedLoanOffers(myOffersQuery.data, sortState);
+
+  return (
+    <LoanOffers
+      heading="Your Offers"
+      offers={sortedOffers}
+      sortCol={sortState[0]}
+      direction={sortState[1]}
+      onSort={onSort}
+    />
+  );
+};
+
+const LoansGiven = () => {
+  const loansQuery = useLoansGivenQuery();
+  const [sortState, onSort] = useLoanSortState();
+  const sortedLoans = useSortedLoans(loansQuery.data, sortState);
+
+  return (
+    <LoanListings
+      heading="Loans Given"
+      placeholderMessage="No active loans"
+      loans={sortedLoans}
+      sortCol={sortState[0]}
+      direction={sortState[1]}
+      onSort={onSort}
+    />
+  );
+};
+
+const LoansTaken = () => {
+  const loansQuery = useLoansTakenQuery();
+  const filteredLoans = useMemo(
+    () => loansQuery.data?.filter((loan) => loan.data.state !== "listed"),
+    [loansQuery.data]
+  );
+  const [sortState, onSort] = useLoanSortState();
+  const sortedLoans = useSortedLoans(filteredLoans, sortState);
+
+  return (
+    <LoanListings
+      heading="Loans Taken"
+      placeholderMessage="No active loans"
+      loans={sortedLoans}
+      sortCol={sortState[0]}
+      direction={sortState[1]}
+      onSort={onSort}
+    />
+  );
+};
+
+const LoanAsks = () => {
+  const loansQuery = useLoansTakenQuery();
+  const filteredLoans = useMemo(
+    () => loansQuery.data?.filter((loan) => loan.data.state === "listed"),
+    [loansQuery.data]
+  );
+  const [sortState, onSort] = useLoanSortState();
+  const sortedLoans = useSortedLoans(filteredLoans, sortState);
+
+  return (
+    <LoanListings
+      heading="Your Asks"
+      placeholderMessage="You have no listed asks"
+      loans={sortedLoans}
+      sortCol={sortState[0]}
+      direction={sortState[1]}
+      onSort={onSort}
+    />
   );
 };
 

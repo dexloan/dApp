@@ -19,7 +19,9 @@ import {
 } from "@chakra-ui/react";
 import { IconType } from "react-icons";
 import Image from "next/image";
+
 import * as utils from "../../common/utils";
+import dayjs from "../../common/lib/dayjs";
 import { NFTResult, CollectionItem, CollectionMap } from "../../common/types";
 import {
   useNFTByOwnerQuery,
@@ -96,6 +98,51 @@ export const LoanForecast = ({
         </Text>
         <Text fontSize="sm" whiteSpace="nowrap">
           {days} days
+        </Text>
+      </Flex>
+    </Flex>
+  );
+};
+
+interface CallOptionDetailsProps {
+  amount?: anchor.BN;
+  strikePrice?: anchor.BN;
+  expiry?: anchor.BN;
+}
+
+export const CallOptionDetails = ({
+  amount,
+  strikePrice,
+  expiry,
+}: CallOptionDetailsProps) => {
+  return (
+    <Flex direction="column" gap="2" justify="space-between">
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500">
+          Cost
+        </Text>
+        <Text fontSize="sm" whiteSpace="nowrap">
+          {amount ? utils.formatAmount(amount) : <EllipsisProgress />}
+        </Text>
+      </Flex>
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
+          Expires
+        </Text>
+        <Text fontSize="sm" whiteSpace="nowrap">
+          {expiry ? (
+            dayjs.unix(expiry.toNumber()).format("DD/MM/YYYY")
+          ) : (
+            <EllipsisProgress />
+          )}
+        </Text>
+      </Flex>
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
+          Strike Price
+        </Text>
+        <Text fontSize="sm" whiteSpace="nowrap">
+          {strikePrice ? utils.formatAmount(strikePrice) : <EllipsisProgress />}
         </Text>
       </Flex>
     </Flex>

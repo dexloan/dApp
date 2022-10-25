@@ -60,6 +60,33 @@ export async function bidCallOption(
 
   await submitTransaction(connection, wallet, tx);
 }
+export async function closeBid(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  bid: CallOptionBid
+) {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const escrowPaymentAccount = await query.findCallOptionBidTreasury(
+    bid.publicKey
+  );
+
+  const transaction = await program.methods
+    .closeCallOptionBid(bid.data.id)
+    .accounts({
+      signer: SIGNER,
+      buyer: wallet.publicKey,
+      callOptionBid: bid.publicKey,
+      escrowPaymentAccount,
+      collection: bid.data.collection,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    })
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
+}
 
 export async function sellCallOption(
   connection: anchor.web3.Connection,

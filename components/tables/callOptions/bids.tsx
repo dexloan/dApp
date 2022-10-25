@@ -22,17 +22,17 @@ import { useLTV } from "../../../hooks/render";
 import { ColumnHeader, NFTCell } from "../../table";
 import { CallOptionBidModal, TakeCallOptionModal } from "../../form";
 import { EmptyMessage } from "../../table";
-import { SortFn, CallOptionSortCols } from "./common";
+import { CallOptionSortFn, CallOptionSortCols } from "./common";
 
 interface CallOptionBidsProps {
   heading: string;
   bids: CallOptionBid[];
   direction: number;
   sortCol: CallOptionSortCols;
-  onSort: SortFn;
+  onSort: CallOptionSortFn;
 }
 
-export const LoanOffers = ({
+export const CallOptionBids = ({
   heading,
   bids,
   sortCol,

@@ -43,7 +43,7 @@ const defaultValues = {
   collection: undefined,
 };
 
-export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
+export const CallOptionBidModal = ({ open, onRequestClose }: ModalProps) => {
   const {
     control,
     handleSubmit,

@@ -8,9 +8,9 @@ import {
 
 export type CallOptionSortCols = "expiry" | "strikePrice" | "cost";
 export type CallOptionSortState = [CallOptionSortCols, number];
-export type SortFn = (col: CallOptionSortCols) => void;
+export type CallOptionSortFn = (col: CallOptionSortCols) => void;
 
-export const useLoanSortState = (): [CallOptionSortState, SortFn] => {
+export const useLoanSortState = (): [CallOptionSortState, CallOptionSortFn] => {
   const [state, setState] = useState<CallOptionSortState>(["strikePrice", 1]);
 
   const onSort = useCallback((col) => setState(sortReducer(col)), []);

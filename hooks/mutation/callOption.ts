@@ -78,17 +78,17 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
   );
 };
 
-interface TakeCallOptionVariables {
+interface SellCallOptionMutation {
   mint: anchor.web3.PublicKey;
   bid: CallOptionBid;
 }
 
-export const useTakeLoanMutation = (onSuccess: () => void) => {
+export const useSellCallOptionMutation = (onSuccess: () => void) => {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, TakeCallOptionVariables>(
+  return useMutation<void, Error, SellCallOptionMutation>(
     async (variables) => {
       if (anchorWallet) {
         return actions.sellCallOption(
@@ -114,10 +114,49 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.invalidateQueries(
-          getBuyerCallOptionsQueryKey(anchorWallet?.publicKey)
+          getSellerCallOptionsQueryKey(anchorWallet?.publicKey)
         );
 
         toast.success("Loan taken");
+
+        onSuccess();
+      },
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+    }
+  );
+};
+
+export const useCloseCallOptionBidMutation = (onSuccess: () => void) => {
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, CallOptionBid>(
+    async (variables) => {
+      if (anchorWallet) {
+        return actions.closeBid(connection, anchorWallet, variables);
+      }
+      throw new Error("Not ready");
+    },
+    {
+      async onSuccess(_, variables) {
+        queryClient.setQueryData<CallOptionBidPretty[] | undefined>(
+          getCallOptionBidsCacheKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) => item.publicKey !== variables.publicKey.toBase58()
+              );
+            }
+          }
+        );
+
+        toast.success("Bid closed");
 
         onSuccess();
       },

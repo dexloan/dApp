@@ -13,7 +13,7 @@ import { useRouter } from "next/router";
 
 import { CallOption, CallOptionBid } from "../../../common/model";
 import { ColumnHeader, NFTCell } from "../../../components/table";
-import { CallOptionSortCols, SortFn } from "./common";
+import { CallOptionSortCols, CallOptionSortFn } from "./common";
 
 interface CallOptionListingsProps {
   heading: string;
@@ -22,7 +22,7 @@ interface CallOptionListingsProps {
   callOptions: CallOption[] | CallOptionBid[];
   direction: number;
   sortCol: CallOptionSortCols;
-  onSort: SortFn;
+  onSort: CallOptionSortFn;
 }
 
 export const CallOptionListings = ({
