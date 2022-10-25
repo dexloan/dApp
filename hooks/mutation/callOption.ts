@@ -13,14 +13,125 @@ import * as query from "../../common/query";
 import { CallOptionStateEnum, NFTResult } from "../../common/types";
 import {
   getCallOptionCacheKey,
-  getCallOptionsQueryKey,
+  getCallOptionsCacheKey,
   getBuyerCallOptionsQueryKey,
   getSellerCallOptionsQueryKey,
   getNFTByOwnerCacheKey,
+  getCallOptionBidsCacheKey,
 } from "../query";
-import { CallOptionPretty } from "../../common/model";
+import {
+  CallOptionBid,
+  CallOptionBidPretty,
+  CallOptionPretty,
+} from "../../common/model";
 
-interface InitCallOptionMutationVariables {
+export interface BidCallOptionMutationVariables {
+  collection: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
+  options: {
+    amount: number;
+    strikePrice: number;
+    expiry: number;
+  };
+  ids: number[];
+}
+
+export const useBidCallOptionMutation = (onSuccess: () => void) => {
+  const queryClient = useQueryClient();
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
+
+  return useMutation(
+    (variables: BidCallOptionMutationVariables) => {
+      if (anchorWallet) {
+        return actions.bidCallOption(
+          connection,
+          anchorWallet,
+          variables.collection,
+          variables.collectionMint,
+          variables.options,
+          variables.ids
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      onError(err) {
+        console.error("Error: " + err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+      async onSuccess(_, variables) {
+        if (anchorWallet) {
+          queryClient.invalidateQueries(getCallOptionBidsCacheKey());
+        }
+
+        const count = variables.ids.length;
+        toast.success(
+          `${count} bid${variables.ids.length > 1 ? "s" : ""} created`
+        );
+
+        onSuccess();
+      },
+    }
+  );
+};
+
+interface TakeCallOptionVariables {
+  mint: anchor.web3.PublicKey;
+  bid: CallOptionBid;
+}
+
+export const useTakeLoanMutation = (onSuccess: () => void) => {
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, TakeCallOptionVariables>(
+    async (variables) => {
+      if (anchorWallet) {
+        return actions.takeCallOption(
+          connection,
+          anchorWallet,
+          variables.mint,
+          variables.bid
+        );
+      }
+      throw new Error("Not ready");
+    },
+    {
+      async onSuccess(_, variables) {
+        queryClient.setQueryData<CallOptionBidPretty[] | undefined>(
+          getCallOptionBidsCacheKey(),
+          (data) => {
+            if (data) {
+              return data?.filter(
+                (item) => item.publicKey !== variables.bid.publicKey.toBase58()
+              );
+            }
+          }
+        );
+
+        queryClient.invalidateQueries(
+          getBuyerCallOptionsQueryKey(anchorWallet?.publicKey)
+        );
+
+        toast.success("Loan taken");
+
+        onSuccess();
+      },
+      onError(err) {
+        console.error(err);
+        if (err instanceof Error) {
+          toast.error("Error: " + err.message);
+        }
+      },
+    }
+  );
+};
+
+interface AskCallOptionMutationVariables {
   mint: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {
@@ -30,15 +141,15 @@ interface InitCallOptionMutationVariables {
   };
 }
 
-export const useInitCallOptionMutation = (onSuccess: () => void) => {
+export const useAskCallOptionMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
 
   return useMutation(
-    (variables: InitCallOptionMutationVariables) => {
+    (variables: AskCallOptionMutationVariables) => {
       if (anchorWallet) {
-        return actions.initCallOption(
+        return actions.askCallOption(
           connection,
           anchorWallet,
           variables.mint,
@@ -139,7 +250,7 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<CallOptionPretty[] | undefined>(
-          getCallOptionsQueryKey(),
+          getCallOptionsCacheKey(0),
           (data) => {
             if (data) {
               return data?.filter(
@@ -199,7 +310,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<CallOptionPretty[] | undefined>(
-          getCallOptionsQueryKey(),
+          getCallOptionsCacheKey(0),
           (data) => {
             if (data) {
               return data?.filter(

@@ -40,12 +40,12 @@ export async function findLoanOfferAddress(
 export async function findLoanOfferVaultAddress(
   loanOffer: anchor.web3.PublicKey
 ): Promise<anchor.web3.PublicKey> {
-  const [loanAddress] = await anchor.web3.PublicKey.findProgramAddress(
+  const [vaultAddress] = await anchor.web3.PublicKey.findProgramAddress(
     [Buffer.from("loan_offer_vault"), loanOffer.toBuffer()],
     LISTINGS_PROGRAM_ID
   );
 
-  return loanAddress;
+  return vaultAddress;
 }
 
 export async function fetchLoan(

@@ -50,7 +50,7 @@ import {
 } from "../components/card";
 import { VerifiedCollection } from "../components/collection";
 import {
-  InitCallOptionModal,
+  AskCallOptionModal,
   InitHireModal,
   AskLoanModal,
 } from "../components/form";
@@ -592,7 +592,7 @@ const MyItems = () => {
         </ModalContent>
       </Modal>
 
-      <InitCallOptionModal
+      <AskCallOptionModal
         open={type === "callOption"}
         selected={selected}
         onRequestClose={() => {

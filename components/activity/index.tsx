@@ -157,7 +157,7 @@ function mapTransaction(
 
     if (
       txn.meta.logMessages.some((log) => {
-        isCallOption = log.includes("InitCallOption");
+        isCallOption = log.includes("AskCallOption");
 
         return (
           log.includes("InitListing") || log.includes("askLoan") || isCallOption

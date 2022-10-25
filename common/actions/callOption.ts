@@ -8,11 +8,113 @@ import {
 
 import * as query from "../query";
 import { HireData } from "../types";
+import { CallOptionBid } from "../model";
 import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
 
-export async function initCallOption(
+export async function bidCallOption(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  collection: anchor.web3.PublicKey,
+  collectionMint: anchor.web3.PublicKey,
+  options: {
+    amount: number;
+    strikePrice: number;
+    expiry: number;
+  },
+  ids: number[]
+) {
+  const amount = new anchor.BN(options.amount);
+  const strikePrice = new anchor.BN(options.strikePrice);
+  const expiry = new anchor.BN(options.expiry);
+
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const tx = new anchor.web3.Transaction();
+
+  for (const id of ids) {
+    const callOptionBid = await query.findCallOptionBidAddress(
+      collectionMint,
+      wallet.publicKey,
+      id
+    );
+    const callOptionBidVault = await query.findLoanOfferVaultAddress(
+      callOptionBid
+    );
+
+    const ix = await program.methods
+      .bidCallOption(amount, strikePrice, expiry, id)
+      .accounts({
+        callOptionBid,
+        collection,
+        escrowPaymentAccount: callOptionBidVault,
+        buyer: wallet.publicKey,
+        signer: SIGNER,
+      })
+      .instruction();
+
+    tx.add(ix);
+  }
+
+  await submitTransaction(connection, wallet, tx);
+}
+
+export async function takeCallOption(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  bid: CallOptionBid
+): Promise<void> {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const callOption = await query.findLoanAddress(mint, wallet.publicKey);
+  const callOptionBid = await query.findCallOptionBidAddress(
+    bid.metadata.mint,
+    bid.data.buyer,
+    bid.data.id
+  );
+  const callOptionBidVault = await query.findLoanOfferVaultAddress(
+    callOptionBid
+  );
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
+  const [metadata] = await query.findMetadataAddress(mint);
+  const [edition] = await query.findEditionAddress(mint);
+
+  const transaction = await program.methods
+    .takeCallOption(bid.data.id)
+    .accounts({
+      callOption,
+      callOptionBid,
+      tokenManager,
+      mint,
+      metadata,
+      edition,
+      borrower: wallet.publicKey,
+      buyer: bid.data.buyer,
+      collection: bid.data.collection,
+      depositTokenAccount: tokenAccount,
+      escrowPaymentAccount: callOptionBidVault,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      metadataProgram: METADATA_PROGRAM_ID,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
+    })
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
+}
+
+export async function askCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -42,7 +144,7 @@ export async function initCallOption(
     .address;
 
   const transaction = await program.methods
-    .initCallOption(amount, strikePrice, expiry)
+    .askCallOption(amount, strikePrice, expiry)
     .accounts({
       callOption,
       collection,

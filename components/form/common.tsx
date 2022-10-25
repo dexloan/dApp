@@ -41,6 +41,12 @@ export interface LoanFormFields {
   duration: number;
 }
 
+export interface CallOptionFormFields {
+  amount: number;
+  strikePrice: number;
+  expiry: number;
+}
+
 interface LoanForecastProps {
   amountLabel?: string;
   duration?: anchor.BN;

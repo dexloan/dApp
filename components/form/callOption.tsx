@@ -15,63 +15,15 @@ import {
   ModalBody,
   Select,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 
 import dayjs from "../../common/lib/dayjs";
-import { useInitCallOptionMutation } from "../../hooks/mutation";
-import { useMemo } from "react";
+import { useAskCallOptionMutation } from "../../hooks/mutation";
 import { NFTResult } from "../../common/types";
+import { CallOptionFormFields } from "./common";
 
-interface FormFields {
-  amount: number;
-  strikePrice: number;
-  expiry: number;
-}
-
-interface ListingFormProps {
-  open: boolean;
-  selected: NFTResult | null;
-  onRequestClose: () => void;
-}
-
-export const InitCallOptionModal = ({
-  open,
-  selected,
-  onRequestClose,
-}: ListingFormProps) => {
-  const {
-    control,
-    handleSubmit,
-    formState: { isValid },
-  } = useForm<FormFields>({
-    mode: "onChange",
-    defaultValues: {
-      amount: undefined,
-      strikePrice: undefined,
-      expiry: undefined,
-    },
-  });
-
-  const mutation = useInitCallOptionMutation(() => onRequestClose());
-
-  function onSubmit() {
-    handleSubmit((data) => {
-      const options = {
-        amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
-        strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
-        expiry: data.expiry,
-      };
-
-      if (selected && selected.metadata.collection) {
-        mutation.mutate({
-          options,
-          mint: selected.tokenAccount.mint,
-          collectionMint: selected.metadata.collection.key,
-        });
-      }
-    })();
-  }
-
-  const expiryOptions = useMemo(() => {
+export const useExpiryOptions = () => {
+  return useMemo(() => {
     return Array(24)
       .fill(undefined)
       .map((_, i) =>
@@ -85,6 +37,51 @@ export const InitCallOptionModal = ({
           .unix()
       );
   }, []);
+};
+
+interface ListingFormProps {
+  open: boolean;
+  selected: NFTResult | null;
+  onRequestClose: () => void;
+}
+
+export const AskCallOptionModal = ({
+  open,
+  selected,
+  onRequestClose,
+}: ListingFormProps) => {
+  const {
+    control,
+    handleSubmit,
+    formState: { isValid },
+  } = useForm<CallOptionFormFields>({
+    mode: "onChange",
+    defaultValues: {
+      amount: undefined,
+      strikePrice: undefined,
+      expiry: undefined,
+    },
+  });
+
+  const mutation = useAskCallOptionMutation(() => onRequestClose());
+
+  const onSubmit = handleSubmit((data) => {
+    const options = {
+      amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
+      strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
+      expiry: data.expiry,
+    };
+
+    if (selected && selected.metadata.collection) {
+      mutation.mutate({
+        options,
+        mint: selected.tokenAccount.mint,
+        collectionMint: selected.metadata.collection.key,
+      });
+    }
+  });
+
+  const expiryOptions = useExpiryOptions();
 
   return (
     <Modal

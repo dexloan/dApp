@@ -83,13 +83,13 @@ export function useCallOptionQuery(
   );
 }
 
-export const getCallOptionsQueryKey = (state: number) => ["callOptions", state];
+export const getCallOptionsCacheKey = (state: number) => ["callOptions", state];
 
 export function useCallOptionsQuery(state: number) {
   const { connection } = useConnection();
 
   return useQuery(
-    getCallOptionsQueryKey(state),
+    getCallOptionsCacheKey(state),
     () => {
       return query.fetchMultipleCallOptions(connection, [
         {

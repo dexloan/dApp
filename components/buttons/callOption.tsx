@@ -4,7 +4,7 @@ import { useState } from "react";
 import { IoCalendar } from "react-icons/io5";
 
 import { useNFT } from "../../hooks/query";
-import { InitCallOptionModal } from "../form";
+import { AskCallOptionModal } from "../form";
 
 interface CallOptionButtonProps {
   mint: anchor.web3.PublicKey;
@@ -28,7 +28,7 @@ export const CallOptionButton = ({
       >
         Sell call option
       </Button>
-      <InitCallOptionModal
+      <AskCallOptionModal
         open={modal}
         selected={nftQuery.data ?? null}
         onRequestClose={() => setModal(false)}

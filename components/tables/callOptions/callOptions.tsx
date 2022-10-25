@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
-import { CallOption } from "../../../common/model";
+import { CallOption, CallOptionBid } from "../../../common/model";
 import { ColumnHeader, NFTCell } from "../../../components/table";
 import { CallOptionSortCols, SortFn } from "./common";
 
@@ -19,7 +19,7 @@ interface CallOptionListingsProps {
   heading: string;
   placeholderMessage: string;
   action?: React.ReactNode;
-  callOptions: CallOption[];
+  callOptions: CallOption[] | CallOptionBid[];
   direction: number;
   sortCol: CallOptionSortCols;
   onSort: SortFn;
@@ -80,10 +80,10 @@ export const CallOptionListings = ({
 };
 
 interface OptionRowProps {
-  option: CallOption;
+  option: CallOption | CallOptionBid;
 }
 
-const OptionRow = ({ option }: OptionRowProps) => {
+export const OptionRow = ({ option }: OptionRowProps) => {
   const router = useRouter();
 
   return (
