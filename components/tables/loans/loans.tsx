@@ -1,33 +1,27 @@
 import * as anchor from "@project-serum/anchor";
-import {
-  Box,
-  Heading,
-  Table,
-  TableContainer,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Tr, Th, Td, Text } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { useRouter } from "next/router";
 
-import { Loan } from "../../../common/model";
+import { Loan, LoanPretty } from "../../../common/model";
 import { useFloorPriceQuery } from "../../../hooks/query";
 import { useLTV } from "../../../hooks/render";
-import { ColumnHeader, EmptyMessage, NFTCell } from "../../table";
-import { LoanSortFn, LoanSortCols } from "./common";
+import { Col, ColumnHeader, ListingsTable, NFTCell } from "../../table";
+import { LoanSortCols, useLoanSortState, useSortedLoans } from "./common";
+
+const LOAN_COLS: Readonly<Col<LoanSortCols>[]> = [
+  { name: "asset", label: "Asset" },
+  { name: "duration", label: "Duration" },
+  { name: "apy", label: "APY", isNumeric: true },
+  { name: "ltv", label: "LTV", isNumeric: true },
+  { name: "amount", label: "Amount", isNumeric: true },
+] as const;
 
 interface LoanListingsProps {
   heading: string;
   placeholderMessage: string;
   action?: React.ReactNode;
-  loans: Loan[];
-  direction: number;
-  sortCol: LoanSortCols;
-  onSort: LoanSortFn;
+  loans?: LoanPretty[];
 }
 
 export const LoanListings = ({
@@ -35,85 +29,52 @@ export const LoanListings = ({
   placeholderMessage,
   action = null,
   loans,
-  sortCol,
-  direction,
-  onSort,
 }: LoanListingsProps) => {
+  const router = useRouter();
+  const [sortState, onSort] = useLoanSortState();
+  const sortedLoans = useSortedLoans(loans, sortState);
+
   return (
-    <>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="flex-end"
-        mb="2"
-      >
-        <Heading as="h3" color="gray.200" size="sm">
-          {heading}
-        </Heading>
-        {action}
-      </Box>
-      {loans.length ? (
-        <TableContainer
-          maxW="100%"
-          mt="2"
-          mb="6"
-          borderTop="1px"
-          borderColor="gray.800"
-          width="100%"
-        >
-          <Table size="sm">
-            <Thead>
-              <Tr>
-                <Th>Collateral</Th>
-                <ColumnHeader
-                  direction={sortCol === "duration" ? direction : 0}
-                  onClick={() => onSort("duration")}
-                >
-                  Duration
-                </ColumnHeader>
-                <ColumnHeader
-                  isNumeric
-                  direction={sortCol === "apy" ? direction : 0}
-                  onClick={() => onSort("apy")}
-                >
-                  APY
-                </ColumnHeader>
-                <ColumnHeader
-                  isNumeric
-                  direction={sortCol === "ltv" ? direction : 0}
-                  onClick={() => onSort("ltv")}
-                >
-                  LTV
-                </ColumnHeader>
-                <ColumnHeader
-                  isNumeric
-                  direction={sortCol === "amount" ? direction : 0}
-                  onClick={() => onSort("amount")}
-                >
-                  Borrowing
-                </ColumnHeader>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {loans.map((loan) => (
-                <LoanRow key={loan.publicKey.toBase58()} loan={loan} />
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <EmptyMessage>{placeholderMessage}</EmptyMessage>
+    <ListingsTable<LoanSortCols, Loan>
+      heading={heading}
+      placeholder={placeholderMessage}
+      action={action}
+      cols={LOAN_COLS}
+      items={sortedLoans}
+      renderCol={(col) => {
+        if (col.name === "asset") {
+          return <Th key={col.name}>{col.label}</Th>;
+        }
+
+        return (
+          <ColumnHeader
+            key={col.name}
+            isNumeric={col.isNumeric}
+            direction={sortState[0] === col.name ? sortState[1] : 0}
+            onClick={() => onSort(col.name)}
+          >
+            {col.label}
+          </ColumnHeader>
+        );
+      }}
+      renderRow={(item) => (
+        <LoanRow
+          key={item.address}
+          loan={item}
+          onClick={() => router.push(`/options/${item.address}`)}
+        />
       )}
-    </>
+    />
   );
 };
 
 interface LoanRowProps {
   loan: Loan;
   floorPrices?: Record<string, number>;
+  onClick: () => void;
 }
 
-const LoanRow = ({ loan }: LoanRowProps) => {
+const LoanRow = ({ loan, onClick }: LoanRowProps) => {
   const router = useRouter();
 
   const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
@@ -131,7 +92,7 @@ const LoanRow = ({ loan }: LoanRowProps) => {
       key={loan.publicKey.toBase58()}
       cursor="pointer"
       _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
-      onClick={() => router.push(`/loans/${loan.publicKey.toBase58()}`)}
+      onClick={onClick}
     >
       <NFTCell metadata={loan?.metadata} />
       <Td>{loan.duration}</Td>

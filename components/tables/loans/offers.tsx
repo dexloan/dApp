@@ -1,122 +1,74 @@
 import * as anchor from "@project-serum/anchor";
-import {
-  Box,
-  Button,
-  Heading,
-  Icon,
-  Table,
-  TableContainer,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Button, Icon, Tr, Th, Td, Text } from "@chakra-ui/react";
 import { IoAdd } from "react-icons/io5";
 import { useMemo, useState } from "react";
 
-import { LoanOffer } from "../../../common/model";
+import { LoanOffer, LoanOfferPretty } from "../../../common/model";
 import { useFloorPriceQuery } from "../../../hooks/query";
 import { useLTV } from "../../../hooks/render";
-import { ColumnHeader, NFTCell } from "../../table";
+import { Col, ColumnHeader, ListingsTable, NFTCell } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
-import { EmptyMessage } from "../../table";
-import { LoanSortFn, LoanSortCols } from "./common";
+import { LoanSortCols, useLoanSortState, useSortedLoanOffers } from "./common";
+
+const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
+  { name: "collection", label: "Collection" },
+  { name: "duration", label: "Duration" },
+  { name: "apy", label: "APY", isNumeric: true },
+  { name: "ltv", label: "LTV", isNumeric: true },
+  { name: "amount", label: "Amount", isNumeric: true },
+] as const;
 
 interface LoanOffersProps {
   heading: string;
-  offers: LoanOffer[];
-  direction: number;
-  sortCol: LoanSortCols;
-  onSort: LoanSortFn;
+  offers?: LoanOfferPretty[];
 }
 
-export const LoanOffers = ({
-  heading,
-  offers,
-  sortCol,
-  direction,
-  onSort,
-}: LoanOffersProps) => {
+export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
   const [offerModal, setOfferModal] = useState<boolean>(false);
   const [offer, setOffer] = useState<LoanOffer | null>(null);
+  const [sortState, onSort] = useLoanSortState();
+  const sortedOffers = useSortedLoanOffers(offers, sortState);
 
   return (
     <>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="flex-end"
-        mb="2"
-      >
-        <Heading as="h3" color="gray.200" size="sm">
-          {heading}
-        </Heading>
-        <Button
-          size="sm"
-          leftIcon={<Icon as={IoAdd} />}
-          onClick={() => setOfferModal(true)}
-        >
-          Create Offer
-        </Button>
-      </Box>
-      {offers.length ? (
-        <TableContainer
-          maxW="100%"
-          mt="2"
-          mb="6"
-          borderTop="1px"
-          borderColor="gray.800"
-          width="100%"
-        >
-          <Table size="sm">
-            <Thead>
-              <Tr>
-                <Th>Collection</Th>
-                <ColumnHeader
-                  direction={sortCol === "duration" ? direction : 0}
-                  onClick={() => onSort("duration")}
-                >
-                  Duration
-                </ColumnHeader>
-                <ColumnHeader
-                  isNumeric
-                  direction={sortCol === "apy" ? direction : 0}
-                  onClick={() => onSort("apy")}
-                >
-                  APY
-                </ColumnHeader>
-                <ColumnHeader
-                  isNumeric
-                  direction={sortCol === "ltv" ? direction : 0}
-                  onClick={() => onSort("ltv")}
-                >
-                  LTV
-                </ColumnHeader>
-                <ColumnHeader
-                  isNumeric
-                  direction={sortCol === "amount" ? direction : 0}
-                  onClick={() => onSort("amount")}
-                >
-                  Lending
-                </ColumnHeader>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {offers.map((offer) => (
-                <LoanOfferRow
-                  key={offer.publicKey.toBase58()}
-                  offer={offer}
-                  onSelect={() => setOffer(offer)}
-                />
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <EmptyMessage>No offers currently</EmptyMessage>
-      )}
+      <ListingsTable<LoanSortCols, LoanOffer>
+        heading={heading}
+        placeholder="No offers currently"
+        action={
+          <Button
+            size="sm"
+            leftIcon={<Icon as={IoAdd} />}
+            onClick={() => setOfferModal(true)}
+          >
+            Offer Loan
+          </Button>
+        }
+        cols={OFFER_COLS}
+        items={sortedOffers}
+        renderCol={(col) => {
+          if (col.name === "asset") {
+            return <Th key={col.name}>{col.label}</Th>;
+          }
+
+          return (
+            <ColumnHeader
+              key={col.name}
+              isNumeric={col.isNumeric}
+              direction={sortState[0] === col.name ? sortState[1] : 0}
+              onClick={() => onSort(col.name)}
+            >
+              {col.label}
+            </ColumnHeader>
+          );
+        }}
+        renderRow={(item) => (
+          <LoanOfferRow
+            key={item.address}
+            offer={item}
+            onSelect={() => setOffer(item)}
+          />
+        )}
+      />
       <OfferLoanModal
         open={offerModal}
         onRequestClose={() => setOfferModal(false)}

@@ -60,25 +60,13 @@ const Loans: NextPage = () => {
 
 const Offers = () => {
   const offersQuery = useLoanOffersQuery();
-  const [sortState, onSort] = useLoanSortState();
-  const sortedOffers = useSortedLoanOffers(offersQuery.data, sortState);
 
-  return (
-    <LoanOffers
-      heading="Offers"
-      offers={sortedOffers}
-      sortCol={sortState[0]}
-      direction={sortState[1]}
-      onSort={onSort}
-    />
-  );
+  return <LoanOffers heading="Offers" offers={offersQuery.data} />;
 };
 
 const Listings = () => {
   const [loanModal, setLoanModal] = useState(false);
   const loansQuery = useLoansQuery(SerializedLoanState.Listed);
-  const [sortState, onSort] = useLoanSortState();
-  const sortedLoans = useSortedLoans(loansQuery.data, sortState);
 
   return (
     <>
@@ -94,10 +82,7 @@ const Listings = () => {
         }
         heading="Asks"
         placeholderMessage="No asks currently"
-        loans={sortedLoans}
-        sortCol={sortState[0]}
-        direction={sortState[1]}
-        onSort={onSort}
+        loans={loansQuery.data}
       />
       <AskLoanModal
         open={loanModal}
@@ -109,34 +94,19 @@ const Listings = () => {
 
 const YourOffers = () => {
   const anchorWallet = useAnchorWallet();
-  const myOffersQuery = useLoanOffersByLenderQuery(anchorWallet?.publicKey);
-  const [sortState, onSort] = useLoanSortState();
-  const sortedOffers = useSortedLoanOffers(myOffersQuery.data, sortState);
+  const offersQuery = useLoanOffersByLenderQuery(anchorWallet?.publicKey);
 
-  return (
-    <LoanOffers
-      heading="Your Offers"
-      offers={sortedOffers}
-      sortCol={sortState[0]}
-      direction={sortState[1]}
-      onSort={onSort}
-    />
-  );
+  return <LoanOffers heading="Your Offers" offers={offersQuery.data} />;
 };
 
 const LoansGiven = () => {
   const loansQuery = useLoansGivenQuery();
-  const [sortState, onSort] = useLoanSortState();
-  const sortedLoans = useSortedLoans(loansQuery.data, sortState);
 
   return (
     <LoanListings
       heading="Loans Given"
       placeholderMessage="No active loans"
-      loans={sortedLoans}
-      sortCol={sortState[0]}
-      direction={sortState[1]}
-      onSort={onSort}
+      loans={loansQuery.data}
     />
   );
 };
@@ -147,17 +117,12 @@ const LoansTaken = () => {
     () => loansQuery.data?.filter((loan) => loan.data.state !== "listed"),
     [loansQuery.data]
   );
-  const [sortState, onSort] = useLoanSortState();
-  const sortedLoans = useSortedLoans(filteredLoans, sortState);
 
   return (
     <LoanListings
       heading="Loans Taken"
       placeholderMessage="No active loans"
-      loans={sortedLoans}
-      sortCol={sortState[0]}
-      direction={sortState[1]}
-      onSort={onSort}
+      loans={filteredLoans}
     />
   );
 };
@@ -168,17 +133,12 @@ const LoanAsks = () => {
     () => loansQuery.data?.filter((loan) => loan.data.state === "listed"),
     [loansQuery.data]
   );
-  const [sortState, onSort] = useLoanSortState();
-  const sortedLoans = useSortedLoans(filteredLoans, sortState);
 
   return (
     <LoanListings
       heading="Your Asks"
       placeholderMessage="You have no listed asks"
-      loans={sortedLoans}
-      sortCol={sortState[0]}
-      direction={sortState[1]}
-      onSort={onSort}
+      loans={filteredLoans}
     />
   );
 };

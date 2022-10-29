@@ -40,6 +40,10 @@ export class Loan implements LoanArgs {
     return false;
   }
 
+  get address() {
+    return this.publicKey.toBase58();
+  }
+
   get amount() {
     if (this.data.amount) {
       return utils.formatAmount(this.data.amount);
@@ -213,6 +217,10 @@ export class LoanOffer implements LoanOfferArgs {
       return this.data.lender.equals(wallet.publicKey);
     }
     return false;
+  }
+
+  get address() {
+    return this.publicKey.toBase58();
   }
 
   get apy() {

@@ -9,7 +9,13 @@ import {
 } from "../../../common/model";
 import { useFloorPricesQuery } from "../../../hooks/query";
 
-export type LoanSortCols = "duration" | "ltv" | "apy" | "amount";
+export type LoanSortCols =
+  | "asset"
+  | "collection"
+  | "duration"
+  | "ltv"
+  | "apy"
+  | "amount";
 export type LoanSortState = [LoanSortCols, number];
 export type LoanSortFn = (col: LoanSortCols) => void;
 
