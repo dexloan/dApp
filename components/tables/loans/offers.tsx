@@ -22,14 +22,14 @@ import { useLTV } from "../../../hooks/render";
 import { ColumnHeader, NFTCell } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
 import { EmptyMessage } from "../../table";
-import { SortFn, LoanSortCols } from "./common";
+import { LoanSortFn, LoanSortCols } from "./common";
 
 interface LoanOffersProps {
   heading: string;
   offers: LoanOffer[];
   direction: number;
   sortCol: LoanSortCols;
-  onSort: SortFn;
+  onSort: LoanSortFn;
 }
 
 export const LoanOffers = ({

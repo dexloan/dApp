@@ -1,6 +1,19 @@
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
-import { Box, Icon, Text, Th, Td, Skeleton } from "@chakra-ui/react";
-import { useState, useMemo } from "react";
+import {
+  Box,
+  Heading,
+  Icon,
+  Table,
+  TableContainer,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Text,
+  Skeleton,
+} from "@chakra-ui/react";
+import React, { useState, useMemo } from "react";
 import { IoCaretDown, IoCaretUp } from "react-icons/io5";
 import Image from "next/image";
 
@@ -131,5 +144,69 @@ export const EmptyMessage = ({
         {children}
       </Text>
     </Box>
+  );
+};
+
+export interface Col<SortColsTuple> {
+  isNumeric?: boolean;
+  label: string;
+  name: SortColsTuple;
+}
+
+interface ListingsTableProps<SortCols, ItemType> {
+  action: React.ReactNode;
+  heading: React.ReactNode;
+  placeholder: string;
+  cols: Readonly<Col<SortCols>[]>;
+  items: ItemType[];
+  renderCol: (col: Col<SortCols>, index: number) => React.ReactNode;
+  renderRow: (item: ItemType) => React.ReactNode;
+}
+
+export const ListingsTable = <SortCols, ItemType>({
+  action,
+  heading,
+  placeholder,
+  cols,
+  items,
+  renderCol,
+  renderRow,
+}: ListingsTableProps<SortCols, ItemType>) => {
+  const renderedCols = useMemo(() => cols.map(renderCol), [cols, renderCol]);
+  const renderedRows = useMemo(() => items.map(renderRow), [items, renderRow]);
+
+  return (
+    <>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="flex-end"
+        mb="2"
+      >
+        <Heading as="h3" color="gray.200" size="sm">
+          {heading}
+        </Heading>
+        {action}
+      </Box>
+      {items.length ? (
+        <TableContainer
+          maxW="100%"
+          mt="2"
+          mb="6"
+          borderTop="1px"
+          borderColor="gray.800"
+          width="100%"
+        >
+          <Table size="sm">
+            <Thead>
+              <Tr>{renderedCols}</Tr>
+            </Thead>
+            <Tbody>{renderedRows}</Tbody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <EmptyMessage>{placeholder}</EmptyMessage>
+      )}
+    </>
   );
 };

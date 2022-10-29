@@ -43,7 +43,7 @@ const defaultValues = {
   collection: undefined,
 };
 
-export const CallOptionBidModal = ({ open, onRequestClose }: ModalProps) => {
+export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
   const {
     control,
     handleSubmit,

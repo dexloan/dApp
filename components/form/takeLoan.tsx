@@ -19,7 +19,12 @@ import {
   useCloseLoanOfferMutation,
   useTakeLoanMutation,
 } from "../../hooks/mutation/loan";
-import { ModalProps, SelectNFTForm, LoanDetails, LoanForecast } from "./common";
+import {
+  ModalProps,
+  SelectNFTForm,
+  CollectionDetails,
+  LoanForecast,
+} from "./common";
 import { MutationDialog } from "../dialog";
 
 interface TakeLoanModalProps extends ModalProps {
@@ -66,7 +71,7 @@ const TakeLoan = ({ open, offer, onRequestClose }: TakeLoanModalProps) => {
   const body = selected ? (
     <>
       <ModalBody>
-        <LoanDetails
+        <CollectionDetails
           nft={selected}
           forecast={
             <LoanForecast

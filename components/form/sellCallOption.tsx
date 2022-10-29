@@ -14,12 +14,17 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { NFTResult } from "../../common/types";
-import { Collection, CallOptionBid } from "../../common/model";
+import { CallOptionBid } from "../../common/model";
 import {
   useCloseCallOptionBidMutation,
   useSellCallOptionMutation,
 } from "../../hooks/mutation";
-import { ModalProps, SelectNFTForm, LoanDetails, LoanForecast } from "./common";
+import {
+  ModalProps,
+  SelectNFTForm,
+  CollectionDetails,
+  CallOptionDetails,
+} from "./common";
 import { MutationDialog } from "../dialog";
 
 interface SellCallOptionModalProps extends ModalProps {
@@ -34,9 +39,9 @@ export const SellCallOptionModal = ({
   const anchorWallet = useAnchorWallet();
 
   if (anchorWallet) {
-    const isLender = anchorWallet && bid?.isLender(anchorWallet);
+    const isBuyer = bid?.isBuyer(anchorWallet);
 
-    if (isLender) {
+    if (isBuyer) {
       return <CloseBid open={open} bid={bid} onRequestClose={onRequestClose} />;
     }
 
@@ -68,11 +73,10 @@ const SellCallOption = ({
   const body = selected ? (
     <>
       <ModalBody>
-        <LoanDetails
+        <CollectionDetails
           nft={selected}
           forecast={
-            <LoanForecast
-              amountLabel="Borrowing"
+            <CallOptionDetails
               amount={bid?.data.amount}
               strikePrice={bid?.data.strikePrice}
               expiry={bid?.data.expiry}

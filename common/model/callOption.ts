@@ -144,6 +144,17 @@ export class CallOptionBid implements CallOptionBidArgs {
     public readonly publicKey: web3.PublicKey
   ) {}
 
+  public isBuyer(wallet?: AnchorWallet) {
+    if (wallet) {
+      return wallet.publicKey.equals(this.data.buyer);
+    }
+    return false;
+  }
+
+  get address() {
+    return this.publicKey.toBase58();
+  }
+
   get expiry() {
     return dayjs.unix(this.data.expiry.toNumber()).format("DD/MM/YYYY");
   }

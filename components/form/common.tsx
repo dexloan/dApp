@@ -382,12 +382,12 @@ const SectionHeader = ({
   </Box>
 );
 
-interface LoanDetailsProps {
+interface CollectionDetailsProps {
   nft: NFTResult;
   forecast: React.ReactNode;
 }
 
-export const LoanDetails = ({ nft, forecast }: LoanDetailsProps) => {
+export const CollectionDetails = ({ nft, forecast }: CollectionDetailsProps) => {
   const [isVisible, setVisible] = useState(false);
   const metadataQuery = useMetadataFileQuery(nft?.metadata?.data.uri);
 

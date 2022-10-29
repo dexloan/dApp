@@ -51,7 +51,7 @@ export const useSortedLoans = (
   }, [offers, state, floorPriceQueries.data]);
 };
 
-export function sortReducer(col: LoanSortCols) {
+function sortReducer(col: LoanSortCols) {
   return (state: LoanSortState): LoanSortState => {
     if (state[0] === col) {
       return [state[0], state[1] * -1];

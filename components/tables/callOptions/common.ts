@@ -6,11 +6,19 @@ import {
   CallOptionBidPretty,
 } from "../../../common/model";
 
-export type CallOptionSortCols = "expiry" | "strikePrice" | "cost";
+export type CallOptionSortCols =
+  | "collection"
+  | "asset"
+  | "expiry"
+  | "strikePrice"
+  | "cost";
 export type CallOptionSortState = [CallOptionSortCols, number];
 export type CallOptionSortFn = (col: CallOptionSortCols) => void;
 
-export const useLoanSortState = (): [CallOptionSortState, CallOptionSortFn] => {
+export const useCallOptionSortState = (): [
+  CallOptionSortState,
+  CallOptionSortFn
+] => {
   const [state, setState] = useState<CallOptionSortState>(["strikePrice", 1]);
 
   const onSort = useCallback((col) => setState(sortReducer(col)), []);
@@ -18,7 +26,7 @@ export const useLoanSortState = (): [CallOptionSortState, CallOptionSortFn] => {
   return [state, onSort];
 };
 
-export function sortReducer(col: CallOptionSortCols) {
+function sortReducer(col: CallOptionSortCols) {
   return (state: CallOptionSortState): CallOptionSortState => {
     if (state[0] === col) {
       return [state[0], state[1] * -1];
