@@ -13,7 +13,7 @@ import {
 } from "./common";
 import { OptionRow } from "./callOptions";
 
-const CALL_OPTION_COLS: Readonly<Col<CallOptionSortCols>[]> = [
+const BID_COLS: Readonly<Col<CallOptionSortCols>[]> = [
   { name: "collection", label: "Collection" },
   { name: "expiry", label: "Expiry" },
   { name: "cost", label: "Cost", isNumeric: true },
@@ -46,7 +46,7 @@ export const CallOptionBids = ({ heading, bids }: CallOptionBidsProps) => {
             Create Bid
           </Button>
         }
-        cols={CALL_OPTION_COLS}
+        cols={BID_COLS}
         items={sortedOptions}
         renderCol={(col) => {
           if (col.name === "collection") {
@@ -59,7 +59,7 @@ export const CallOptionBids = ({ heading, bids }: CallOptionBidsProps) => {
               direction={sortState[0] === col.name ? sortState[1] : 0}
               onClick={() => onSort(col.name)}
             >
-              {col.name}
+              {col.label}
             </ColumnHeader>
           );
         }}

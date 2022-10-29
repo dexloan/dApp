@@ -34,7 +34,7 @@ export const ColumnHeader = ({
   onClick,
 }: ColumnHeaderProps) => {
   return (
-    <Th>
+    <Th w={{ md: "160px" }}>
       <Box
         display="flex"
         alignItems="center"
@@ -197,7 +197,7 @@ export const ListingsTable = <SortCols, ItemType>({
           borderColor="gray.800"
           width="100%"
         >
-          <Table size="sm">
+          <Table size="sm" sx={{ tableLayout: "fixed" }}>
             <Thead>
               <Tr>{renderedCols}</Tr>
             </Thead>

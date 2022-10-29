@@ -105,7 +105,7 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          Offer Loan
+          Bid Call Option
         </ModalHeader>
         <ModalBody>
           {bidsQuery.data === undefined ? (

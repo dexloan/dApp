@@ -125,22 +125,30 @@ export async function fetchMultipleCallOptionBids(
 ): Promise<CallOptionBidPretty[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
-  const callOptionBids = await program.account.callOptionBid.all(filter);
+  const [callOptionBids, collections] = await Promise.all([
+    program.account.callOptionBid.all(filter),
+    program.account.collection.all(),
+  ]);
 
-  const metadataAccounts = await fetchMetadataAccounts(
-    connection,
-    callOptionBids
-  );
+  const metadataAccounts = await fetchMetadataAccounts(connection, collections);
 
   const combinedAccounts = callOptionBids.map((bid, index) => {
-    const metadataAccount = metadataAccounts[index];
+    const collection = collections.find((col) =>
+      col.publicKey.equals(bid.account.collection)
+    );
 
-    if (metadataAccount) {
-      return new CallOptionBid(
-        bid.account as CallOptionBidData,
-        metadataAccount,
-        bid.publicKey
-      ).pretty();
+    if (collection) {
+      const metadata = metadataAccounts.find((acc) =>
+        acc?.mint.equals(collection.account.mint)
+      );
+
+      if (metadata) {
+        return new CallOptionBid(
+          bid.account as CallOptionBidData,
+          metadata,
+          bid.publicKey
+        ).pretty();
+      }
     }
     return null;
   });

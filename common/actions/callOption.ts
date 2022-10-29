@@ -40,7 +40,7 @@ export async function bidCallOption(
       wallet.publicKey,
       id
     );
-    const callOptionBidVault = await query.findLoanOfferVaultAddress(
+    const callOptionBidVault = await query.findCallOptionBidTreasury(
       callOptionBid
     );
 

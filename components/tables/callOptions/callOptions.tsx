@@ -18,7 +18,7 @@ import {
   useSortedCallOptions,
 } from "./common";
 
-const CALL_OPTION_COLS: Readonly<Col<CallOptionSortCols>[]> = [
+export const CALL_OPTION_COLS: Readonly<Col<CallOptionSortCols>[]> = [
   { name: "asset", label: "Asset" },
   { name: "expiry", label: "Expiry" },
   { name: "cost", label: "Cost", isNumeric: true },
