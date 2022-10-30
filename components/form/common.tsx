@@ -27,6 +27,7 @@ import {
   useNftByOwnerQuery,
   useFloorPriceQuery,
   useMetadataFileQuery,
+  useMetadata,
 } from "../../hooks/query";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
@@ -229,10 +230,8 @@ export const SelectNFTForm = ({
   onSelect,
 }: SelectNFTFormProps) => {
   const wallet = useAnchorWallet();
+  const collectionQuery = useMetadata(collectionMint);
   const nftQuery = useNftByOwnerQuery(wallet);
-
-  console.log("collectionMint: ", collectionMint?.toBase58());
-  console.log("nftQuery: ", nftQuery);
 
   const collections = useMemo(() => {
     const collectionMap = nftQuery.data
@@ -303,8 +302,19 @@ export const SelectNFTForm = ({
           );
         })
       ) : (
-        <Box>
-          <Text>You do not currently hold any NFTs approved for lending.</Text>
+        <Box mb="4">
+          <Text fontSize="sm">
+            {collectionMint ? (
+              <Text>
+                No NFTs in the {collectionQuery.data?.data.name} collection
+                found.
+              </Text>
+            ) : (
+              <Text>
+                You do not currently hold any NFTs approved for lending.
+              </Text>
+            )}
+          </Text>
         </Box>
       )}
     </ModalBody>
@@ -338,7 +348,7 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
             >
               {item?.metadata.data.name}
             </Box>
-            <VerifiedCollection size="xs" symbol={item?.metadata.data.symbol} />
+            <VerifiedCollection size="xs" metadata={item?.metadata} />
           </Box>
         </Card>
       );
@@ -429,10 +439,7 @@ export const CollectionDetails = ({
           <Box w="100%">
             <Box pb="4">
               <Heading size="md">{nft?.metadata.data.name}</Heading>
-              <VerifiedCollection
-                size="xs"
-                symbol={nft?.metadata.data.symbol}
-              />
+              <VerifiedCollection size="xs" metadata={nft?.metadata} />
             </Box>
             {forecast}
           </Box>

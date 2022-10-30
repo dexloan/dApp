@@ -127,7 +127,7 @@ const SellCallOption = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          Take Loan
+          Sell Call Option
         </ModalHeader>
         {body}
       </ModalContent>
