@@ -46,7 +46,7 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
         cols={OFFER_COLS}
         items={sortedOffers}
         renderCol={(col) => {
-          if (col.name === "asset") {
+          if (col.name === "collection") {
             return <Th key={col.name}>{col.label}</Th>;
           }
 

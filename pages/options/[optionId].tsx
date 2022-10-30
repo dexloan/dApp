@@ -40,12 +40,9 @@ import {
   ExerciseDialog,
   CloseCallOptionDialog,
 } from "../../components/dialog";
-import { SecondaryHireButton } from "../../components/buttons";
-import { Activity } from "../../components/activity";
-import { ExternalLinks } from "../../components/link";
-import { ListingImage } from "../../components/image";
-import { VerifiedCollection } from "../../components/collection";
+import { Detail } from "../../components/detail";
 import { EllipsisProgress } from "../../components/progress";
+import { NFTLayout } from "../../components/layout";
 import { DocumentHead } from "../../components/document";
 
 interface CallOptionProps {
@@ -220,7 +217,13 @@ const CallOptionLayout = () => {
                 </Tag>
               )}
             </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderListedButton()}
+                </Box>
+              }
+            >
               <Text>
                 {callOption?.expired
                   ? `This call option has now expired.${
@@ -230,10 +233,7 @@ const CallOptionLayout = () => {
                     }`
                   : `This NFT will remain locked until expiry on ${callOption.expiryLongFormat}, unless exercised.`}
               </Text>
-            </Box>
-            <Box mt="4" mb="4">
-              {renderListedButton()}
-            </Box>
+            </Detail>
           </>
         );
 
@@ -253,7 +253,13 @@ const CallOptionLayout = () => {
                 </Tag>
               )}
             </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderActiveButton()}
+                </Box>
+              }
+            >
               <Text>
                 {callOption?.expired
                   ? `This call option has now expired.${
@@ -265,10 +271,7 @@ const CallOptionLayout = () => {
                   ? `You may excersie this call option until expiry on ${callOption.expiryLongFormat}.`
                   : `This NFT will remain locked until expiry on ${callOption.expiryLongFormat}, unless exercised.`}
               </Text>
-            </Box>
-            <Box mt="4" mb="4">
-              {renderActiveButton()}
-            </Box>
+            </Detail>
           </>
         );
 
@@ -281,24 +284,29 @@ const CallOptionLayout = () => {
                 <TagLabel>Exercised</TagLabel>
               </Tag>
             </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.50" mb="4">
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderCloseAccountButton()}
+                </Box>
+              }
+            >
               <Text>
                 Listing has ended.{" "}
                 {callOption.isBuyer(anchorWallet)
                   ? "You exercised the call the option."
                   : "The call option was exercised by the buyer."}
               </Text>
-            </Box>
-            <Box marginY="size-200">{renderCloseAccountButton()}</Box>
+            </Detail>
           </>
         );
 
       case CallOptionStateEnum.Cancelled:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Detail>
               <Text>Call option account closed.</Text>
-            </Box>
+            </Detail>
           </>
         );
 
@@ -308,93 +316,22 @@ const CallOptionLayout = () => {
   }
 
   return (
-    <Container maxW={{ md: "container.md", lg: "container.xl" }}>
-      <Flex
-        direction={{
-          base: "column",
-          lg: "row",
-        }}
-        align={{
-          base: "center",
-          lg: "flex-start",
-        }}
-        wrap="wrap"
-      >
-        <Box w={{ base: "100%", lg: "auto" }} maxW={{ base: "xl", lg: "100%" }}>
-          <ListingImage uri={callOption?.metadata.data.uri} />
-          <ExternalLinks mint={callOption?.data.mint} />
-        </Box>
-        <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
-          <Badge colorScheme="green" mb="2">
-            Call Option
-          </Badge>
-          <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
-            {callOption?.metadata.data.name}
-          </Heading>
-          <Box mb="8">
-            <VerifiedCollection symbol={callOption?.metadata.data.symbol} />
-          </Box>
-
-          {callOption && (
-            <>
-              <Flex direction="row" gap="12" mt="12">
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Cost
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {callOption.cost}
-                  </Heading>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Expires
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {callOption.expiry}
-                  </Heading>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Strike Price
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {callOption.strikePrice}
-                  </Heading>
-                </Box>
-              </Flex>
-              <Flex direction="row" gap="12" mb="12">
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Floor Value
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {floorValue}
-                  </Heading>
-                </Box>
-              </Flex>
-            </>
-          )}
-
-          {renderByState()}
-
-          {callOption &&
-            callOption.isSeller(anchorWallet) &&
-            callOption.expired === false &&
-            callOption.state !== CallOptionStateEnum.Exercised &&
-            callOption.state !== CallOptionStateEnum.Cancelled && (
-              <Box mt="2" mb="2">
-                <SecondaryHireButton
-                  mint={callOption?.data.mint}
-                  issuer={callOption?.data.seller}
-                />
-              </Box>
-            )}
-
-          <Activity mint={callOption?.data.mint} />
-        </Box>
-      </Flex>
-    </Container>
+    <NFTLayout
+      metadata={callOption?.metadata}
+      stats={
+        callOption
+          ? [
+              [
+                { label: "Cost", value: callOption.cost },
+                { label: "Expiry", value: callOption.expiry },
+                { label: "Strike Price", value: callOption.strikePrice },
+              ],
+              [{ label: "Floor Value", value: floorValue }],
+            ]
+          : undefined
+      }
+      action={renderByState()}
+    />
   );
 };
 
@@ -418,7 +355,7 @@ const BuyButton = ({ callOption }: BuyButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="green" w="100%" onClick={onLend}>
+      <Button variant="primary" w="100%" onClick={onLend}>
         Buy Call Option
       </Button>
       <BuyCallOptionDialog
@@ -452,7 +389,7 @@ const CloseButton = ({ callOption }: CloseButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="blue" w="100%" onClick={onCancel}>
+      <Button variant="primary" w="100%" onClick={onCancel}>
         {callOption.expired ? "Close Account" : "Close Option"}
       </Button>
       <CloseCallOptionDialog
@@ -493,7 +430,7 @@ const ExerciseButton = ({ callOption }: ExerciseButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="blue" w="100%" onClick={onRepay}>
+      <Button variant="primary" w="100%" onClick={onRepay}>
         Exercise Call Option
       </Button>
       <ExerciseDialog

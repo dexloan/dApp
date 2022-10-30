@@ -204,22 +204,20 @@ const LoanLayout = () => {
     switch (loan.state) {
       case LoanStateEnum.Listed:
         return (
-          <>
-            <Detail
-              footer={
-                <Box mt="4" mb="4">
-                  {renderListedButton()}
-                </Box>
-              }
-            >
-              Total amount due for repayment by {loan.dueDate} will be&nbsp;
-              <Text as="span" fontWeight="semibold">
-                {loan.amountOnMaturity}
-              </Text>
-              . Failure to repay the loan by this date may result in
-              repossession of the NFT by the lender.
-            </Detail>
-          </>
+          <Detail
+            footer={
+              <Box mt="4" mb="4">
+                {renderListedButton()}
+              </Box>
+            }
+          >
+            Total amount due for repayment by {loan.dueDate} will be&nbsp;
+            <Text as="span" fontWeight="semibold">
+              {loan.amountOnMaturity}
+            </Text>
+            . Failure to repay the loan by this date may result in repossession
+            of the NFT by the lender.
+          </Detail>
         );
 
       case LoanStateEnum.Active:
@@ -237,7 +235,13 @@ const LoanLayout = () => {
                 </Tag>
               )}
             </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.900">
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderActiveButton()}
+                </Box>
+              }
+            >
               <Text>
                 Repayment {loan.expired ? "was due before " : "due by "}
                 <Text as="span" fontWeight="semibold">
@@ -246,40 +250,42 @@ const LoanLayout = () => {
                 . Failure to repay the loan by this date may result in
                 repossession of the NFT by the lender.
               </Text>
-            </Box>
-            <Box mt="4" mb="4">
-              {renderActiveButton()}
-            </Box>
+            </Detail>
           </>
         );
 
       case LoanStateEnum.Repaid:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.900">
+            <Detail>
               <Text>Loan has ended. The loan was repaid.</Text>
-            </Box>
+            </Detail>
           </>
         );
 
       case LoanStateEnum.Cancelled:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.900">
+            <Detail>
               <Text>Loan account closed.</Text>
-            </Box>
+            </Detail>
           </>
         );
 
       case LoanStateEnum.Defaulted:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.900" mb="4">
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderCloseAccountButton()}
+                </Box>
+              }
+            >
               <Text>
                 Listing has ended. The NFT was repossessed by the lender.
               </Text>
-            </Box>
-            <Box marginY="size-200">{renderCloseAccountButton()}</Box>
+            </Detail>
           </>
         );
 
@@ -328,7 +334,7 @@ const LendButton = ({ loan }: LoanButtonProps) => {
 
   return (
     <>
-      <Button color="blue.900" w="100%" onClick={onLend}>
+      <Button variant="primary" w="100%" onClick={onLend}>
         Lend SOL
       </Button>
       <LoanDialog
@@ -402,7 +408,7 @@ const RepayButton = ({ loan }: RepayButtonProps) => {
 
   return (
     <>
-      <Button color="gray.200" w="100%" onClick={onRepay}>
+      <Button variant="primary" w="100%" onClick={onRepay}>
         Repay Loan
       </Button>
       <RepayDialog
