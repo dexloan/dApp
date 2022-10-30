@@ -1,13 +1,106 @@
 import * as anchor from "@project-serum/anchor";
-import { AnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { useQuery } from "react-query";
-import { fetchNfts, fetchTokenAccountAddress } from "../../common/query";
+import {
+  AnchorWallet,
+  useAnchorWallet,
+  useConnection,
+} from "@solana/wallet-adapter-react";
+import { useQuery, useQueryClient } from "react-query";
+
+import {
+  fetchMetadata,
+  fetchNft,
+  fetchNfts,
+  fetchTokenAccountAddress,
+} from "../../common/query";
+import { NftResult } from "../../common/types";
+
+export const getMetadataCacheKey = (mint?: anchor.web3.PublicKey) => [
+  "metadata",
+  mint instanceof anchor.web3.PublicKey ? mint.toBase58() : undefined,
+];
+
+export function useMetadata(mint?: anchor.web3.PublicKey) {
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+  const anchorWallet = useAnchorWallet();
+
+  return useQuery(
+    getMetadataCacheKey(mint),
+    () => {
+      if (!mint) {
+        throw new Error("Mint not defined");
+      }
+
+      if (anchorWallet?.publicKey) {
+        const walletNFTs = queryClient.getQueryData<NftResult[]>(
+          getNftByOwnerCacheKey(anchorWallet?.publicKey)
+        );
+
+        if (walletNFTs) {
+          const nft = walletNFTs.find((data) =>
+            data.metadata.mint.equals(mint)
+          );
+
+          if (nft) return nft.metadata;
+        }
+      }
+
+      return fetchMetadata(connection, mint);
+    },
+    {
+      enabled: Boolean(mint instanceof anchor.web3.PublicKey),
+      staleTime: Infinity,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+}
+
+export const getNFTCacheKey = (mint: anchor.web3.PublicKey) => [
+  "nft",
+  mint.toBase58(),
+];
+
+export function useNft(mint: anchor.web3.PublicKey) {
+  const { connection } = useConnection();
+  const queryClient = useQueryClient();
+  const anchorWallet = useAnchorWallet();
+
+  return useQuery(
+    getNFTCacheKey(mint),
+    () => {
+      if (anchorWallet?.publicKey) {
+        const walletNFTs = queryClient.getQueryData<NftResult[]>(
+          getNftByOwnerCacheKey(anchorWallet?.publicKey)
+        );
+
+        if (walletNFTs) {
+          const nft = walletNFTs.find((data) =>
+            data.metadata.mint.equals(mint)
+          );
+
+          if (nft) return nft;
+        }
+      }
+
+      return fetchNft(connection, mint);
+    },
+    {
+      enabled: Boolean(mint),
+      staleTime: Infinity,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+}
 
 export const getNftByOwnerCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["wallet_nfts", walletAddress?.toBase58()];
 
-export function useNFTByOwnerQuery(wallet?: AnchorWallet) {
+export function useNftByOwnerQuery(wallet?: AnchorWallet) {
   const { connection } = useConnection();
 
   return useQuery(
@@ -19,6 +112,7 @@ export function useNFTByOwnerQuery(wallet?: AnchorWallet) {
     },
     {
       enabled: Boolean(wallet?.publicKey),
+      refetchOnReconnect: false,
       refetchOnWindowFocus: false,
     }
   );

@@ -42,7 +42,7 @@ import {
 } from "../../components/dialog";
 import { Detail } from "../../components/detail";
 import { EllipsisProgress } from "../../components/progress";
-import { NFTLayout } from "../../components/layout";
+import { NftLayout } from "../../components/layout";
 import { DocumentHead } from "../../components/document";
 
 interface CallOptionProps {
@@ -316,7 +316,7 @@ const CallOptionLayout = () => {
   }
 
   return (
-    <NFTLayout
+    <NftLayout
       metadata={callOption?.metadata}
       stats={
         callOption

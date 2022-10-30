@@ -1,18 +1,13 @@
-import * as anchor from "@project-serum/anchor";
-import { Badge, Box, Heading, Flex, Skeleton, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, Skeleton, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
-import * as utils from "../../common/utils";
-import { CallOption, Hire, Loan } from "../../common/model";
-import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
-import { EllipsisProgress } from "../progress";
-import {
-  CallOptionStateEnum,
-  HireStateEnum,
-  LoanStateEnum,
-} from "../../common/types";
+
+import { HireStateEnum } from "../../common/types";
+import { Hire } from "../../common/model";
+import { useMetadataFileQuery } from "../../hooks/query";
+import { useCollectionName } from "../../hooks/render";
 
 interface CardProps {
   children: React.ReactNode;
@@ -35,7 +30,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
         lg: "calc(25% - 0.937rem)",
-        xl: "calc(20% - 1rem)",
+        // xl: "calc(20% - 1rem)",
       }}
       borderWidth="1px"
       borderColor="gray.800"
@@ -99,36 +94,39 @@ export const CardList = ({ children }: CardListProps) => {
   );
 };
 
-interface HireCardProps {
-  hire: Hire;
+interface RentalCardProps {
+  rental: Hire;
+  onRent?: () => void;
 }
 
-export const HireCard = ({ hire }: HireCardProps) => {
+export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
+  const collection = useCollectionName(rental.metadata);
+
   function renderBadge() {
-    switch (hire.state) {
+    switch (rental.state) {
       case HireStateEnum.Listed: {
         return null;
       }
 
       default: {
-        if (hire.expired) {
+        if (rental.expired) {
           return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
+            <Badge borderRadius="full" px="1" py="1" mr="2">
               <IoAlertCircle />
             </Badge>
           );
         }
 
-        if (hire.currentPeriodExpired) {
+        if (rental.currentPeriodExpired) {
           return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
+            <Badge borderRadius="full" px="1" py="1" mr="2">
               <IoLeaf />
             </Badge>
           );
         }
 
         return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
+          <Badge borderRadius="full" px="1" py="1" mr="2">
             <IoCheckmark />
           </Badge>
         );
@@ -138,33 +136,40 @@ export const HireCard = ({ hire }: HireCardProps) => {
 
   return (
     <Card
-      href={`/rental/${hire.address}`}
-      uri={hire.metadata.data.uri}
-      imageAlt={hire.metadata.data.name}
+      href={`/rentals/${rental.address}`}
+      uri={rental.metadata.data.uri}
+      imageAlt={rental.metadata.data.name}
     >
       <Box p="4">
         <Box display="flex" alignItems="center">
           {renderBadge()}
         </Box>
-        <Box
-          mt="1"
-          fontSize="sm"
-          fontWeight="medium"
-          as="h5"
-          lineHeight="tight"
-          isTruncated
-        >
-          {hire.metadata.data.name}
+        <Box mt="1" mb="2">
+          <Text
+            fontSize="sm"
+            fontWeight="medium"
+            as="h5"
+            lineHeight="tight"
+            isTruncated
+          >
+            {rental.metadata.data.name}
+          </Text>
+          <Text fontSize="xs" color="gray.500">
+            {collection}
+          </Text>
         </Box>
-        <Box
-          display="flex"
-          letterSpacing="wide"
-          fontSize="xs"
-          textTransform="uppercase"
-        >
-          <Text fontWeight="semibold">{hire.amount}</Text> •{" "}
-          <Text color="gray.500">{hire.expiry}</Text>
+        <Box display="flex" letterSpacing="wide" fontSize="xs">
+          <Text fontWeight="semibold">{rental.amount} / day</Text>
+          &nbsp;&nbsp;•&nbsp;&nbsp;
+          <Text color="gray.500">max {rental.maxDays} days</Text>
         </Box>
+        {onRent && (
+          <Box display="flex" justifyContent="flex-end" mt="4">
+            <Button size="sm" variant="outline">
+              Rent
+            </Button>
+          </Box>
+        )}
       </Box>
     </Card>
   );

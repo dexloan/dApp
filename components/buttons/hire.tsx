@@ -6,7 +6,7 @@ import { IoBicycle } from "react-icons/io5";
 
 import { HireStateEnum, NftResult } from "../../common/types";
 import { Hire } from "../../common/model";
-import { useHireAddressQuery, useHireQuery, useNFT } from "../../hooks/query";
+import { useHireAddressQuery, useHireQuery, useNft } from "../../hooks/query";
 import { InitHireModal } from "../form";
 
 interface HireButtonProps {
@@ -49,7 +49,7 @@ export const SecondaryHireButton = ({
 }: SecondaryHireButtonProps) => {
   const hireAddress = useHireAddressQuery(mint, issuer);
   const hireQuery = useHireQuery(hireAddress.data);
-  const nftQuery = useNFT(mint);
+  const nftQuery = useNft(mint);
 
   const hire = useMemo(() => {
     if (hireQuery.data) {

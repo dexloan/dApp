@@ -40,14 +40,22 @@ const defaultValues = {
   duration: 30,
 };
 
-export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
-  const [selected, setSelected] = useState<NftResult | null>(null);
+interface AskLoanModalProps extends ModalProps {
+  selected?: NftResult | null;
+}
+
+export const AskLoanModal = ({
+  open,
+  selected = null,
+  onRequestClose,
+}: AskLoanModalProps) => {
+  const [innerSelected, setSelected] = useState<NftResult | null>(selected);
   const mutation = useAskLoanMutation(() => onRequestClose());
 
   return (
     <Modal
       isCentered
-      size={selected ? "2xl" : "4xl"}
+      size={innerSelected ? "2xl" : "4xl"}
       isOpen={open}
       onClose={() => {
         if (!mutation.isLoading) {
@@ -58,12 +66,12 @@ export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          {selected ? "Create Ask" : "Select NFT"}
+          {innerSelected ? "Create Ask" : "Select NFT"}
         </ModalHeader>
-        {selected ? (
+        {innerSelected ? (
           <AskLoanForm
             isLoading={mutation.isLoading}
-            selected={selected}
+            selected={innerSelected}
             onRequestClose={onRequestClose}
             onCancel={() => setSelected(null)}
             onSubmit={(vars) => mutation.mutate(vars)}
@@ -179,7 +187,7 @@ const AskLoanForm = ({
                       </Heading>
                       <VerifiedCollection
                         size="xs"
-                        symbol={selected?.metadata.data.symbol}
+                        metadata={selected?.metadata}
                       />
                     </Box>
                     {floorPriceQuery.data?.floorPrice && (

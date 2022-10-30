@@ -11,8 +11,12 @@ import {
 } from "@chakra-ui/react";
 
 import { Hire, HirePretty } from "../../common/model";
-import { useHiresQuery } from "../../hooks/query";
-import { HireCard, CardList } from "../../components/card";
+import {
+  useHiresQuery,
+  useBorrowerHiresQuery,
+  useLenderHiresQuery,
+} from "../../hooks/query";
+import { RentalCard, CardList } from "../../components/card";
 
 const Rentals: NextPage = () => {
   return (
@@ -26,21 +30,40 @@ const Rentals: NextPage = () => {
           <TabPanel>
             <Listings />
           </TabPanel>
-          <TabPanel></TabPanel>
+          <TabPanel>
+            <RentalsTaken />
+            <RentalsGiven />
+          </TabPanel>
         </TabPanels>
       </Tabs>
     </Container>
   );
 };
 
+function renderCard(json: HirePretty) {
+  const rental = Hire.fromJSON(json);
+
+  return <RentalCard key={rental.address} rental={rental} />;
+}
+
 const Listings = () => {
   const rentalsQuery = useHiresQuery();
 
-  function renderCard(json: HirePretty) {
-    const rental = Hire.fromJSON(json);
+  return (
+    <>
+      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+    </>
+  );
+};
 
-    return <HireCard key={rental.address} hire={rental} />;
-  }
+const RentalsTaken = () => {
+  const rentalsQuery = useBorrowerHiresQuery();
+
+  return <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>;
+};
+
+const RentalsGiven = () => {
+  const rentalsQuery = useLenderHiresQuery();
 
   return <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>;
 };

@@ -36,7 +36,7 @@ export function ListingImage({ uri }: ListingImageProps) {
         <Image
           height="100%"
           width="100%"
-          borderRadius="lg"
+          borderRadius="sm"
           src={metadataFileQuery.data?.image}
           alt="NFT art"
         />

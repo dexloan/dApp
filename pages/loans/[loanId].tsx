@@ -41,7 +41,7 @@ import {
   RepayDialog,
   RepossessDialog,
 } from "../../components/dialog";
-import { NFTLayout } from "../../components/layout";
+import { NftLayout } from "../../components/layout";
 import { EllipsisProgress } from "../../components/progress";
 import { DocumentHead } from "../../components/document";
 import { Detail } from "../../components/detail";
@@ -295,7 +295,7 @@ const LoanLayout = () => {
   }
 
   return (
-    <NFTLayout
+    <NftLayout
       metadata={loan?.metadata}
       stats={
         loan

@@ -1,22 +1,19 @@
 import { Icon, Flex, Text } from "@chakra-ui/react";
 import { IoAtCircleOutline } from "react-icons/io5";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
-import * as utils from "../../common/utils";
+import { useCollectionName } from "../../hooks/render";
 
 interface VerifiedCollectionProps {
-  symbol?: string;
+  metadata?: Metadata;
   size?: "xs" | "sm" | "md";
 }
 
 export function VerifiedCollection({
-  symbol,
+  metadata,
   size = "sm",
 }: VerifiedCollectionProps) {
-  if (!symbol) return null;
-
-  const title = utils.mapSymbolToCollectionTitle(symbol);
-
-  if (!title) return null;
+  const collectionName = useCollectionName(metadata);
 
   return (
     <Flex direction="row" alignItems="center">
@@ -27,7 +24,7 @@ export function VerifiedCollection({
         fontWeight="medium"
         // _groupHover={{ color: "orange.300", textDecoration: "underline" }}
       >
-        {title}
+        {collectionName ?? "..."}
       </Text>
     </Flex>
   );
