@@ -1,8 +1,7 @@
 import type { NextPage } from "next";
 import {
-  Button,
   Container,
-  Icon,
+  Heading,
   Tabs,
   TabList,
   TabPanels,
@@ -59,13 +58,27 @@ const Listings = () => {
 const RentalsTaken = () => {
   const rentalsQuery = useBorrowerHiresQuery();
 
-  return <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>;
+  return (
+    <>
+      <Heading size="sm" mb="2" color="gray.300" fontWeight="medium">
+        Renting
+      </Heading>
+      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+    </>
+  );
 };
 
 const RentalsGiven = () => {
   const rentalsQuery = useLenderHiresQuery();
 
-  return <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>;
+  return (
+    <>
+      <Heading size="sm" mb="2" color="gray.300" fontWeight="medium">
+        Lending
+      </Heading>
+      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+    </>
+  );
 };
 
 export default Rentals;

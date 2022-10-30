@@ -275,7 +275,6 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
         return null;
     }
   }
-  console.log("=====> ", hire);
 
   return (
     <NftLayout

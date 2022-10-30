@@ -30,6 +30,9 @@ export function ListingImage({ uri }: ListingImageProps) {
       maxW="100%"
       borderRadius="sm"
       overflow="hidden"
+      sx={{
+        aspectRatio: loaded ? undefined : "1",
+      }}
     >
       <Skeleton w="100%" isLoaded={loaded}>
         {loaded ? null : <Box pb="100%" />}

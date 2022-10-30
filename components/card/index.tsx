@@ -1,4 +1,12 @@
-import { Badge, Box, Button, Flex, Skeleton, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Skeleton,
+  Text,
+  Tooltip,
+} from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -30,7 +38,6 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
         lg: "calc(25% - 0.937rem)",
-        // xl: "calc(20% - 1rem)",
       }}
       borderWidth="1px"
       borderColor="gray.800"
@@ -38,6 +45,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       cursor={href || onClick ? "pointer" : undefined}
       overflow="hidden"
       tabIndex={1}
+      position="relative"
       ref={containerRef}
       _focus={{
         boxShadow: href || onClick ? "lg" : undefined,
@@ -102,7 +110,7 @@ interface RentalCardProps {
 export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
   const collection = useCollectionName(rental.metadata);
 
-  function renderBadge() {
+  function renderStatus() {
     switch (rental.state) {
       case HireStateEnum.Listed: {
         return null;
@@ -111,24 +119,66 @@ export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
       default: {
         if (rental.expired) {
           return (
-            <Badge borderRadius="full" px="1" py="1" mr="2">
-              <IoAlertCircle />
-            </Badge>
+            <Box position="absolute" top="1" right="0.5">
+              <Tooltip label="Max rental period expired">
+                <Badge
+                  colorScheme="blackAlpha"
+                  borderRadius="full"
+                  px="1"
+                  py="1"
+                  mr="2"
+                  fontSize="xs"
+                  _hover={{
+                    bg: "rgba(0, 0, 0, 0.5)",
+                  }}
+                >
+                  <IoAlertCircle color="white" />
+                </Badge>
+              </Tooltip>
+            </Box>
           );
         }
 
         if (rental.currentPeriodExpired) {
           return (
-            <Badge borderRadius="full" px="1" py="1" mr="2">
-              <IoLeaf />
-            </Badge>
+            <Box position="absolute" top="1" right="0.5">
+              <Tooltip label="Current rental period expired">
+                <Badge
+                  colorScheme="blackAlpha"
+                  borderRadius="full"
+                  px="1"
+                  py="1"
+                  mr="2"
+                  fontSize="xs"
+                  _hover={{
+                    bg: "rgba(0, 0, 0, 0.5)",
+                  }}
+                >
+                  <IoLeaf color="white" />
+                </Badge>
+              </Tooltip>
+            </Box>
           );
         }
 
         return (
-          <Badge borderRadius="full" px="1" py="1" mr="2">
-            <IoCheckmark />
-          </Badge>
+          <Box position="absolute" top="1" right="0.5">
+            <Tooltip label={`Renting until ${rental.currentExpiry}`}>
+              <Badge
+                colorScheme="blackAlpha"
+                borderRadius="full"
+                px="1"
+                py="1"
+                mr="2"
+                fontSize="xs"
+                _hover={{
+                  bg: "rgba(0, 0, 0, 0.5)",
+                }}
+              >
+                <IoCheckmark color="white" />
+              </Badge>
+            </Tooltip>
+          </Box>
         );
       }
     }
@@ -140,10 +190,8 @@ export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
       uri={rental.metadata.data.uri}
       imageAlt={rental.metadata.data.name}
     >
+      {renderStatus()}
       <Box p="4">
-        <Box display="flex" alignItems="center">
-          {renderBadge()}
-        </Box>
         <Box mt="1" mb="2">
           <Text
             fontSize="sm"
@@ -159,9 +207,13 @@ export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
           </Text>
         </Box>
         <Box display="flex" letterSpacing="wide" fontSize="xs">
-          <Text fontWeight="semibold">{rental.amount} / day</Text>
+          <Text fontWeight="semibold" whiteSpace="nowrap">
+            {rental.amount} / day
+          </Text>
           &nbsp;&nbsp;•&nbsp;&nbsp;
-          <Text color="gray.500">max {rental.maxDays} days</Text>
+          <Text color="gray.500" whiteSpace="nowrap">
+            max {rental.maxDays} days
+          </Text>
         </Box>
         {onRent && (
           <Box display="flex" justifyContent="flex-end" mt="4">
