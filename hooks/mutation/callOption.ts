@@ -10,13 +10,13 @@ import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { CallOptionStateEnum, NFTResult } from "../../common/types";
+import { CallOptionStateEnum, NftResult } from "../../common/types";
 import {
   getCallOptionCacheKey,
   getCallOptionsCacheKey,
   getBuyerCallOptionsQueryKey,
   getSellerCallOptionsQueryKey,
-  getNFTByOwnerCacheKey,
+  getNftByOwnerCacheKey,
   getCallOptionBidsCacheKey,
 } from "../query";
 import {
@@ -206,14 +206,14 @@ export const useAskCallOptionMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        queryClient.setQueryData<NFTResult[]>(
-          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
+        queryClient.setQueryData<NftResult[]>(
+          getNftByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];
             }
             return data.filter(
-              (item: NFTResult) =>
+              (item: NftResult) =>
                 !item?.tokenAccount.mint.equals(variables.mint)
             );
           }

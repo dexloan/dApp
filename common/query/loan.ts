@@ -92,7 +92,10 @@ export async function fetchMultipleLoans(
   const program = getProgram(provider);
   const listings = await program.account.loan.all(filter);
 
-  const metadataAccounts = await fetchMetadataAccounts(connection, listings);
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    listings.map((l) => l.account.mint)
+  );
 
   const combinedAccounts = listings.map((listing, index) => {
     const metadataAccount = metadataAccounts[index];
@@ -120,7 +123,10 @@ export async function fetchMultipleLoanOffers(
     program.account.loanOffer.all(filter),
     program.account.collection.all(),
   ]);
-  const metadataAccounts = await fetchMetadataAccounts(connection, collections);
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    collections.map((c) => c.account.mint)
+  );
 
   return listings
     .map((listing) => {

@@ -1,54 +1,9 @@
 import * as anchor from "@project-serum/anchor";
-import {
-  AnchorWallet,
-  useAnchorWallet,
-  useConnection,
-} from "@solana/wallet-adapter-react";
-import { useQuery, useQueries, useQueryClient } from "react-query";
+import { AnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useQuery } from "react-query";
+import { fetchNfts, fetchTokenAccountAddress } from "../../common/query";
 
-import {
-  fetchNFT,
-  fetchNFTs,
-  fetchTokenAccountAddress,
-} from "../../common/query";
-import { NFTResult } from "../../common/types";
-
-export const getNFTCacheKey = (mint: anchor.web3.PublicKey) => [
-  "nft",
-  mint.toBase58(),
-];
-
-export function useNFT(mint: anchor.web3.PublicKey) {
-  const { connection } = useConnection();
-  const queryClient = useQueryClient();
-  const anchorWallet = useAnchorWallet();
-
-  return useQuery(
-    getNFTCacheKey(mint),
-    () => {
-      if (anchorWallet?.publicKey) {
-        const walletNFTs = queryClient.getQueryData<NFTResult[]>(
-          getNFTByOwnerCacheKey(anchorWallet?.publicKey)
-        );
-
-        if (walletNFTs) {
-          const nft = walletNFTs.find((data) =>
-            data.metadata.mint.equals(mint)
-          );
-
-          if (nft) return nft;
-        }
-      }
-
-      return fetchNFT(connection, mint);
-    },
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
-}
-
-export const getNFTByOwnerCacheKey = (
+export const getNftByOwnerCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["wallet_nfts", walletAddress?.toBase58()];
 
@@ -56,10 +11,10 @@ export function useNFTByOwnerQuery(wallet?: AnchorWallet) {
   const { connection } = useConnection();
 
   return useQuery(
-    getNFTByOwnerCacheKey(wallet?.publicKey),
+    getNftByOwnerCacheKey(wallet?.publicKey),
     () => {
       if (wallet) {
-        return fetchNFTs(connection, wallet.publicKey);
+        return fetchNfts(connection, wallet.publicKey);
       }
     },
     {

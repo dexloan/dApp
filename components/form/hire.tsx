@@ -19,7 +19,7 @@ import { useMemo } from "react";
 
 import dayjs from "../../common/lib/dayjs";
 import { useInitHireMutation } from "../../hooks/mutation";
-import { NFTResult } from "../../common/types";
+import { NftResult } from "../../common/types";
 
 interface FormFields {
   amount: number;
@@ -30,7 +30,7 @@ interface FormFields {
 
 interface ListingFormProps {
   open: boolean;
-  selected: NFTResult | null;
+  selected: NftResult | null;
   onRequestClose: () => void;
 }
 

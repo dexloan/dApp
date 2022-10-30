@@ -11,14 +11,14 @@ import toast from "react-hot-toast";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import { SECONDS_PER_DAY } from "../../common/constants";
-import { HireStateEnum, NFTResult } from "../../common/types";
+import { HireStateEnum, NftResult } from "../../common/types";
 import { HirePretty } from "../../common/model";
 import {
   getHireCacheKey,
   getHiresCacheKey,
   getHiresGivenCacheKey,
   getHiresTakenCacheKey,
-  getNFTByOwnerCacheKey,
+  getNftByOwnerCacheKey,
 } from "../query";
 
 interface InitHireMutationVariables {
@@ -57,14 +57,14 @@ export const useInitHireMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        queryClient.setQueryData<NFTResult[]>(
-          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
+        queryClient.setQueryData<NftResult[]>(
+          getNftByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];
             }
 
-            return data.filter((item: NFTResult) => {
+            return data.filter((item: NftResult) => {
               return !item?.tokenAccount.mint.equals(variables.mint);
             });
           }

@@ -22,9 +22,9 @@ import Image from "next/image";
 
 import * as utils from "../../common/utils";
 import dayjs from "../../common/lib/dayjs";
-import { NFTResult, CollectionItem, CollectionMap } from "../../common/types";
+import { NftResult, CollectionItem, CollectionMap } from "../../common/types";
 import {
-  useNFTByOwnerQuery,
+  useNftByOwnerQuery,
   useFloorPriceQuery,
   useMetadataFileQuery,
 } from "../../hooks/query";
@@ -221,7 +221,7 @@ export const SliderField = <Fields extends FieldValues>({
 
 interface SelectNFTFormProps {
   collectionMint?: anchor.web3.PublicKey;
-  onSelect: (selected: NFTResult) => void;
+  onSelect: (selected: NftResult) => void;
 }
 
 export const SelectNFTForm = ({
@@ -229,7 +229,7 @@ export const SelectNFTForm = ({
   onSelect,
 }: SelectNFTFormProps) => {
   const wallet = useAnchorWallet();
-  const nftQuery = useNFTByOwnerQuery(wallet);
+  const nftQuery = useNftByOwnerQuery(wallet);
 
   console.log("collectionMint: ", collectionMint?.toBase58());
   console.log("nftQuery: ", nftQuery);
@@ -313,14 +313,14 @@ export const SelectNFTForm = ({
 
 interface CollectionProps {
   collection: CollectionItem;
-  onSelectItem: (item: NFTResult) => void;
+  onSelectItem: (item: NftResult) => void;
 }
 
 const Collection = ({ collection, onSelectItem }: CollectionProps) => {
   const floorPriceQuery = useFloorPriceQuery(collection.symbol);
 
   const renderItem = useCallback(
-    (item: NFTResult) => {
+    (item: NftResult) => {
       return (
         <Card
           key={item?.tokenAccount.address.toBase58()}
@@ -383,11 +383,14 @@ const SectionHeader = ({
 );
 
 interface CollectionDetailsProps {
-  nft: NFTResult;
+  nft: NftResult;
   forecast: React.ReactNode;
 }
 
-export const CollectionDetails = ({ nft, forecast }: CollectionDetailsProps) => {
+export const CollectionDetails = ({
+  nft,
+  forecast,
+}: CollectionDetailsProps) => {
   const [isVisible, setVisible] = useState(false);
   const metadataQuery = useMetadataFileQuery(nft?.metadata?.data.uri);
 

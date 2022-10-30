@@ -19,7 +19,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
-import { NFTResult } from "../../common/types";
+import { NftResult } from "../../common/types";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import {
   AskLoanMutationVariables,
@@ -41,7 +41,7 @@ const defaultValues = {
 };
 
 export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
-  const [selected, setSelected] = useState<NFTResult | null>(null);
+  const [selected, setSelected] = useState<NftResult | null>(null);
   const mutation = useAskLoanMutation(() => onRequestClose());
 
   return (
@@ -78,7 +78,7 @@ export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
 
 interface AskLoanFormProps extends Pick<ModalProps, "onRequestClose"> {
   isLoading: boolean;
-  selected: NFTResult;
+  selected: NftResult;
   onCancel: () => void;
   onSubmit: (data: AskLoanMutationVariables) => void;
 }

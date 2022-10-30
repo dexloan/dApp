@@ -35,7 +35,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
         lg: "calc(25% - 0.937rem)",
-        // xl: "calc(20% - 1rem)",
+        xl: "calc(20% - 1rem)",
       }}
       borderWidth="1px"
       borderColor="gray.800"
@@ -99,199 +99,15 @@ export const CardList = ({ children }: CardListProps) => {
   );
 };
 
-interface LoanCardProps {
-  loan: Loan;
-}
-
-export const LoanCard = ({ loan }: LoanCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(loan.metadata.data.symbol);
-
-  const floorPrice = useMemo(
-    () =>
-      floorPriceQuery.data
-        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-        : null,
-    [floorPriceQuery.data]
-  );
-
-  function renderBadge() {
-    switch (loan.state) {
-      case LoanStateEnum.Listed: {
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" bg="#ffb703">
-            <IoLeaf />
-          </Badge>
-        );
-      }
-
-      case LoanStateEnum.Active:
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
-            <IoCheckmark />
-          </Badge>
-        );
-
-      default: {
-        if (loan.expired) {
-          return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
-              <IoAlertCircle />
-            </Badge>
-          );
-        }
-        return null;
-      }
-    }
-  }
-
-  return (
-    <Card
-      href={`/loan/${loan.publicKey.toBase58()}`}
-      uri={loan.metadata.data.uri}
-      imageAlt={loan.metadata.data.name}
-    >
-      <Box p="4">
-        <Box display="flex" alignItems="center">
-          {renderBadge()}
-          <Box
-            color="gray.300"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
-          >
-            {loan.duration} ({loan.data.basisPoints / 100}% APY)
-          </Box>
-        </Box>
-      </Box>
-      <Box p="4">
-        <Heading fontWeight="bold" fontSize="lg" as="span">
-          {loan.amount}{" "}
-        </Heading>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor Price {floorPrice ?? <EllipsisProgress />}
-        </Text>
-      </Box>
-    </Card>
-  );
-};
-
-interface CallOptionCardProps {
-  callOption: CallOption;
-}
-
-export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(callOption.metadata.data.symbol);
-
-  const floorPrice = useMemo(
-    () =>
-      floorPriceQuery.data
-        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-        : null,
-    [floorPriceQuery.data]
-  );
-
-  function renderBadge() {
-    switch (callOption.state) {
-      case CallOptionStateEnum.Listed:
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
-            <IoLeaf />
-          </Badge>
-        );
-
-      default: {
-        if (callOption.expired) {
-          return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
-              <IoAlertCircle />
-            </Badge>
-          );
-        }
-
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
-            <IoCheckmark />
-          </Badge>
-        );
-      }
-    }
-  }
-
-  return (
-    <Card
-      href={`/option/${callOption.address}`}
-      uri={callOption.metadata.data.uri}
-      imageAlt={callOption.metadata.data.name}
-    >
-      <Box p="4">
-        <Box display="flex" alignItems="center">
-          {renderBadge()}
-          <Box
-            color="gray.500"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
-          >
-            {callOption.expiry}
-          </Box>
-        </Box>
-        <Box
-          mt="1"
-          fontWeight="semibold"
-          as="h4"
-          lineHeight="tight"
-          isTruncated
-        >
-          {callOption.metadata.data.name}
-        </Box>
-        <Box mt="1">
-          <Badge
-            borderRadius="full"
-            px="2"
-            colorScheme="green"
-            variant="subtle"
-          >
-            {callOption.cost} Premium
-          </Badge>
-        </Box>
-      </Box>
-      <Box p="4" bgColor="blue.50">
-        <Box fontWeight="bold" as="h3">
-          {callOption.strikePrice}{" "}
-        </Box>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor price {floorPrice}
-        </Text>
-      </Box>
-    </Card>
-  );
-};
-
 interface HireCardProps {
   hire: Hire;
 }
 
 export const HireCard = ({ hire }: HireCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(hire.metadata.data.symbol);
-
-  const floorPrice = useMemo(
-    () =>
-      floorPriceQuery.data
-        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-        : null,
-    [floorPriceQuery.data]
-  );
-
   function renderBadge() {
     switch (hire.state) {
       case HireStateEnum.Listed: {
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
-            <IoLeaf />
-          </Badge>
-        );
+        return null;
       }
 
       default: {
@@ -329,33 +145,26 @@ export const HireCard = ({ hire }: HireCardProps) => {
       <Box p="4">
         <Box display="flex" alignItems="center">
           {renderBadge()}
-          <Box
-            color="gray.500"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
-          >
-            {hire.expiry}
-          </Box>
         </Box>
         <Box
           mt="1"
-          fontWeight="semibold"
-          as="h4"
+          fontSize="sm"
+          fontWeight="medium"
+          as="h5"
           lineHeight="tight"
           isTruncated
         >
           {hire.metadata.data.name}
         </Box>
-      </Box>
-      <Box p="4" bgColor="blue.50">
-        <Box fontWeight="bold" as="h3">
-          {hire.amount}
+        <Box
+          display="flex"
+          letterSpacing="wide"
+          fontSize="xs"
+          textTransform="uppercase"
+        >
+          <Text fontWeight="semibold">{hire.amount}</Text> •{" "}
+          <Text color="gray.500">{hire.expiry}</Text>
         </Box>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor Price {floorPrice}
-        </Text>
       </Box>
     </Card>
   );

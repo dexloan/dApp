@@ -28,7 +28,7 @@ import {
   CollectionMap,
   HireStateEnum,
   LoanStateEnum,
-  NFTResult,
+  NftResult,
 } from "../common/types";
 import { Loan, CallOption, Hire } from "../common/model";
 import {
@@ -491,7 +491,7 @@ const Hires = () => {
 
 const MyItems = () => {
   const wallet = useAnchorWallet();
-  const [selected, setSelected] = useState<NFTResult | null>(null);
+  const [selected, setSelected] = useState<NftResult | null>(null);
   const [type, setType] = useState<"loan" | "callOption" | "hire" | null>(null);
   const nftQuery = useNFTByOwnerQuery(wallet);
 
@@ -624,14 +624,14 @@ const MyItems = () => {
 
 interface CollectionProps {
   collection: CollectionItem;
-  onSelectItem: (item: NFTResult) => void;
+  onSelectItem: (item: NftResult) => void;
 }
 
 const Collection = ({ collection, onSelectItem }: CollectionProps) => {
   const floorPriceQuery = useFloorPriceQuery(collection.symbol);
 
   const renderItem = useCallback(
-    (item: NFTResult) => {
+    (item: NftResult) => {
       return (
         <Card
           key={item?.tokenAccount.address.toBase58()}

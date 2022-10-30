@@ -21,13 +21,7 @@ import {
   useLoanOffersQuery,
   useLoanOffersByLenderQuery,
 } from "../../hooks/query";
-import {
-  LoanListings,
-  LoanOffers,
-  useLoanSortState,
-  useSortedLoans,
-  useSortedLoanOffers,
-} from "../../components/tables/loans";
+import { LoanListings, LoanOffers } from "../../components/tables/loans";
 import { AskLoanModal } from "../../components/form";
 
 const Loans: NextPage = () => {

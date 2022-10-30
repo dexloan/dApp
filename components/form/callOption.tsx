@@ -19,7 +19,7 @@ import { useMemo } from "react";
 
 import dayjs from "../../common/lib/dayjs";
 import { useAskCallOptionMutation } from "../../hooks/mutation";
-import { NFTResult } from "../../common/types";
+import { NftResult } from "../../common/types";
 import { CallOptionFormFields } from "./common";
 
 export const useExpiryOptions = () => {
@@ -41,7 +41,7 @@ export const useExpiryOptions = () => {
 
 interface ListingFormProps {
   open: boolean;
-  selected: NFTResult | null;
+  selected: NftResult | null;
   onRequestClose: () => void;
 }
 

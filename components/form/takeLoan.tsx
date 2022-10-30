@@ -13,7 +13,7 @@ import {
   ModalBody,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { NFTResult } from "../../common/types";
+import { NftResult } from "../../common/types";
 import { Collection, LoanOffer } from "../../common/model";
 import {
   useCloseLoanOfferMutation,
@@ -56,7 +56,7 @@ export const TakeLoanModal = ({
 };
 
 const TakeLoan = ({ open, offer, onRequestClose }: TakeLoanModalProps) => {
-  const [selected, setSelected] = useState<NFTResult | null>(null);
+  const [selected, setSelected] = useState<NftResult | null>(null);
   const mutation = useTakeLoanMutation(onRequestClose);
 
   function onSubmit() {
