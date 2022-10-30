@@ -63,7 +63,14 @@ const RentalsTaken = () => {
 
   return (
     <>
-      <Heading size="sm" mb="2" color="gray.300" fontWeight="medium">
+      <Heading
+        fontSize="xs"
+        color="gray.400"
+        fontWeight="medium"
+        letterSpacing="wider"
+        lineHeight="4"
+        mb="4"
+      >
         Renting
       </Heading>
       <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
@@ -76,7 +83,14 @@ const RentalsGiven = () => {
 
   return (
     <>
-      <Heading size="sm" mb="2" color="gray.300" fontWeight="medium">
+      <Heading
+        fontSize="xs"
+        color="gray.400"
+        fontWeight="medium"
+        letterSpacing="wider"
+        lineHeight="4"
+        mb="4"
+      >
         Lending
       </Heading>
       <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
