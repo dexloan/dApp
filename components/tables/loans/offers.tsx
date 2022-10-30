@@ -1,4 +1,5 @@
 import * as anchor from "@project-serum/anchor";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Box, Button, Icon, Tr, Th, Td, Text } from "@chakra-ui/react";
 import { IoAdd } from "react-icons/io5";
 import { useMemo, useState } from "react";
@@ -9,6 +10,7 @@ import { useLTV } from "../../../hooks/render";
 import { Col, ColumnHeader, ListingsTable, NFTCell } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
 import { LoanSortCols, useLoanSortState, useSortedLoanOffers } from "./common";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
   { name: "collection", label: "Collection" },
@@ -24,6 +26,8 @@ interface LoanOffersProps {
 }
 
 export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
+  const wallet = useWallet();
+  const modal = useWalletModal();
   const [offerModal, setOfferModal] = useState<boolean>(false);
   const [offer, setOffer] = useState<LoanOffer | null>(null);
   const [sortState, onSort] = useLoanSortState();
@@ -38,6 +42,7 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
           <Button
             size="sm"
             leftIcon={<Icon as={IoAdd} />}
+            isDisabled={!wallet.publicKey}
             onClick={() => setOfferModal(true)}
           >
             Offer Loan
@@ -65,7 +70,13 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
           <LoanOfferRow
             key={item.address}
             offer={item}
-            onSelect={() => setOffer(item)}
+            onSelect={() => {
+              if (!wallet.publicKey) {
+                modal.setVisible(true);
+              }
+
+              setOffer(item);
+            }}
           />
         )}
       />

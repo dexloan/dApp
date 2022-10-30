@@ -62,6 +62,7 @@ const Bids = () => {
 };
 
 const Asks = () => {
+  const wallet = useWallet();
   const [optionModal, setOptionModal] = useState(false);
   const optionsQuery = useCallOptionsQuery(SerializedCallOptionState.Listed);
 
@@ -72,6 +73,7 @@ const Asks = () => {
           <Button
             size="sm"
             leftIcon={<Icon as={IoAdd} />}
+            isDisabled={!wallet.publicKey}
             onClick={() => setOptionModal(true)}
           >
             Create Ask

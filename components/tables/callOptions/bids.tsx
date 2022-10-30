@@ -1,4 +1,5 @@
-import { Button, Icon, Tr, Th, Td } from "@chakra-ui/react";
+import { Button, Icon, Th } from "@chakra-ui/react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { IoAdd } from "react-icons/io5";
 import { useState } from "react";
 
@@ -12,6 +13,7 @@ import {
   useSortedCallOptionBids,
 } from "./common";
 import { OptionRow } from "./callOptions";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 const BID_COLS: Readonly<Col<CallOptionSortCols>[]> = [
   { name: "collection", label: "Collection" },
@@ -26,6 +28,8 @@ interface CallOptionBidsProps {
 }
 
 export const CallOptionBids = ({ heading, bids }: CallOptionBidsProps) => {
+  const wallet = useWallet();
+  const modal = useWalletModal();
   const [bidModal, setBidModal] = useState<boolean>(false);
   const [bid, setBid] = useState<CallOptionBid | null>(null);
 
@@ -41,6 +45,7 @@ export const CallOptionBids = ({ heading, bids }: CallOptionBidsProps) => {
           <Button
             size="sm"
             leftIcon={<Icon as={IoAdd} />}
+            isDisabled={!wallet.publicKey}
             onClick={() => setBidModal(true)}
           >
             Create Bid
@@ -67,7 +72,12 @@ export const CallOptionBids = ({ heading, bids }: CallOptionBidsProps) => {
           <OptionRow
             key={item.address}
             option={item}
-            onClick={() => setBid(item)}
+            onClick={() => {
+              if (!wallet.publicKey) {
+                modal.setVisible(true);
+              }
+              setBid(item);
+            }}
           />
         )}
       />

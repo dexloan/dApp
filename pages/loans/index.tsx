@@ -61,6 +61,7 @@ const Offers = () => {
 };
 
 const Listings = () => {
+  const wallet = useWallet();
   const [loanModal, setLoanModal] = useState(false);
   const loansQuery = useLoansQuery(SerializedLoanState.Listed);
 
@@ -71,6 +72,7 @@ const Listings = () => {
           <Button
             size="sm"
             leftIcon={<Icon as={IoAdd} />}
+            isDisabled={!wallet.publicKey}
             onClick={() => setLoanModal(true)}
           >
             Create Ask
