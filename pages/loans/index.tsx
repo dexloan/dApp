@@ -9,7 +9,7 @@ import {
   Tab,
   TabPanel,
 } from "@chakra-ui/react";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { useState, useMemo } from "react";
 import { IoAdd } from "react-icons/io5";
 
@@ -25,6 +25,8 @@ import { LoanListings, LoanOffers } from "../../components/tables/loans";
 import { AskLoanModal } from "../../components/form";
 
 const Loans: NextPage = () => {
+  const wallet = useWallet();
+
   return (
     <Container maxW="container.lg">
       {/* <Heading as="h1" color="gray.200" size="md" mt="12" mb="12">
@@ -33,7 +35,7 @@ const Loans: NextPage = () => {
       <Tabs isLazy>
         <TabList mt="6">
           <Tab>Listings</Tab>
-          <Tab>My Items</Tab>
+          <Tab isDisabled={!wallet.publicKey}>My Loans</Tab>
         </TabList>
         <TabPanels my="6">
           <TabPanel>

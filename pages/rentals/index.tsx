@@ -1,4 +1,5 @@
 import type { NextPage } from "next";
+import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Container,
   Heading,
@@ -18,12 +19,14 @@ import {
 import { RentalCard, CardList } from "../../components/card";
 
 const Rentals: NextPage = () => {
+  const wallet = useWallet();
+
   return (
     <Container maxW="container.lg">
       <Tabs isLazy>
         <TabList mt="6">
           <Tab>Listings</Tab>
-          <Tab>My Rentals</Tab>
+          <Tab isDisabled={!wallet.publicKey}>My Rentals</Tab>
         </TabList>
         <TabPanels my="6">
           <TabPanel>

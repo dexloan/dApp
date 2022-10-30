@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import {
   Button,
   Container,
@@ -25,6 +25,8 @@ import { CallOptionListings, CallOptionBids } from "../../components/tables";
 import { BidCallOptionModal } from "../../components/form";
 
 const CallOptions: NextPage = () => {
+  const wallet = useWallet();
+
   return (
     <Container maxW="container.lg">
       {/* <Heading as="h1" color="gray.200" size="sm" mt="12" mb="2">
@@ -34,7 +36,7 @@ const CallOptions: NextPage = () => {
       <Tabs isLazy>
         <TabList mt="6">
           <Tab>Listings</Tab>
-          <Tab>My Items</Tab>
+          <Tab isDisabled={!wallet.publicKey}>My Options</Tab>
         </TabList>
         <TabPanels my="6">
           <TabPanel>
