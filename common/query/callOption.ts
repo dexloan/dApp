@@ -101,7 +101,10 @@ export async function fetchMultipleCallOptions(
   const program = getProgram(provider);
   const callOptions = await program.account.callOption.all(filter);
 
-  const metadataAccounts = await fetchMetadataAccounts(connection, callOptions);
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    callOptions.map((o) => o.account.mint)
+  );
 
   const combinedAccounts = callOptions.map((callOption, index) => {
     const metadataAccount = metadataAccounts[index];
@@ -130,7 +133,10 @@ export async function fetchMultipleCallOptionBids(
     program.account.collection.all(),
   ]);
 
-  const metadataAccounts = await fetchMetadataAccounts(connection, collections);
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    collections.map((c) => c.account.mint)
+  );
 
   const combinedAccounts = callOptionBids.map((bid, index) => {
     const collection = collections.find((col) =>

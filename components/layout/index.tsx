@@ -25,13 +25,13 @@ type Stat = {
   value?: string | JSX.Element;
 };
 
-interface NFTLayoutProps {
+interface NftLayoutProps {
   metadata?: Metadata;
   action?: React.ReactNode;
   stats?: Stat[][];
 }
 
-export const NFTLayout = ({ metadata, action, stats = [] }: NFTLayoutProps) => {
+export const NftLayout = ({ metadata, action, stats = [] }: NftLayoutProps) => {
   return (
     <Container maxW={{ md: "container.md", lg: "container.lg" }}>
       <Flex
@@ -67,7 +67,7 @@ export const NFTLayout = ({ metadata, action, stats = [] }: NFTLayoutProps) => {
               {metadata?.data.name}
             </Heading>
             <Box mb="8">
-              <VerifiedCollection symbol={metadata?.data.symbol} />
+              <VerifiedCollection metadata={metadata} />
             </Box>
             {stats.map((row, index) => (
               <Flex key={index} direction="row" gap="12" mt="6">

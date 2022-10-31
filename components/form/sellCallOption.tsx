@@ -13,7 +13,7 @@ import {
   ModalBody,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { NFTResult } from "../../common/types";
+import { NftResult } from "../../common/types";
 import { CallOptionBid } from "../../common/model";
 import {
   useCloseCallOptionBidMutation,
@@ -58,7 +58,7 @@ const SellCallOption = ({
   bid,
   onRequestClose,
 }: SellCallOptionModalProps) => {
-  const [selected, setSelected] = useState<NFTResult | null>(null);
+  const [selected, setSelected] = useState<NftResult | null>(null);
   const mutation = useSellCallOptionMutation(onRequestClose);
 
   function onSubmit() {
@@ -127,7 +127,7 @@ const SellCallOption = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          Take Loan
+          Sell Call Option
         </ModalHeader>
         {body}
       </ModalContent>

@@ -80,6 +80,10 @@ export class Hire implements HireArgs {
     return null;
   }
 
+  get fromNow() {
+    return dayjs().to(dayjs.unix(this.data.expiry.toNumber()));
+  }
+
   get expiry() {
     return dayjs.unix(this.data.expiry.toNumber()).format("L");
   }
@@ -169,6 +173,7 @@ export class Hire implements HireArgs {
         editionNonce: args.metadata.editionNonce,
         tokenStandard: args.metadata.tokenStandard,
         collection: args.metadata.collection,
+        collectionDetails: args.metadata.collectionDetails,
         uses: args.metadata.uses,
       }),
       new web3.PublicKey(args.publicKey)

@@ -122,6 +122,7 @@ export class CallOption implements CallOptionArgs {
         editionNonce: args.metadata.editionNonce,
         tokenStandard: args.metadata.tokenStandard,
         collection: args.metadata.collection,
+        collectionDetails: args.metadata.collectionDetails,
         uses: args.metadata.uses,
       }),
       new web3.PublicKey(args.publicKey)
@@ -211,6 +212,7 @@ export class CallOptionBid implements CallOptionBidArgs {
         editionNonce: args.metadata.editionNonce,
         tokenStandard: args.metadata.tokenStandard,
         collection: args.metadata.collection,
+        collectionDetails: args.metadata.collectionDetails,
         uses: args.metadata.uses,
       }),
       new web3.PublicKey(args.publicKey)

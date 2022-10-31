@@ -22,11 +22,12 @@ import Image from "next/image";
 
 import * as utils from "../../common/utils";
 import dayjs from "../../common/lib/dayjs";
-import { NFTResult, CollectionItem, CollectionMap } from "../../common/types";
+import { NftResult, CollectionItem, CollectionMap } from "../../common/types";
 import {
-  useNFTByOwnerQuery,
+  useNftByOwnerQuery,
   useFloorPriceQuery,
   useMetadataFileQuery,
+  useMetadata,
 } from "../../hooks/query";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
@@ -221,7 +222,7 @@ export const SliderField = <Fields extends FieldValues>({
 
 interface SelectNFTFormProps {
   collectionMint?: anchor.web3.PublicKey;
-  onSelect: (selected: NFTResult) => void;
+  onSelect: (selected: NftResult) => void;
 }
 
 export const SelectNFTForm = ({
@@ -229,10 +230,8 @@ export const SelectNFTForm = ({
   onSelect,
 }: SelectNFTFormProps) => {
   const wallet = useAnchorWallet();
-  const nftQuery = useNFTByOwnerQuery(wallet);
-
-  console.log("collectionMint: ", collectionMint?.toBase58());
-  console.log("nftQuery: ", nftQuery);
+  const collectionQuery = useMetadata(collectionMint);
+  const nftQuery = useNftByOwnerQuery(wallet);
 
   const collections = useMemo(() => {
     const collectionMap = nftQuery.data
@@ -303,8 +302,19 @@ export const SelectNFTForm = ({
           );
         })
       ) : (
-        <Box>
-          <Text>You do not currently hold any NFTs approved for lending.</Text>
+        <Box mb="4">
+          <Text fontSize="sm">
+            {collectionMint ? (
+              <Text>
+                No NFTs in the {collectionQuery.data?.data.name} collection
+                found.
+              </Text>
+            ) : (
+              <Text>
+                You do not currently hold any NFTs approved for lending.
+              </Text>
+            )}
+          </Text>
         </Box>
       )}
     </ModalBody>
@@ -313,14 +323,14 @@ export const SelectNFTForm = ({
 
 interface CollectionProps {
   collection: CollectionItem;
-  onSelectItem: (item: NFTResult) => void;
+  onSelectItem: (item: NftResult) => void;
 }
 
 const Collection = ({ collection, onSelectItem }: CollectionProps) => {
   const floorPriceQuery = useFloorPriceQuery(collection.symbol);
 
   const renderItem = useCallback(
-    (item: NFTResult) => {
+    (item: NftResult) => {
       return (
         <Card
           key={item?.tokenAccount.address.toBase58()}
@@ -338,7 +348,7 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
             >
               {item?.metadata.data.name}
             </Box>
-            <VerifiedCollection size="xs" symbol={item?.metadata.data.symbol} />
+            <VerifiedCollection size="xs" metadata={item?.metadata} />
           </Box>
         </Card>
       );
@@ -383,11 +393,14 @@ const SectionHeader = ({
 );
 
 interface CollectionDetailsProps {
-  nft: NFTResult;
+  nft: NftResult;
   forecast: React.ReactNode;
 }
 
-export const CollectionDetails = ({ nft, forecast }: CollectionDetailsProps) => {
+export const CollectionDetails = ({
+  nft,
+  forecast,
+}: CollectionDetailsProps) => {
   const [isVisible, setVisible] = useState(false);
   const metadataQuery = useMetadataFileQuery(nft?.metadata?.data.uri);
 
@@ -426,10 +439,7 @@ export const CollectionDetails = ({ nft, forecast }: CollectionDetailsProps) => 
           <Box w="100%">
             <Box pb="4">
               <Heading size="md">{nft?.metadata.data.name}</Heading>
-              <VerifiedCollection
-                size="xs"
-                symbol={nft?.metadata.data.symbol}
-              />
+              <VerifiedCollection size="xs" metadata={nft?.metadata} />
             </Box>
             {forecast}
           </Box>

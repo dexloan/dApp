@@ -5,7 +5,7 @@ import {
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { getProgram, getProvider } from "../provider";
-import { NFTResult } from "../types";
+import { NftResult } from "../types";
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
@@ -31,25 +31,15 @@ export async function fetchMetadata(
   mint: anchor.web3.PublicKey
 ): Promise<Metadata> {
   const [metadataAddress] = await findMetadataAddress(mint);
-  const metadataAccountInfo = await connection.getAccountInfo(metadataAddress);
-
-  if (metadataAccountInfo === null) {
-    throw new Error("No metadata");
-  }
-
-  return Metadata.fromAccountInfo(metadataAccountInfo)[0];
+  return Metadata.fromAccountAddress(connection, metadataAddress);
 }
 
 export async function fetchMetadataAccounts(
   connection: anchor.web3.Connection,
-  items: {
-    account: { mint: anchor.web3.PublicKey };
-  }[]
+  mints: anchor.web3.PublicKey[]
 ) {
   const metadataAddresses = await Promise.all(
-    items.map((listing) =>
-      findMetadataAddress(listing.account.mint).then(([address]) => address)
-    )
+    mints.map((mint) => findMetadataAddress(mint).then(([address]) => address))
   );
 
   const rawMetadataAccounts = await connection.getMultipleAccountsInfo(
@@ -92,10 +82,10 @@ function unpackToken(
   };
 }
 
-export async function fetchNFT(
+export async function fetchNft(
   connection: anchor.web3.Connection,
   mint: anchor.web3.PublicKey
-): Promise<NFTResult> {
+): Promise<NftResult> {
   const largestTokenAccounts = await connection.getTokenLargestAccounts(mint);
 
   const [tokenAccount, metadata] = await Promise.all([
@@ -109,10 +99,10 @@ export async function fetchNFT(
   };
 }
 
-export async function fetchNFTs(
+export async function fetchNfts(
   connection: anchor.web3.Connection,
   address: anchor.web3.PublicKey
-): Promise<NFTResult[]> {
+): Promise<NftResult[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
 
@@ -170,7 +160,7 @@ export async function fetchNFTs(
     return null;
   });
 
-  return combinedAccounts.filter(Boolean) as NFTResult[];
+  return combinedAccounts.filter(Boolean) as NftResult[];
 }
 
 export async function fetchTokenAccountAddress(

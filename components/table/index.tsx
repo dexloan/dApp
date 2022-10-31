@@ -17,8 +17,8 @@ import React, { useState, useMemo } from "react";
 import { IoCaretDown, IoCaretUp } from "react-icons/io5";
 import Image from "next/image";
 
-import * as utils from "../../common/utils";
 import { useMetadataFileQuery } from "../../hooks/query";
+import { useCollectionName } from "../../hooks/render";
 
 interface ColumnHeaderProps {
   children: string;
@@ -74,13 +74,7 @@ interface NFTCellProps {
 export const NFTCell = ({ metadata }: NFTCellProps) => {
   const [isVisible, setVisible] = useState(false);
   const metadataQuery = useMetadataFileQuery(metadata?.data.uri);
-
-  const collection = useMemo(() => {
-    if (metadata?.data.symbol) {
-      return utils.mapSymbolToCollectionTitle(metadata.data.symbol);
-    }
-    return null;
-  }, [metadata?.data.symbol]);
+  const collectionName = useCollectionName(metadata);
 
   return (
     <Td>
@@ -123,7 +117,7 @@ export const NFTCell = ({ metadata }: NFTCellProps) => {
         <Box ml="4">
           <Text mb="1">{metadata?.data.name}</Text>
           <Text fontSize="xs" color="gray.500">
-            {collection}
+            {collectionName}
           </Text>
         </Box>
       </Box>

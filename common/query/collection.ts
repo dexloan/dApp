@@ -36,7 +36,10 @@ export async function fetchMultipleCollections(
   const program = getProgram(provider);
 
   const collections = await program.account.collection.all();
-  const metadataAccounts = await fetchMetadataAccounts(connection, collections);
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    collections.map((c) => c.account.mint)
+  );
 
   return collections
     .map((collection, index) => {

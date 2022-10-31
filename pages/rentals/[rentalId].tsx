@@ -2,14 +2,9 @@ import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
-  Badge,
   Button,
   Container,
   Flex,
-  FormLabel,
-  FormControl,
-  FormHelperText,
-  Input,
   Heading,
   Box,
   Tag,
@@ -23,7 +18,6 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
-import { Controller, useForm } from "react-hook-form";
 
 import {
   CallOptionStateEnum,
@@ -54,13 +48,12 @@ import {
   ExtendHireDialog,
   CancelDialog,
 } from "../../components/dialog";
-import { Activity } from "../../components/activity";
 import { DocumentHead } from "../../components/document";
-import { ExternalLinks } from "../../components/link";
-import { ListingImage } from "../../components/image";
-import { VerifiedCollection } from "../../components/collection";
 import { useHireQuery } from "../../hooks/query";
 import { CallOptionButton, LoanButton } from "../../components/buttons";
+import { RentalForm } from "../../components/form";
+import { NftLayout } from "../../components/layout";
+import { Detail } from "../../components/detail";
 
 interface HireProps {
   dehydratedState: DehydratedState | undefined;
@@ -206,17 +199,20 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
         return (
           <>
             <Box display="flex" pb="4">
-              <Tag colorScheme="green">
+              <Tag>
                 <TagLeftIcon boxSize="12px" as={IoList} />
                 <TagLabel>Listed</TagLabel>
               </Tag>
             </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderListedButton()}
+                </Box>
+              }
+            >
               <Text>Available for rent until {hire.expiryLongFormat}.</Text>
-            </Box>
-            <Box mt="4" mb="4">
-              {renderListedButton()}
-            </Box>
+            </Detail>
           </>
         );
 
@@ -225,24 +221,30 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
           <>
             <Box display="flex" pb="4">
               {hire.currentPeriodExpired ? (
-                <Tag colorScheme="green">
+                <Tag>
                   <TagLeftIcon boxSize="12px" as={IoList} />
                   <TagLabel>Listed</TagLabel>
                 </Tag>
               ) : (
-                <Tag colorScheme="green">
+                <Tag>
                   <TagLeftIcon boxSize="12px" as={IoLeaf} />
                   <TagLabel>Rental Active</TagLabel>
                 </Tag>
               )}
               {(isBorrower || isLender) && hire.currentPeriodExpired && (
-                <Tag colorScheme="red" ml="2">
+                <Tag ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Expired</TagLabel>
                 </Tag>
               )}
             </Box>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Detail
+              footer={
+                <Box mt="4" mb="4">
+                  {renderActiveButton()}
+                </Box>
+              }
+            >
               {hire.currentPeriodExpired ? (
                 isBorrower || isLender ? (
                   <Text>
@@ -256,19 +258,16 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
                   Currently rented until {hire.currentExpiryLongFormat}
                 </Text>
               )}
-            </Box>
-            <Box mt="4" mb="4">
-              {renderActiveButton()}
-            </Box>
+            </Detail>
           </>
         );
 
       case HireStateEnum.Cancelled:
         return (
           <>
-            <Box p="4" borderRadius="lg" bgColor="blue.50">
+            <Detail>
               <Text>Rental account closed.</Text>
-            </Box>
+            </Detail>
           </>
         );
 
@@ -278,66 +277,26 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
   }
 
   return (
-    <Container maxW={{ md: "container.md", lg: "container.xl" }}>
-      <Flex
-        direction={{
-          base: "column",
-          lg: "row",
-        }}
-        align={{
-          base: "center",
-          lg: "flex-start",
-        }}
-        wrap="wrap"
-      >
-        <Box w={{ base: "100%", lg: "auto" }} maxW={{ base: "xl", lg: "100%" }}>
-          <ListingImage uri={hire?.metadata.data.uri} />
-          <ExternalLinks mint={hire?.data.mint} />
-        </Box>
-        <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }} mt="6">
-          <Badge colorScheme="green" mb="2">
-            Rental
-          </Badge>
-          <Heading as="h1" size="lg" color="gray.700" fontWeight="black">
-            {hire?.metadata.data.name}
-          </Heading>
-          <Box mb="8">
-            <VerifiedCollection symbol={hire?.metadata.data.symbol} />
-          </Box>
-
-          {hire && (
-            <>
-              <Flex direction="row" gap="12" mt="12">
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Daily Fee
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {hire.amount}
-                  </Heading>
-                </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
-                    Available Until
-                  </Text>
-                  <Heading size="md" fontWeight="bold" mb="6">
-                    {hire.expiry}
-                  </Heading>
-                </Box>
-              </Flex>
-            </>
-          )}
-
+    <NftLayout
+      metadata={hire?.metadata}
+      stats={
+        hire
+          ? [
+              [
+                { label: "Daily Fee", value: hire.amount },
+                { label: "Available Until", value: hire.expiry },
+              ],
+            ]
+          : undefined
+      }
+      action={
+        <>
           {renderByState()}
-
           <EscrowBalance hire={hire} />
-
           <SecondaryButtons hire={hire} />
-
-          <Activity mint={hire?.data.mint} />
-        </Box>
-      </Flex>
-    </Container>
+        </>
+      }
+    />
   );
 };
 
@@ -470,7 +429,7 @@ const HireButton = ({ hire }: HireButtonProps) => {
 
   return (
     <>
-      <HireForm hire={hire} onSubmit={onLend} />
+      <RentalForm rental={hire} onSubmit={onLend} />
       <TakeHireDialog
         hire={hire}
         days={days}
@@ -513,7 +472,7 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
 
   return (
     <>
-      <HireForm label="Extend Rental" hire={hire} onSubmit={onLend} />
+      <RentalForm label="Extend Rental" rental={hire} onSubmit={onLend} />
       <ExtendHireDialog
         hire={hire}
         days={days ?? 0}
@@ -530,67 +489,6 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
           }
         }}
       />
-    </>
-  );
-};
-
-interface HireFormProps {
-  label?: string;
-  hire: Hire;
-  onSubmit: (data: { days: number }) => void;
-}
-
-const HireForm = ({ label = "Rent", hire, onSubmit }: HireFormProps) => {
-  const {
-    control,
-    handleSubmit,
-    formState: { isValid },
-  } = useForm<{ days: number }>({
-    mode: "onChange",
-    defaultValues: {
-      days: 1,
-    },
-  });
-
-  const maxDays = useMemo(() => hire.maxDays, [hire]);
-
-  return (
-    <>
-      <FormControl isInvalid={!isValid}>
-        <Box pb="6">
-          <Controller
-            name="days"
-            control={control}
-            rules={{
-              required: true,
-              min: 1,
-              max: { value: maxDays, message: "Exceeds maximum rental period" },
-              validate: (value) => {
-                return !isNaN(value);
-              },
-            }}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <FormControl isInvalid={Boolean(error)}>
-                <FormLabel htmlFor="cost">Days</FormLabel>
-                <Input
-                  name="days"
-                  placeholder="Enter"
-                  value={value}
-                  onChange={onChange}
-                />
-                <FormHelperText>
-                  {error?.message?.length
-                    ? error.message
-                    : "The number of days you wish to rent"}
-                </FormHelperText>
-              </FormControl>
-            )}
-          />
-        </Box>
-      </FormControl>
-      <Button colorScheme="green" w="100%" onClick={handleSubmit(onSubmit)}>
-        {label}
-      </Button>
     </>
   );
 };
@@ -615,7 +513,7 @@ const CloseButton = ({ hire }: CloseButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="blue" w="100%" onClick={onCancel}>
+      <Button variant="primary" w="100%" onClick={onCancel}>
         Close Listing
       </Button>
       <CancelDialog
@@ -633,7 +531,6 @@ interface RecoverButtonProps {
 }
 
 const RecoverButton = ({ hire }: RecoverButtonProps) => {
-  const router = useRouter();
   const [dialog, setDialog] = useState(false);
   const mutation = useRecoverHireMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
@@ -649,7 +546,7 @@ const RecoverButton = ({ hire }: RecoverButtonProps) => {
 
   return (
     <>
-      <Button colorScheme="blue" w="100%" onClick={onRecover}>
+      <Button variant="primary" w="100%" onClick={onRecover}>
         Recover NFT
       </Button>
       <RecoverHireDialog

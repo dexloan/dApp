@@ -34,7 +34,7 @@ export enum HireStateEnum {
   Cancelled = "cancelled",
 }
 
-export interface NFTResult {
+export interface NftResult {
   tokenAccount: splToken.Account;
   metadata: Metadata;
 }
@@ -42,7 +42,7 @@ export interface NFTResult {
 export interface CollectionItem {
   symbol: string;
   name: string;
-  items: NFTResult[];
+  items: NftResult[];
 }
 
 export interface CollectionMap {

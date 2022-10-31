@@ -19,7 +19,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
-import { NFTResult } from "../../common/types";
+import { NftResult } from "../../common/types";
 import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
 import {
   AskLoanMutationVariables,
@@ -40,14 +40,22 @@ const defaultValues = {
   duration: 30,
 };
 
-export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
-  const [selected, setSelected] = useState<NFTResult | null>(null);
+interface AskLoanModalProps extends ModalProps {
+  selected?: NftResult | null;
+}
+
+export const AskLoanModal = ({
+  open,
+  selected = null,
+  onRequestClose,
+}: AskLoanModalProps) => {
+  const [innerSelected, setSelected] = useState<NftResult | null>(selected);
   const mutation = useAskLoanMutation(() => onRequestClose());
 
   return (
     <Modal
       isCentered
-      size={selected ? "2xl" : "4xl"}
+      size={innerSelected ? "2xl" : "4xl"}
       isOpen={open}
       onClose={() => {
         if (!mutation.isLoading) {
@@ -58,12 +66,12 @@ export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          {selected ? "Create Ask" : "Select NFT"}
+          {innerSelected ? "Create Ask" : "Select NFT"}
         </ModalHeader>
-        {selected ? (
+        {innerSelected ? (
           <AskLoanForm
             isLoading={mutation.isLoading}
-            selected={selected}
+            selected={innerSelected}
             onRequestClose={onRequestClose}
             onCancel={() => setSelected(null)}
             onSubmit={(vars) => mutation.mutate(vars)}
@@ -78,7 +86,7 @@ export const AskLoanModal = ({ open, onRequestClose }: ModalProps) => {
 
 interface AskLoanFormProps extends Pick<ModalProps, "onRequestClose"> {
   isLoading: boolean;
-  selected: NFTResult;
+  selected: NftResult;
   onCancel: () => void;
   onSubmit: (data: AskLoanMutationVariables) => void;
 }
@@ -179,7 +187,7 @@ const AskLoanForm = ({
                       </Heading>
                       <VerifiedCollection
                         size="xs"
-                        symbol={selected?.metadata.data.symbol}
+                        metadata={selected?.metadata}
                       />
                     </Box>
                     {floorPriceQuery.data?.floorPrice && (

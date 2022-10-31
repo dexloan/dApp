@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import * as borsh from "@project-serum/borsh";
-import { Box, Divider, Flex, Heading, Spinner, Text } from "@chakra-ui/react";
+import { Box, Flex, Heading, Spinner, Text } from "@chakra-ui/react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 import { useQuery } from "react-query";
@@ -40,14 +40,14 @@ export const Activity = ({ mint }: ActivityProps) => {
     switch (activity.type) {
       case "repossess":
         return (
-          <Text fontWeight="medium" fontSize="md">
+          <Text fontWeight="medium" fontSize="sm">
             -
           </Text>
         );
 
       default:
         return (
-          <Text fontWeight="medium" fontSize="md">
+          <Text fontWeight="medium" fontSize="sm">
             {utils.formatAmount(activity.lamports)}
           </Text>
         );
@@ -74,10 +74,10 @@ export const Activity = ({ mint }: ActivityProps) => {
   function renderLeftCol(activity: Activity) {
     return (
       <Box>
-        <Text color="gray.300" fontSize="md" fontWeight="medium">
+        <Text color="gray.300" fontSize="sm" fontWeight="medium">
           {renderLabel(activity)}
         </Text>
-        <Text color="gray.500" fontSize="sm" fontWeight="medium">
+        <Text color="gray.500" fontSize="xs" fontWeight="medium">
           {typeof activity.blockTime === "number" &&
             utils.formatBlockTime(activity.blockTime)}
         </Text>
@@ -111,8 +111,8 @@ export const Activity = ({ mint }: ActivityProps) => {
             <Spinner
               emptyColor="gray.200"
               color="gray.500"
-              thickness="4px"
-              size="md"
+              thickness="3px"
+              size="sm"
             />
           </Flex>
         ) : (

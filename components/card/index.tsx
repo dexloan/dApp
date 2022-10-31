@@ -1,18 +1,21 @@
-import * as anchor from "@project-serum/anchor";
-import { Badge, Box, Heading, Flex, Skeleton, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Skeleton,
+  Text,
+  Tooltip,
+} from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
-import * as utils from "../../common/utils";
-import { CallOption, Hire, Loan } from "../../common/model";
-import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
-import { EllipsisProgress } from "../progress";
-import {
-  CallOptionStateEnum,
-  HireStateEnum,
-  LoanStateEnum,
-} from "../../common/types";
+
+import { HireStateEnum } from "../../common/types";
+import { Hire } from "../../common/model";
+import { useMetadataFileQuery } from "../../hooks/query";
+import { useCollectionName } from "../../hooks/render";
 
 interface CardProps {
   children: React.ReactNode;
@@ -35,7 +38,6 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
         base: "calc(50% - 0.625rem)",
         md: "calc(33.333% - 0.833rem)",
         lg: "calc(25% - 0.937rem)",
-        // xl: "calc(20% - 1rem)",
       }}
       borderWidth="1px"
       borderColor="gray.800"
@@ -43,6 +45,7 @@ export const Card = ({ children, href, uri, imageAlt, onClick }: CardProps) => {
       cursor={href || onClick ? "pointer" : undefined}
       overflow="hidden"
       tabIndex={1}
+      position="relative"
       ref={containerRef}
       _focus={{
         boxShadow: href || onClick ? "lg" : undefined,
@@ -99,120 +102,83 @@ export const CardList = ({ children }: CardListProps) => {
   );
 };
 
-interface LoanCardProps {
-  loan: Loan;
+interface RentalCardProps {
+  rental: Hire;
+  onRent?: () => void;
 }
 
-export const LoanCard = ({ loan }: LoanCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(loan.metadata.data.symbol);
+export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
+  const collection = useCollectionName(rental.metadata);
 
-  const floorPrice = useMemo(
-    () =>
-      floorPriceQuery.data
-        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-        : null,
-    [floorPriceQuery.data]
-  );
-
-  function renderBadge() {
-    switch (loan.state) {
-      case LoanStateEnum.Listed: {
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" bg="#ffb703">
-            <IoLeaf />
-          </Badge>
-        );
-      }
-
-      case LoanStateEnum.Active:
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
-            <IoCheckmark />
-          </Badge>
-        );
-
-      default: {
-        if (loan.expired) {
-          return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
-              <IoAlertCircle />
-            </Badge>
-          );
-        }
+  function renderStatus() {
+    switch (rental.state) {
+      case HireStateEnum.Listed: {
         return null;
       }
-    }
-  }
-
-  return (
-    <Card
-      href={`/loan/${loan.publicKey.toBase58()}`}
-      uri={loan.metadata.data.uri}
-      imageAlt={loan.metadata.data.name}
-    >
-      <Box p="4">
-        <Box display="flex" alignItems="center">
-          {renderBadge()}
-          <Box
-            color="gray.300"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
-          >
-            {loan.duration} ({loan.data.basisPoints / 100}% APY)
-          </Box>
-        </Box>
-      </Box>
-      <Box p="4">
-        <Heading fontWeight="bold" fontSize="lg" as="span">
-          {loan.amount}{" "}
-        </Heading>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor Price {floorPrice ?? <EllipsisProgress />}
-        </Text>
-      </Box>
-    </Card>
-  );
-};
-
-interface CallOptionCardProps {
-  callOption: CallOption;
-}
-
-export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(callOption.metadata.data.symbol);
-
-  const floorPrice = useMemo(
-    () =>
-      floorPriceQuery.data
-        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-        : null,
-    [floorPriceQuery.data]
-  );
-
-  function renderBadge() {
-    switch (callOption.state) {
-      case CallOptionStateEnum.Listed:
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
-            <IoLeaf />
-          </Badge>
-        );
 
       default: {
-        if (callOption.expired) {
+        if (rental.expired) {
           return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
-              <IoAlertCircle />
-            </Badge>
+            <Box position="absolute" top="1" right="0.5">
+              <Tooltip label="Max rental period expired">
+                <Badge
+                  colorScheme="blackAlpha"
+                  borderRadius="full"
+                  px="1"
+                  py="1"
+                  mr="2"
+                  fontSize="xs"
+                  _hover={{
+                    bg: "rgba(0, 0, 0, 0.5)",
+                  }}
+                >
+                  <IoAlertCircle color="white" />
+                </Badge>
+              </Tooltip>
+            </Box>
+          );
+        }
+
+        if (rental.currentPeriodExpired) {
+          return (
+            <Box position="absolute" top="1" right="0.5">
+              <Tooltip label="Current rental period expired">
+                <Badge
+                  colorScheme="blackAlpha"
+                  borderRadius="full"
+                  px="1"
+                  py="1"
+                  mr="2"
+                  fontSize="xs"
+                  _hover={{
+                    bg: "rgba(0, 0, 0, 0.5)",
+                  }}
+                >
+                  <IoLeaf color="white" />
+                </Badge>
+              </Tooltip>
+            </Box>
           );
         }
 
         return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
-            <IoCheckmark />
-          </Badge>
+          <Box position="absolute" top="1" right="0.5">
+            <Tooltip label={`Renting until ${rental.currentExpiry}`}>
+              <Badge
+                colorScheme="blackAlpha"
+                borderRadius="full"
+                px="1"
+                py="1"
+                mr="2"
+                fontSize="xs"
+                _hover={{
+                  bg: "rgba(0, 0, 0, 0.5)",
+                }}
+              >
+                <IoCheckmark color="white" />
+              </Badge>
+            </Tooltip>
+          </Box>
         );
       }
     }
@@ -220,142 +186,42 @@ export const CallOptionCard = ({ callOption }: CallOptionCardProps) => {
 
   return (
     <Card
-      href={`/option/${callOption.address}`}
-      uri={callOption.metadata.data.uri}
-      imageAlt={callOption.metadata.data.name}
+      href={`/rentals/${rental.address}`}
+      uri={rental.metadata.data.uri}
+      imageAlt={rental.metadata.data.name}
     >
+      {renderStatus()}
       <Box p="4">
-        <Box display="flex" alignItems="center">
-          {renderBadge()}
-          <Box
-            color="gray.500"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
+        <Box mt="1" mb="2">
+          <Text
+            fontSize="sm"
+            fontWeight="medium"
+            as="h5"
+            lineHeight="tight"
+            isTruncated
           >
-            {callOption.expiry}
+            {rental.metadata.data.name}
+          </Text>
+          <Text fontSize="xs" color="gray.500">
+            {collection}
+          </Text>
+        </Box>
+        <Box display="flex" letterSpacing="wide" fontSize="xs">
+          <Text fontWeight="semibold" whiteSpace="nowrap">
+            {rental.amount} / day
+          </Text>
+          &nbsp;&nbsp;•&nbsp;&nbsp;
+          <Text color="gray.500" whiteSpace="nowrap">
+            max {rental.maxDays} days
+          </Text>
+        </Box>
+        {onRent && (
+          <Box display="flex" justifyContent="flex-end" mt="4">
+            <Button size="sm" variant="outline">
+              Rent
+            </Button>
           </Box>
-        </Box>
-        <Box
-          mt="1"
-          fontWeight="semibold"
-          as="h4"
-          lineHeight="tight"
-          isTruncated
-        >
-          {callOption.metadata.data.name}
-        </Box>
-        <Box mt="1">
-          <Badge
-            borderRadius="full"
-            px="2"
-            colorScheme="green"
-            variant="subtle"
-          >
-            {callOption.cost} Premium
-          </Badge>
-        </Box>
-      </Box>
-      <Box p="4" bgColor="blue.50">
-        <Box fontWeight="bold" as="h3">
-          {callOption.strikePrice}{" "}
-        </Box>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor price {floorPrice}
-        </Text>
-      </Box>
-    </Card>
-  );
-};
-
-interface HireCardProps {
-  hire: Hire;
-}
-
-export const HireCard = ({ hire }: HireCardProps) => {
-  const floorPriceQuery = useFloorPriceQuery(hire.metadata.data.symbol);
-
-  const floorPrice = useMemo(
-    () =>
-      floorPriceQuery.data
-        ? utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice))
-        : null,
-    [floorPriceQuery.data]
-  );
-
-  function renderBadge() {
-    switch (hire.state) {
-      case HireStateEnum.Listed: {
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
-            <IoLeaf />
-          </Badge>
-        );
-      }
-
-      default: {
-        if (hire.expired) {
-          return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="red">
-              <IoAlertCircle />
-            </Badge>
-          );
-        }
-
-        if (hire.currentPeriodExpired) {
-          return (
-            <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="green">
-              <IoLeaf />
-            </Badge>
-          );
-        }
-
-        return (
-          <Badge borderRadius="full" px="1" py="1" mr="2" colorScheme="blue">
-            <IoCheckmark />
-          </Badge>
-        );
-      }
-    }
-  }
-
-  return (
-    <Card
-      href={`/rental/${hire.address}`}
-      uri={hire.metadata.data.uri}
-      imageAlt={hire.metadata.data.name}
-    >
-      <Box p="4">
-        <Box display="flex" alignItems="center">
-          {renderBadge()}
-          <Box
-            color="gray.500"
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="xs"
-            textTransform="uppercase"
-          >
-            {hire.expiry}
-          </Box>
-        </Box>
-        <Box
-          mt="1"
-          fontWeight="semibold"
-          as="h4"
-          lineHeight="tight"
-          isTruncated
-        >
-          {hire.metadata.data.name}
-        </Box>
-      </Box>
-      <Box p="4" bgColor="blue.50">
-        <Box fontWeight="bold" as="h3">
-          {hire.amount}
-        </Box>
-        <Text fontSize="xs" fontWeight="medium">
-          Floor Price {floorPrice}
-        </Text>
+        )}
       </Box>
     </Card>
   );

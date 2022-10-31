@@ -3,7 +3,7 @@ import { Button } from "@chakra-ui/react";
 import { useState } from "react";
 import { IoCash } from "react-icons/io5";
 
-import { useNFT } from "../../hooks/query";
+import { useNft } from "../../hooks/query";
 import { AskLoanModal } from "../form";
 
 interface LoanButtonProps {
@@ -13,7 +13,7 @@ interface LoanButtonProps {
 
 export const LoanButton = ({ mint, disabled = false }: LoanButtonProps) => {
   const [modal, setModal] = useState(false);
-  const nftQuery = useNFT(mint);
+  const nftQuery = useNft(mint);
 
   return (
     <>

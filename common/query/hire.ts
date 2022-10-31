@@ -76,7 +76,10 @@ export async function fetchMultipleHires(
 
   const hires = await program.account.hire.all(filter);
 
-  const metadataAccounts = await fetchMetadataAccounts(connection, hires);
+  const metadataAccounts = await fetchMetadataAccounts(
+    connection,
+    hires.map((h) => h.account.mint)
+  );
 
   const combinedAccounts = hires.map((hire, index) => {
     const metadataAccount = metadataAccounts[index];

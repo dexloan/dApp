@@ -1,7 +1,101 @@
 import type { NextPage } from "next";
+import { useWallet } from "@solana/wallet-adapter-react";
+import {
+  Container,
+  Heading,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+} from "@chakra-ui/react";
+
+import { Hire, HirePretty } from "../../common/model";
+import {
+  useHiresQuery,
+  useBorrowerHiresQuery,
+  useLenderHiresQuery,
+} from "../../hooks/query";
+import { RentalCard, CardList } from "../../components/card";
 
 const Rentals: NextPage = () => {
-  return null;
+  const wallet = useWallet();
+
+  return (
+    <Container maxW="container.lg">
+      <Tabs isLazy>
+        <TabList mt="6">
+          <Tab>Listings</Tab>
+          <Tab isDisabled={!wallet.publicKey}>My Rentals</Tab>
+        </TabList>
+        <TabPanels my="6">
+          <TabPanel>
+            <Listings />
+          </TabPanel>
+          <TabPanel>
+            <RentalsTaken />
+            <RentalsGiven />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Container>
+  );
+};
+
+function renderCard(json: HirePretty) {
+  const rental = Hire.fromJSON(json);
+
+  return <RentalCard key={rental.address} rental={rental} />;
+}
+
+const Listings = () => {
+  const rentalsQuery = useHiresQuery();
+
+  return (
+    <>
+      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+    </>
+  );
+};
+
+const RentalsTaken = () => {
+  const rentalsQuery = useBorrowerHiresQuery();
+
+  return (
+    <>
+      <Heading
+        fontSize="xs"
+        color="gray.400"
+        fontWeight="medium"
+        letterSpacing="wider"
+        lineHeight="4"
+        mb="4"
+      >
+        Renting
+      </Heading>
+      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+    </>
+  );
+};
+
+const RentalsGiven = () => {
+  const rentalsQuery = useLenderHiresQuery();
+
+  return (
+    <>
+      <Heading
+        fontSize="xs"
+        color="gray.400"
+        fontWeight="medium"
+        letterSpacing="wider"
+        lineHeight="4"
+        mb="4"
+      >
+        Lending
+      </Heading>
+      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+    </>
+  );
 };
 
 export default Rentals;

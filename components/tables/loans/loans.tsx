@@ -61,7 +61,7 @@ export const LoanListings = ({
         <LoanRow
           key={item.address}
           loan={item}
-          onClick={() => router.push(`/options/${item.address}`)}
+          onClick={() => router.push(`/loans/${item.address}`)}
         />
       )}
     />

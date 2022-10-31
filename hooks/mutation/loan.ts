@@ -9,14 +9,14 @@ import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { NFTResult, LoanStateEnum } from "../../common/types";
+import { NftResult, LoanStateEnum } from "../../common/types";
 import { LoanOfferPretty, LoanPretty, LoanOffer } from "../../common/model";
 import {
   getLoansTakenCacheKey,
   getLoanCacheKey,
   getLoansQueryKey,
   getLoansGivenCacheKey,
-  getNFTByOwnerCacheKey,
+  getNftByOwnerCacheKey,
   getLoanOffersCacheKey,
 } from "../query";
 import { SerializedLoanState } from "../../common/constants";
@@ -57,14 +57,14 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        queryClient.setQueryData<NFTResult[]>(
-          getNFTByOwnerCacheKey(anchorWallet?.publicKey),
+        queryClient.setQueryData<NftResult[]>(
+          getNftByOwnerCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (!data) {
               return [];
             }
             return data.filter(
-              (item: NFTResult) =>
+              (item: NftResult) =>
                 !item?.tokenAccount.mint.equals(variables.mint)
             );
           }

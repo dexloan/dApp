@@ -191,6 +191,7 @@ export class Loan implements LoanArgs {
         editionNonce: args.metadata.editionNonce,
         tokenStandard: args.metadata.tokenStandard,
         collection: args.metadata.collection,
+        collectionDetails: args.metadata.collectionDetails,
         uses: args.metadata.uses,
       }),
       new web3.PublicKey(args.publicKey)
@@ -280,6 +281,7 @@ export class LoanOffer implements LoanOfferArgs {
         editionNonce: args.metadata.editionNonce,
         tokenStandard: args.metadata.tokenStandard,
         collection: args.metadata.collection,
+        collectionDetails: args.metadata.collectionDetails,
         uses: args.metadata.uses,
       }),
       new web3.PublicKey(args.publicKey)
