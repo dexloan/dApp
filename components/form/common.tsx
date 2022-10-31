@@ -29,6 +29,7 @@ import {
   useMetadataFileQuery,
   useMetadata,
 } from "../../hooks/query";
+import { useCollectionName } from "../../hooks/render";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
 import { EllipsisProgress } from "../progress";
@@ -255,6 +256,7 @@ export const SelectNftForm = ({
           if (!cols[symbol]) {
             cols[symbol] = {
               symbol,
+              // TODO use collection metadata name
               name: utils.mapSymbolToCollectionTitle(symbol) as string,
               items: [nft],
             };
@@ -353,12 +355,14 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
             >
               {item?.metadata.data.name}
             </Box>
-            <VerifiedCollection size="xs" metadata={item?.metadata} />
+            <Text fontSize="xs" color="gray.500">
+              {collection.name}
+            </Text>
           </Box>
         </Card>
       );
     },
-    [onSelectItem]
+    [collection, onSelectItem]
   );
 
   const floorPrice = useMemo(() => {

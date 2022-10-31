@@ -6,6 +6,7 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import { getProgram, getProvider } from "../provider";
 import { NftResult } from "../types";
+import { findTokenManagerAddress } from "./tokenManager";
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
@@ -117,11 +118,12 @@ export async function fetchNfts(
         programId: splToken.TOKEN_PROGRAM_ID,
       })
       .then((rawTokenAccounts) => {
-        return rawTokenAccounts.value
-          .map(({ pubkey, account }) => unpackToken(pubkey, account))
-          .filter(
-            (account) => account.amount === BigInt("1") && !account.isFrozen
-          );
+        return rawTokenAccounts.value.map(({ pubkey, account }) =>
+          unpackToken(pubkey, account)
+        );
+        // .filter(
+        //   (account) => account.amount === BigInt("1") && !account.isFrozen
+        // );
       }),
   ]);
 
@@ -130,37 +132,43 @@ export async function fetchNfts(
     tokenAccounts.map((a) => a.mint)
   );
 
-  console.log(metadataAccounts);
+  const combinedAccounts = await Promise.all(
+    metadataAccounts.map(async (metadata, index) => {
+      const collectionMint = metadata?.collection?.key;
 
-  const combinedAccounts = metadataAccounts.map((metadata, index) => {
-    const collectionMint = metadata?.collection?.key;
+      if (
+        metadata &&
+        collectionMint !== undefined &&
+        collectionMints.some((mint) => mint.equals(collectionMint))
+      ) {
+        try {
+          const tokenAccount = tokenAccounts[index];
 
-    if (
-      metadata &&
-      collectionMint !== undefined &&
-      collectionMints.some((mint) => mint.equals(collectionMint))
-    ) {
-      console.log(metadata.data.name);
-      try {
-        const tokenAccount = tokenAccounts[index];
+          if (tokenAccount.amount === BigInt("0") || tokenAccount.isFrozen) {
+            // Check if token manager exists
+            const tokenManager = await findTokenManagerAddress(
+              tokenAccount.mint,
+              address
+            );
+            try {
+              await program.account.tokenManager.fetch(tokenManager);
+            } catch (err) {
+              return null;
+            }
+          }
 
-        if (tokenAccount.amount === BigInt("0")) {
-          debugger;
+          return {
+            metadata,
+            tokenAccount,
+          };
+        } catch (err) {
+          console.error(err);
           return null;
         }
-
-        return {
-          metadata,
-          tokenAccount,
-        };
-      } catch (err) {
-        console.error(err);
-        debugger;
-        return null;
       }
-    }
-    return null;
-  });
+      return null;
+    })
+  );
 
   return combinedAccounts.filter(Boolean) as NftResult[];
 }

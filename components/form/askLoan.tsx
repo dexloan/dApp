@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 import { NftResult } from "../../common/types";
-import { useFloorPriceQuery, useMetadataFileQuery } from "../../hooks/query";
+import { useFloorPriceQuery } from "../../hooks/query";
 import {
   AskLoanMutationVariables,
   useAskLoanMutation,
