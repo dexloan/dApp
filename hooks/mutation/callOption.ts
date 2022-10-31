@@ -170,7 +170,7 @@ export const useCloseCallOptionBidMutation = (onSuccess: () => void) => {
   );
 };
 
-interface AskCallOptionMutationVariables {
+export interface AskCallOptionMutationVariables {
   mint: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {

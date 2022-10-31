@@ -28,7 +28,7 @@ import {
 import { useBidCallOptionMutation } from "../../hooks/mutation";
 import { Collection, CallOptionBidPretty } from "../../common/model";
 import { CallOptionFormFields, ModalProps, SliderField } from "./common";
-import { useExpiryOptions } from "./callOption";
+import { useExpiryOptions } from "./askCallOption";
 
 interface BidFormFields extends CallOptionFormFields {
   collection: string;
