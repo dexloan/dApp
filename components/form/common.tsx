@@ -27,7 +27,7 @@ import {
   useNftByOwnerQuery,
   useFloorPriceQuery,
   useMetadataFileQuery,
-  useMetadata,
+  useMetadataQuery,
 } from "../../hooks/query";
 import { useCollectionName } from "../../hooks/render";
 import { Card, CardList } from "../card";
@@ -221,17 +221,21 @@ export const SliderField = <Fields extends FieldValues>({
   );
 };
 
+type ListingType = "loan" | "callOption" | "hire";
+
 interface SelectNftFormProps {
+  listingType: ListingType;
   collectionMint?: anchor.web3.PublicKey;
   onSelect: (selected: NftResult) => void;
 }
 
 export const SelectNftForm = ({
+  listingType,
   collectionMint,
   onSelect,
 }: SelectNftFormProps) => {
   const wallet = useAnchorWallet();
-  const collectionQuery = useMetadata(collectionMint);
+  const collectionQuery = useMetadataQuery(collectionMint);
   const nftQuery = useNftByOwnerQuery(wallet);
 
   const collections = useMemo(() => {
@@ -298,6 +302,7 @@ export const SelectNftForm = ({
           return (
             <Collection
               key={collection.symbol}
+              listingType={listingType}
               collection={collection}
               onSelectItem={onSelect}
             />
@@ -330,39 +335,28 @@ export interface SelectNftModalProps extends ModalProps {
 
 interface CollectionProps {
   collection: CollectionItem;
+  listingType: ListingType;
   onSelectItem: (item: NftResult) => void;
 }
 
-const Collection = ({ collection, onSelectItem }: CollectionProps) => {
+const Collection = ({
+  collection,
+  listingType,
+  onSelectItem,
+}: CollectionProps) => {
   const floorPriceQuery = useFloorPriceQuery(collection.symbol);
 
   const renderItem = useCallback(
     (item: NftResult) => {
       return (
-        <Card
-          key={item?.tokenAccount.address.toBase58()}
-          uri={item?.metadata.data.uri}
-          imageAlt={item?.metadata.data.name}
-          onClick={() => onSelectItem(item)}
-        >
-          <Box p="4" pb="6">
-            <Box
-              mt="1"
-              fontWeight="semibold"
-              as="h4"
-              textAlign="left"
-              isTruncated
-            >
-              {item?.metadata.data.name}
-            </Box>
-            <Text fontSize="xs" color="gray.500">
-              {collection.name}
-            </Text>
-          </Box>
-        </Card>
+        <NftItem
+          item={item}
+          listingType={listingType}
+          onSelectItem={() => onSelectItem(item)}
+        />
       );
     },
-    [collection, onSelectItem]
+    [listingType, onSelectItem]
   );
 
   const floorPrice = useMemo(() => {
@@ -379,6 +373,36 @@ const Collection = ({ collection, onSelectItem }: CollectionProps) => {
       />
       <CardList>{collection.items.map(renderItem)}</CardList>
     </>
+  );
+};
+
+interface NftItemProps {
+  item: NftResult;
+  listingType: ListingType;
+  onSelectItem: () => void;
+}
+
+const NftItem = ({ item, listingType, onSelectItem }: NftItemProps) => {
+  const metadataQuery = useMetadataQuery(
+    item.metadata.collection?.key as anchor.web3.PublicKey
+  );
+
+  return (
+    <Card
+      key={item?.tokenAccount.address.toBase58()}
+      uri={item?.metadata.data.uri}
+      imageAlt={item?.metadata.data.name}
+      onClick={onSelectItem}
+    >
+      <Box p="4" pb="6">
+        <Box mt="1" fontWeight="semibold" as="h4" textAlign="left" isTruncated>
+          {item?.metadata.data.name}
+        </Box>
+        <Text fontSize="xs" color="gray.500">
+          {metadataQuery.data?.data.name ?? <EllipsisProgress />}
+        </Text>
+      </Box>
+    </Card>
   );
 };
 

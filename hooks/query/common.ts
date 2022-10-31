@@ -19,7 +19,7 @@ export const getMetadataCacheKey = (mint?: anchor.web3.PublicKey) => [
   mint instanceof anchor.web3.PublicKey ? mint.toBase58() : undefined,
 ];
 
-export function useMetadata(mint?: anchor.web3.PublicKey) {
+export function useMetadataQuery(mint?: anchor.web3.PublicKey) {
   const { connection } = useConnection();
   const queryClient = useQueryClient();
   const anchorWallet = useAnchorWallet();
