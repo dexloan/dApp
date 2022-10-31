@@ -1,3 +1,4 @@
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import {
   Badge,
   Box,
@@ -9,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
 import { HireStateEnum } from "../../common/types";
@@ -108,6 +109,8 @@ interface RentalCardProps {
 }
 
 export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
+  const wallet = useAnchorWallet();
+  const isLender = useMemo(() => rental.isLender(wallet), [rental, wallet]);
   const collection = useCollectionName(rental.metadata);
 
   function renderStatus() {
@@ -163,7 +166,11 @@ export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
 
         return (
           <Box position="absolute" top="1" right="0.5">
-            <Tooltip label={`Renting until ${rental.currentExpiry}`}>
+            <Tooltip
+              label={`${isLender ? "Lending" : "Renting"} until ${
+                rental.currentExpiry
+              }`}
+            >
               <Badge
                 colorScheme="blackAlpha"
                 borderRadius="full"
