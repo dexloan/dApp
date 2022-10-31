@@ -12,6 +12,7 @@ import {
   Td,
   Text,
   Skeleton,
+  Spinner,
 } from "@chakra-ui/react";
 import React, { useState, useMemo } from "react";
 import { IoCaretDown, IoCaretUp } from "react-icons/io5";
@@ -153,6 +154,7 @@ interface ListingsTableProps<SortCols, ItemType> {
   placeholder: string;
   cols: Readonly<Col<SortCols>[]>;
   items: ItemType[];
+  isLoading?: boolean;
   renderCol: (col: Col<SortCols>, index: number) => React.ReactNode;
   renderRow: (item: ItemType) => React.ReactNode;
 }
@@ -163,6 +165,7 @@ export const ListingsTable = <SortCols, ItemType>({
   placeholder,
   cols,
   items,
+  isLoading,
   renderCol,
   renderRow,
 }: ListingsTableProps<SortCols, ItemType>) => {
@@ -182,7 +185,7 @@ export const ListingsTable = <SortCols, ItemType>({
         </Heading>
         {action}
       </Box>
-      {items.length ? (
+      <>
         <TableContainer
           maxW="100%"
           mt="2"
@@ -198,9 +201,15 @@ export const ListingsTable = <SortCols, ItemType>({
             <Tbody>{renderedRows}</Tbody>
           </Table>
         </TableContainer>
-      ) : (
-        <EmptyMessage>{placeholder}</EmptyMessage>
-      )}
+        {isLoading && (
+          <Box display="flex" w="100%" justifyContent="center">
+            <Spinner size="sm" />
+          </Box>
+        )}
+        {!isLoading && !items.length && (
+          <EmptyMessage>{placeholder}</EmptyMessage>
+        )}
+      </>
     </>
   );
 };

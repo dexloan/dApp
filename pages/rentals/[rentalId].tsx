@@ -206,8 +206,10 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
             </Box>
             <Detail
               footer={
-                <Box mt="4" mb="4">
+                <Box mt="4">
                   {renderListedButton()}
+                  <EscrowBalance hire={hire} />
+                  <SecondaryButtons hire={hire} />
                 </Box>
               }
             >
@@ -240,8 +242,10 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
             </Box>
             <Detail
               footer={
-                <Box mt="4" mb="4">
+                <Box mt="4">
                   {renderActiveButton()}
+                  <EscrowBalance hire={hire} />
+                  <SecondaryButtons hire={hire} />
                 </Box>
               }
             >
@@ -289,13 +293,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
             ]
           : undefined
       }
-      action={
-        <>
-          {renderByState()}
-          <EscrowBalance hire={hire} />
-          <SecondaryButtons hire={hire} />
-        </>
-      }
+      action={renderByState()}
     />
   );
 };
@@ -322,7 +320,7 @@ const EscrowBalance = ({ hire }: EscrowBalanceProps) => {
       <Box flex={1} mb="2">
         <Button
           w="100%"
-          colorScheme="green"
+          variant="primary"
           isLoading={mutation.isLoading}
           onClick={() => mutation.mutate(hire.data)}
         >

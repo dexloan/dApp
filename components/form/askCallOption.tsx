@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { Controller, useForm } from "react-hook-form";
+import { Control, Controller, useForm, useWatch } from "react-hook-form";
 import {
   Box,
   Button,
@@ -13,9 +13,10 @@ import {
   ModalHeader,
   ModalFooter,
   ModalBody,
+  SimpleGrid,
   Select,
 } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import dayjs from "../../common/lib/dayjs";
 import { NftResult } from "../../common/types";
@@ -28,6 +29,8 @@ import {
   SelectNftForm,
   ModalProps,
   SelectNftModalProps,
+  CollectionDetails,
+  CallOptionDetails,
 } from "./common";
 
 export const AskCallOptionModal = ({
@@ -37,6 +40,12 @@ export const AskCallOptionModal = ({
 }: SelectNftModalProps) => {
   const [innerSelected, setSelected] = useState<NftResult | null>(selected);
   const mutation = useAskCallOptionMutation(() => onRequestClose());
+
+  useEffect(() => {
+    if (selected) {
+      setSelected(selected);
+    }
+  }, [selected]);
 
   return (
     <Modal
@@ -51,15 +60,15 @@ export const AskCallOptionModal = ({
     >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader fontSize="2xl" fontWeight="black">
-          Sell Call Option
+        <ModalHeader fontSize="xl" fontWeight="black">
+          {innerSelected ? "Call Option - Create Ask" : "Select NFT"}
         </ModalHeader>
         {innerSelected ? (
           <AskCallOptionForm
             isLoading={mutation.isLoading}
             selected={innerSelected}
             onRequestClose={onRequestClose}
-            onCancel={() => setSelected(null)}
+            onCancel={selected ? undefined : () => setSelected(null)}
             onSubmit={(vars) => mutation.mutate(vars)}
           />
         ) : (
@@ -90,7 +99,7 @@ export const useExpiryOptions = () => {
 interface AskCallOptionFormProps extends Pick<ModalProps, "onRequestClose"> {
   isLoading: boolean;
   selected: NftResult;
-  onCancel: () => void;
+  onCancel?: () => void;
   onSubmit: (data: AskCallOptionMutationVariables) => void;
 }
 
@@ -135,7 +144,8 @@ const AskCallOptionForm = ({
   return (
     <>
       <ModalBody>
-        <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
+        <Details selected={selected} control={control} />
+        <Box pb="4" pt="6" pl="6" pr="6">
           <form onSubmit={onSubmit}>
             <FormControl isInvalid={!isValid}>
               <Box pb="6">
@@ -238,15 +248,75 @@ const AskCallOptionForm = ({
         </Box>
       </ModalBody>
       <ModalFooter>
-        <Button
-          colorScheme="green"
-          w="100%"
-          isLoading={isLoading}
-          onClick={onSubmit}
-        >
-          Confirm
-        </Button>
+        {onCancel ? (
+          <SimpleGrid columns={2} spacing={2} width="100%">
+            <Box>
+              <Button isFullWidth disabled={isLoading} onClick={onCancel}>
+                Cancel
+              </Button>
+            </Box>
+            <Box>
+              <Button
+                isFullWidth
+                variant="primary"
+                isLoading={isLoading}
+                onClick={onSubmit}
+              >
+                Confirm
+              </Button>
+            </Box>
+          </SimpleGrid>
+        ) : (
+          <Button
+            isFullWidth
+            variant="primary"
+            isLoading={isLoading}
+            onClick={onSubmit}
+          >
+            Confirm
+          </Button>
+        )}
       </ModalFooter>
     </>
+  );
+};
+
+interface DetailsProps {
+  control: Control<CallOptionFormFields>;
+  selected: NftResult;
+}
+
+const Details = ({ control, selected }: DetailsProps) => {
+  const fields = useWatch({ control });
+  const amount = useMemo(
+    () =>
+      fields.amount
+        ? new anchor.BN(fields.amount * anchor.web3.LAMPORTS_PER_SOL)
+        : undefined,
+    [fields.amount]
+  );
+  const strikePrice = useMemo(
+    () =>
+      fields.strikePrice
+        ? new anchor.BN(fields.strikePrice * anchor.web3.LAMPORTS_PER_SOL)
+        : undefined,
+    [fields.strikePrice]
+  );
+  const expiry = useMemo(
+    () => (fields.expiry ? new anchor.BN(fields.expiry) : undefined),
+    [fields.expiry]
+  );
+
+  return (
+    <CollectionDetails
+      nft={selected}
+      forecast={
+        <CallOptionDetails
+          amount={amount}
+          strikePrice={strikePrice}
+          expiry={expiry}
+        />
+      }
+    />
   );
 };

@@ -119,6 +119,14 @@ export const CallOptionDetails = ({
   return (
     <Flex direction="column" gap="2" justify="space-between">
       <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
+          Strike Price
+        </Text>
+        <Text fontSize="sm" whiteSpace="nowrap">
+          {strikePrice ? utils.formatAmount(strikePrice) : <EllipsisProgress />}
+        </Text>
+      </Flex>
+      <Flex direction="row" justifyContent="space-between" w="100%">
         <Text fontSize="sm" color="gray.500">
           Cost
         </Text>
@@ -136,14 +144,6 @@ export const CallOptionDetails = ({
           ) : (
             <EllipsisProgress />
           )}
-        </Text>
-      </Flex>
-      <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
-          Strike Price
-        </Text>
-        <Text fontSize="sm" whiteSpace="nowrap">
-          {strikePrice ? utils.formatAmount(strikePrice) : <EllipsisProgress />}
         </Text>
       </Flex>
     </Flex>
@@ -302,7 +302,7 @@ export const SelectNftForm = ({
           );
         })
       ) : (
-        <Box mb="4">
+        <Box mb="6">
           <Text fontSize="sm">
             {collectionMint ? (
               <Text>
@@ -311,7 +311,8 @@ export const SelectNftForm = ({
               </Text>
             ) : (
               <Text>
-                You do not currently hold any NFTs approved for lending.
+                You do not currently hold any NFTs approved for trading on Onda
+                Protocol.
               </Text>
             )}
           </Text>
@@ -409,7 +410,7 @@ export const CollectionDetails = ({
   const metadataQuery = useMetadataFileQuery(nft?.metadata?.data.uri);
 
   return (
-    <Box pb="4" pt="6" px="6">
+    <Box pb="4" pt="2" px="6">
       <Flex width="100%" gap="4">
         <Flex flex={1}>
           <Box

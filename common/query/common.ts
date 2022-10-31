@@ -127,8 +127,10 @@ export async function fetchNfts(
 
   const metadataAccounts = await fetchMetadataAccounts(
     connection,
-    tokenAccounts.map((a) => ({ account: { mint: a.mint } }))
+    tokenAccounts.map((a) => a.mint)
   );
+
+  console.log(metadataAccounts);
 
   const combinedAccounts = metadataAccounts.map((metadata, index) => {
     const collectionMint = metadata?.collection?.key;

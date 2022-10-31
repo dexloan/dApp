@@ -25,9 +25,14 @@ const BID_COLS: Readonly<Col<CallOptionSortCols>[]> = [
 interface CallOptionBidsProps {
   heading: string;
   bids?: CallOptionBidPretty[];
+  isLoading: boolean;
 }
 
-export const CallOptionBids = ({ heading, bids }: CallOptionBidsProps) => {
+export const CallOptionBids = ({
+  heading,
+  bids,
+  isLoading,
+}: CallOptionBidsProps) => {
   const wallet = useWallet();
   const modal = useWalletModal();
   const [bidModal, setBidModal] = useState<boolean>(false);
@@ -53,13 +58,15 @@ export const CallOptionBids = ({ heading, bids }: CallOptionBidsProps) => {
         }
         cols={BID_COLS}
         items={sortedOptions}
+        isLoading={isLoading}
         renderCol={(col) => {
           if (col.name === "collection") {
-            return <Th>Collection</Th>;
+            return <Th key={col.name}>Collection</Th>;
           }
 
           return (
             <ColumnHeader
+              key={col.name}
               isNumeric={col.isNumeric}
               direction={sortState[0] === col.name ? sortState[1] : 0}
               onClick={() => onSort(col.name)}

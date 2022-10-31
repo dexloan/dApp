@@ -53,8 +53,22 @@ function renderCard(json: HirePretty) {
   return <RentalCard key={rental.address} rental={rental} />;
 }
 
-const Listings = () => {
+const Actions = () => {
   const [modal, setModal] = useState(false);
+
+  return (
+    <>
+      <Box display="flex" w="100%" justifyContent="flex-end">
+        <Button size="sm" onClick={() => setModal(true)}>
+          Offer Rental
+        </Button>
+      </Box>
+      <OfferRentalModal open={modal} onRequestClose={() => setModal(false)} />
+    </>
+  );
+};
+
+const Listings = () => {
   const rentalsQuery = useHiresQuery();
 
   function renderListings() {
@@ -75,10 +89,7 @@ const Listings = () => {
 
   return (
     <>
-      <Box display="flex" w="100%" justifyContent="flex-end">
-        <Button onClick={() => setModal(true)}>Offer Rental</Button>
-      </Box>
-      <OfferRentalModal open={modal} onRequestClose={() => setModal(false)} />
+      <Actions />
       <Heading
         fontSize="xs"
         color="gray.400"
@@ -95,7 +106,6 @@ const Listings = () => {
 };
 
 const MyRentals = () => {
-  const [modal, setModal] = useState(false);
   const lenderQuery = useLenderHiresQuery();
   const rentalsTakenQuery = useHiresTakenQuery();
 
@@ -151,10 +161,7 @@ const MyRentals = () => {
 
   return (
     <>
-      <Box display="flex" w="100%" justifyContent="flex-end">
-        <Button onClick={() => setModal(true)}>Offer Rental</Button>
-      </Box>
-      <OfferRentalModal open={modal} onRequestClose={() => setModal(false)} />
+      <Actions />
       {renderLists()}
     </>
   );

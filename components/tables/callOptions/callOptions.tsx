@@ -30,6 +30,7 @@ interface CallOptionListingsProps {
   placeholderMessage: string;
   action?: React.ReactNode;
   callOptions?: CallOptionPretty[];
+  isLoading: boolean;
 }
 
 export const CallOptionListings = ({
@@ -37,6 +38,7 @@ export const CallOptionListings = ({
   placeholderMessage,
   action = null,
   callOptions,
+  isLoading,
 }: CallOptionListingsProps) => {
   const router = useRouter();
   const [sortState, onSort] = useCallOptionSortState();
@@ -49,6 +51,7 @@ export const CallOptionListings = ({
       action={action}
       cols={CALL_OPTION_COLS}
       items={sortedOptions}
+      isLoading={isLoading}
       renderCol={(col) => {
         if (col.name === "asset") {
           return <Th key={col.name}>{col.label}</Th>;

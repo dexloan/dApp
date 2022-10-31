@@ -22,7 +22,7 @@ import {
 } from "../../hooks/query";
 import { SerializedCallOptionState } from "../../common/constants";
 import { CallOptionListings, CallOptionBids } from "../../components/tables";
-import { BidCallOptionModal } from "../../components/form";
+import { AskCallOptionModal } from "../../components/form";
 
 const CallOptions: NextPage = () => {
   const wallet = useWallet();
@@ -58,7 +58,13 @@ const CallOptions: NextPage = () => {
 const Bids = () => {
   const bidsQuery = useCallOptionBidsQuery();
 
-  return <CallOptionBids heading="Bids" bids={bidsQuery.data} />;
+  return (
+    <CallOptionBids
+      heading="Bids"
+      bids={bidsQuery.data}
+      isLoading={bidsQuery.isLoading}
+    />
+  );
 };
 
 const Asks = () => {
@@ -82,8 +88,9 @@ const Asks = () => {
         heading="Asks"
         placeholderMessage="No asks currently"
         callOptions={optionsQuery.data}
+        isLoading={optionsQuery.isLoading}
       />
-      <BidCallOptionModal
+      <AskCallOptionModal
         open={optionModal}
         onRequestClose={() => setOptionModal(false)}
       />
@@ -95,7 +102,13 @@ const YourBids = () => {
   const anchorWallet = useAnchorWallet();
   const bidsQuery = useCallOptionBidsByBuyerQuery(anchorWallet?.publicKey);
 
-  return <CallOptionBids heading="Your Bids" bids={bidsQuery.data} />;
+  return (
+    <CallOptionBids
+      heading="Your Bids"
+      bids={bidsQuery.data}
+      isLoading={bidsQuery.isLoading}
+    />
+  );
 };
 
 const YourAsks = () => {
@@ -110,6 +123,7 @@ const YourAsks = () => {
       heading="Your Asks"
       placeholderMessage="You have no listed asks"
       callOptions={filteredOptions}
+      isLoading={optionsQuery.isLoading}
     />
   );
 };
@@ -126,6 +140,7 @@ const OptionsBought = () => {
       heading="Options Bought"
       placeholderMessage="No options bought"
       callOptions={filteredOptions}
+      isLoading={optionsQuery.isLoading}
     />
   );
 };
@@ -142,6 +157,7 @@ const OptionsSold = () => {
       heading="Options Sold"
       placeholderMessage="No options sold"
       callOptions={filteredOptions}
+      isLoading={optionsQuery.isLoading}
     />
   );
 };
