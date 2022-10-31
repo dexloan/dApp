@@ -21,7 +21,7 @@ import {
 } from "../../hooks/mutation";
 import {
   ModalProps,
-  SelectNFTForm,
+  SelectNftForm,
   CollectionDetails,
   CallOptionDetails,
 } from "./common";
@@ -109,7 +109,7 @@ const SellCallOption = ({
       </ModalFooter>
     </>
   ) : (
-    <SelectNFTForm collectionMint={bid?.metadata.mint} onSelect={setSelected} />
+    <SelectNftForm collectionMint={bid?.metadata.mint} onSelect={setSelected} />
   );
 
   return (

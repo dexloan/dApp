@@ -11,17 +11,17 @@ import { Controller, useForm } from "react-hook-form";
 
 import { Hire } from "../../common/model";
 
-interface RentalFormProps {
+interface TakeRentalFormProps {
   label?: string;
   rental: Hire;
   onSubmit: (data: { days: number }) => void;
 }
 
-export const RentalForm = ({
+export const TakeRentalForm = ({
   label = "Rent",
   rental,
   onSubmit,
-}: RentalFormProps) => {
+}: TakeRentalFormProps) => {
   const {
     control,
     handleSubmit,

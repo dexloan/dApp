@@ -51,7 +51,7 @@ import {
 import { DocumentHead } from "../../components/document";
 import { useHireQuery } from "../../hooks/query";
 import { CallOptionButton, LoanButton } from "../../components/buttons";
-import { RentalForm } from "../../components/form";
+import { TakeRentalForm } from "../../components/form";
 import { NftLayout } from "../../components/layout";
 import { Detail } from "../../components/detail";
 
@@ -429,7 +429,7 @@ const HireButton = ({ hire }: HireButtonProps) => {
 
   return (
     <>
-      <RentalForm rental={hire} onSubmit={onLend} />
+      <TakeRentalForm rental={hire} onSubmit={onLend} />
       <TakeHireDialog
         hire={hire}
         days={days}
@@ -472,7 +472,7 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
 
   return (
     <>
-      <RentalForm label="Extend Rental" rental={hire} onSubmit={onLend} />
+      <TakeRentalForm label="Extend Rental" rental={hire} onSubmit={onLend} />
       <ExtendHireDialog
         hire={hire}
         days={days ?? 0}

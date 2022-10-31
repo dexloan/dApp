@@ -21,7 +21,7 @@ import {
   getNftByOwnerCacheKey,
 } from "../query";
 
-interface InitHireMutationVariables {
+export interface InitHireMutationVariables {
   mint: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {

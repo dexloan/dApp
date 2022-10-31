@@ -1,6 +1,8 @@
 import type { NextPage } from "next";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
+  Box,
+  Button,
   Container,
   Heading,
   Tabs,
@@ -8,15 +10,19 @@ import {
   TabPanels,
   Tab,
   TabPanel,
+  Spinner,
 } from "@chakra-ui/react";
 
 import { Hire, HirePretty } from "../../common/model";
 import {
   useHiresQuery,
-  useBorrowerHiresQuery,
+  useHiresTakenQuery,
   useLenderHiresQuery,
 } from "../../hooks/query";
 import { RentalCard, CardList } from "../../components/card";
+import { EmptyMessage } from "../../components/table";
+import { useState } from "react";
+import { OfferRentalModal } from "../../components/form/offerRental";
 
 const Rentals: NextPage = () => {
   const wallet = useWallet();
@@ -28,13 +34,12 @@ const Rentals: NextPage = () => {
           <Tab>Listings</Tab>
           <Tab isDisabled={!wallet.publicKey}>My Rentals</Tab>
         </TabList>
-        <TabPanels my="6">
+        <TabPanels>
           <TabPanel>
             <Listings />
           </TabPanel>
           <TabPanel>
-            <RentalsTaken />
-            <RentalsGiven />
+            <MyRentals />
           </TabPanel>
         </TabPanels>
       </Tabs>
@@ -49,20 +54,31 @@ function renderCard(json: HirePretty) {
 }
 
 const Listings = () => {
+  const [modal, setModal] = useState(false);
   const rentalsQuery = useHiresQuery();
 
+  function renderListings() {
+    if (rentalsQuery.isLoading) {
+      return (
+        <Box d="flex" w="100%" p="12" justifyContent="center">
+          <Spinner />
+        </Box>
+      );
+    }
+
+    if (!rentalsQuery.data?.length) {
+      return <EmptyMessage>No active listings</EmptyMessage>;
+    }
+
+    return <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>;
+  }
+
   return (
     <>
-      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
-    </>
-  );
-};
-
-const RentalsTaken = () => {
-  const rentalsQuery = useBorrowerHiresQuery();
-
-  return (
-    <>
+      <Box display="flex" w="100%" justifyContent="flex-end">
+        <Button onClick={() => setModal(true)}>Offer Rental</Button>
+      </Box>
+      <OfferRentalModal open={modal} onRequestClose={() => setModal(false)} />
       <Heading
         fontSize="xs"
         color="gray.400"
@@ -71,29 +87,75 @@ const RentalsTaken = () => {
         lineHeight="4"
         mb="4"
       >
-        Renting
+        Listings
       </Heading>
-      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+      {renderListings()}
     </>
   );
 };
 
-const RentalsGiven = () => {
-  const rentalsQuery = useLenderHiresQuery();
+const MyRentals = () => {
+  const [modal, setModal] = useState(false);
+  const lenderQuery = useLenderHiresQuery();
+  const rentalsTakenQuery = useHiresTakenQuery();
+
+  function renderLists() {
+    if (lenderQuery.isLoading || rentalsTakenQuery.isLoading) {
+      return (
+        <Box d="flex" w="100%" p="12" justifyContent="center">
+          <Spinner />
+        </Box>
+      );
+    }
+
+    if (!lenderQuery.data?.length && !rentalsTakenQuery.data?.length) {
+      return <EmptyMessage>No active rentals</EmptyMessage>;
+    }
+
+    return (
+      <>
+        {lenderQuery.data?.length ? (
+          <>
+            <Heading
+              fontSize="xs"
+              color="gray.400"
+              fontWeight="medium"
+              letterSpacing="wider"
+              lineHeight="4"
+              mb="4"
+            >
+              Lending
+            </Heading>
+            <CardList>{lenderQuery.data?.map(renderCard)}</CardList>
+          </>
+        ) : null}
+
+        {rentalsTakenQuery.data?.length ? (
+          <>
+            <Heading
+              fontSize="xs"
+              color="gray.400"
+              fontWeight="medium"
+              letterSpacing="wider"
+              lineHeight="4"
+              mb="4"
+            >
+              Renting
+            </Heading>
+            <CardList>{rentalsTakenQuery.data?.map(renderCard)}</CardList>
+          </>
+        ) : null}
+      </>
+    );
+  }
 
   return (
     <>
-      <Heading
-        fontSize="xs"
-        color="gray.400"
-        fontWeight="medium"
-        letterSpacing="wider"
-        lineHeight="4"
-        mb="4"
-      >
-        Lending
-      </Heading>
-      <CardList>{rentalsQuery.data?.map(renderCard)}</CardList>
+      <Box display="flex" w="100%" justifyContent="flex-end">
+        <Button onClick={() => setModal(true)}>Offer Rental</Button>
+      </Box>
+      <OfferRentalModal open={modal} onRequestClose={() => setModal(false)} />
+      {renderLists()}
     </>
   );
 };

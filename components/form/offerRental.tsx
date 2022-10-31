@@ -20,23 +20,18 @@ import { useMemo, useState } from "react";
 import dayjs from "../../common/lib/dayjs";
 import { NftResult } from "../../common/types";
 import {
-  AskCallOptionMutationVariables,
-  useAskCallOptionMutation,
+  InitHireMutationVariables,
+  useInitHireMutation,
 } from "../../hooks/mutation";
-import {
-  CallOptionFormFields,
-  SelectNftForm,
-  ModalProps,
-  SelectNftModalProps,
-} from "./common";
+import { SelectNftForm, ModalProps, SelectNftModalProps } from "./common";
 
-export const AskCallOptionModal = ({
+export const OfferRentalModal = ({
   open,
   selected = null,
   onRequestClose,
 }: SelectNftModalProps) => {
   const [innerSelected, setSelected] = useState<NftResult | null>(selected);
-  const mutation = useAskCallOptionMutation(() => onRequestClose());
+  const mutation = useInitHireMutation(() => onRequestClose());
 
   return (
     <Modal
@@ -52,10 +47,10 @@ export const AskCallOptionModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="2xl" fontWeight="black">
-          Sell Call Option
+          Offer Rental
         </ModalHeader>
         {innerSelected ? (
-          <AskCallOptionForm
+          <OfferRentalForm
             isLoading={mutation.isLoading}
             selected={innerSelected}
             onRequestClose={onRequestClose}
@@ -70,54 +65,43 @@ export const AskCallOptionModal = ({
   );
 };
 
-export const useExpiryOptions = () => {
-  return useMemo(() => {
-    return Array(24)
-      .fill(undefined)
-      .map((_, i) =>
-        dayjs()
-          .tz("America/New_York")
-          .startOf("month")
-          .add(i + 1, "month")
-          .startOf("month")
-          .day(6)
-          .add(2, "week")
-          .unix()
-      );
-  }, []);
-};
+interface OfferRentalFormFields {
+  amount: number;
+  expiry: number;
+  // TODO private borrowings
+  // borrower: string;
+}
 
-interface AskCallOptionFormProps extends Pick<ModalProps, "onRequestClose"> {
+interface OfferRentalFormProps extends Pick<ModalProps, "onRequestClose"> {
   isLoading: boolean;
   selected: NftResult;
   onCancel: () => void;
-  onSubmit: (data: AskCallOptionMutationVariables) => void;
+  onSubmit: (data: InitHireMutationVariables) => void;
 }
 
-const AskCallOptionForm = ({
+const OfferRentalForm = ({
   isLoading,
   selected,
   onCancel,
   onRequestClose,
   ...other
-}: AskCallOptionFormProps) => {
+}: OfferRentalFormProps) => {
   const {
     control,
     handleSubmit,
     formState: { isValid },
-  } = useForm<CallOptionFormFields>({
+  } = useForm<OfferRentalFormFields>({
     mode: "onChange",
     defaultValues: {
       amount: undefined,
-      strikePrice: undefined,
       expiry: undefined,
+      // TODO borrower: null,
     },
   });
 
   const onSubmit = handleSubmit((data) => {
     const options = {
       amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
-      strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
       expiry: data.expiry,
     };
 
@@ -130,7 +114,18 @@ const AskCallOptionForm = ({
     }
   });
 
-  const expiryOptions = useExpiryOptions();
+  const expiryOptions = useMemo(() => {
+    return Array(24)
+      .fill(undefined)
+      .map((_, i) =>
+        dayjs()
+          .tz("America/New_York")
+          .startOf("month")
+          .add(i + 1, "month")
+          .startOf("month")
+          .unix()
+      );
+  }, []);
 
   return (
     <>
@@ -153,7 +148,7 @@ const AskCallOptionForm = ({
                     fieldState: { error },
                   }) => (
                     <FormControl isInvalid={Boolean(error)}>
-                      <FormLabel htmlFor="cost">Cost</FormLabel>
+                      <FormLabel htmlFor="cost">Rental Cost</FormLabel>
                       <Input
                         name="cost"
                         placeholder="0.00◎"
@@ -161,37 +156,7 @@ const AskCallOptionForm = ({
                         onChange={onChange}
                       />
                       <FormHelperText>
-                        The cost of the call option
-                      </FormHelperText>
-                    </FormControl>
-                  )}
-                />
-              </Box>
-
-              <Box pb="6">
-                <Controller
-                  name="strikePrice"
-                  control={control}
-                  rules={{
-                    required: true,
-                    validate: (value) => {
-                      return !isNaN(value);
-                    },
-                  }}
-                  render={({
-                    field: { value, onChange },
-                    fieldState: { error },
-                  }) => (
-                    <FormControl isInvalid={Boolean(error)}>
-                      <FormLabel htmlFor="strike_price">Strike Price</FormLabel>
-                      <Input
-                        name="strike_price"
-                        placeholder="0.00◎"
-                        value={value}
-                        onChange={onChange}
-                      />
-                      <FormHelperText>
-                        The price at which the NFT can be bought
+                        The daily cost to rent your NFT
                       </FormHelperText>
                     </FormControl>
                   )}
@@ -222,12 +187,12 @@ const AskCallOptionForm = ({
                             {dayjs
                               .unix(unix)
                               .tz("America/New_York")
-                              .format("DD/MM/YYYY")}
+                              .format("LL")}
                           </option>
                         ))}
                       </Select>
                       <FormHelperText>
-                        The date the call option is valid until
+                        The latest date the NFT can be rented
                       </FormHelperText>
                     </FormControl>
                   )}
@@ -239,7 +204,7 @@ const AskCallOptionForm = ({
       </ModalBody>
       <ModalFooter>
         <Button
-          colorScheme="green"
+          variant="primary"
           w="100%"
           isLoading={isLoading}
           onClick={onSubmit}

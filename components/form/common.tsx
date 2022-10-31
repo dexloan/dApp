@@ -220,15 +220,15 @@ export const SliderField = <Fields extends FieldValues>({
   );
 };
 
-interface SelectNFTFormProps {
+interface SelectNftFormProps {
   collectionMint?: anchor.web3.PublicKey;
   onSelect: (selected: NftResult) => void;
 }
 
-export const SelectNFTForm = ({
+export const SelectNftForm = ({
   collectionMint,
   onSelect,
-}: SelectNFTFormProps) => {
+}: SelectNftFormProps) => {
   const wallet = useAnchorWallet();
   const collectionQuery = useMetadata(collectionMint);
   const nftQuery = useNftByOwnerQuery(wallet);
@@ -320,6 +320,10 @@ export const SelectNFTForm = ({
     </ModalBody>
   );
 };
+
+export interface SelectNftModalProps extends ModalProps {
+  selected?: NftResult | null;
+}
 
 interface CollectionProps {
   collection: CollectionItem;

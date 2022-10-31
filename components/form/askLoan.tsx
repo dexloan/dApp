@@ -31,7 +31,7 @@ import {
   LoanForecast,
   ModalProps,
   SliderField,
-  SelectNFTForm,
+  SelectNftForm,
 } from "./common";
 
 const defaultValues = {
@@ -77,7 +77,7 @@ export const AskLoanModal = ({
             onSubmit={(vars) => mutation.mutate(vars)}
           />
         ) : (
-          <SelectNFTForm onSelect={setSelected} />
+          <SelectNftForm onSelect={setSelected} />
         )}
       </ModalContent>
     </Modal>

@@ -21,7 +21,7 @@ import {
 } from "../../hooks/mutation/loan";
 import {
   ModalProps,
-  SelectNFTForm,
+  SelectNftForm,
   CollectionDetails,
   LoanForecast,
 } from "./common";
@@ -108,7 +108,7 @@ const TakeLoan = ({ open, offer, onRequestClose }: TakeLoanModalProps) => {
       </ModalFooter>
     </>
   ) : (
-    <SelectNFTForm
+    <SelectNftForm
       collectionMint={offer?.metadata.mint}
       onSelect={setSelected}
     />
