@@ -15,8 +15,8 @@ import NextLink from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo } from "react";
 import { IoWallet } from "react-icons/io5";
-import toast from "react-hot-toast";
-import base58 from "bs58";
+// import toast from "react-hot-toast";
+// import base58 from "bs58";
 import { useRouter } from "next/router";
 
 export function Navbar() {
@@ -34,42 +34,42 @@ export function Navbar() {
     modal.setVisible(true);
   }
 
-  useEffect(() => {
-    async function signMessage() {
-      if (!wallet.signMessage) return;
+  // useEffect(() => {
+  //   async function signMessage() {
+  //     if (!wallet.signMessage) return;
 
-      try {
-        const message = process.env.NEXT_PUBLIC_AUTH_MESSAGE as string;
-        const signature = await wallet.signMessage(
-          Buffer.from(message, "utf8")
-        );
-        const encodedSignature = base58.encode(signature);
+  //     try {
+  //       const message = process.env.NEXT_PUBLIC_AUTH_MESSAGE as string;
+  //       const signature = await wallet.signMessage(
+  //         Buffer.from(message, "utf8")
+  //       );
+  //       const encodedSignature = base58.encode(signature);
 
-        const response = await fetch("/api/authenticate", {
-          method: "POST",
-          body: JSON.stringify({
-            signature: encodedSignature,
-            publicKey: wallet.publicKey?.toBase58(),
-          }),
-        });
-        const body = await response.json();
+  //       const response = await fetch("/api/authenticate", {
+  //         method: "POST",
+  //         body: JSON.stringify({
+  //           signature: encodedSignature,
+  //           publicKey: wallet.publicKey?.toBase58(),
+  //         }),
+  //       });
+  //       const body = await response.json();
 
-        if (!response.ok) {
-          throw new Error(body.message ?? "Failed to verify");
-        }
-      } catch (error) {
-        toast.error("Failed to verify");
-        try {
-          await wallet.disconnect();
-        } catch {}
-      }
-    }
+  //       if (!response.ok) {
+  //         throw new Error(body.message ?? "Failed to verify");
+  //       }
+  //     } catch (error) {
+  //       toast.error("Failed to verify");
+  //       try {
+  //         await wallet.disconnect();
+  //       } catch {}
+  //     }
+  //   }
 
-    if (wallet.publicKey) {
-      signMessage();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet.publicKey]);
+  //   if (wallet.publicKey) {
+  //     signMessage();
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [wallet.publicKey]);
 
   function UserMenuButton() {
     return (
