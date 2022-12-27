@@ -11,7 +11,7 @@ import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
 
-export async function initHire(
+export async function initRental(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -29,7 +29,7 @@ export async function initHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const rental = await query.findRentalAddress(mint, wallet.publicKey);
   const collection = await query.findCollectionAddress(collectionMint);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
@@ -41,9 +41,9 @@ export async function initHire(
   const [metadata] = await query.findMetadataAddress(mint);
 
   const transaction = await program.methods
-    .initHire({ amount, expiry, borrower })
+    .initRental({ amount, expiry, borrower })
     .accounts({
-      hire,
+      rental,
       tokenManager,
       mint,
       collection,
@@ -62,20 +62,20 @@ export async function initHire(
   await submitTransaction(connection, wallet, transaction);
 }
 
-export async function takeHire(
+export async function takeRental(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
   lender: anchor.web3.PublicKey,
-  hireTokenAccount: anchor.web3.PublicKey,
+  rentalTokenAccount: anchor.web3.PublicKey,
   metadata: Metadata,
   days: number
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, lender);
-  const hireEscrow = await query.findHireEscrowAddress(mint, lender);
+  const rental = await query.findRentalAddress(mint, lender);
+  const rentalEscrow = await query.findRentalEscrowAddress(mint, lender);
   const tokenManager = await query.findTokenManagerAddress(mint, lender);
   const [edition] = await query.findEditionAddress(mint);
   const [metadataAddress] = await query.findMetadataAddress(mint);
@@ -89,14 +89,14 @@ export async function takeHire(
     isWritable: true,
   }));
 
-  const method = program.methods.takeHire(days).accounts({
+  const method = program.methods.takeRental(days).accounts({
     lender,
     mint,
     edition,
-    hire,
-    hireEscrow,
+    rental,
+    rentalEscrow,
     tokenManager,
-    hireTokenAccount,
+    rentalTokenAccount,
     depositTokenAccount,
     metadata: metadataAddress,
     borrower: wallet.publicKey,
@@ -116,7 +116,7 @@ export async function takeHire(
   await submitTransaction(connection, wallet, transaction);
 }
 
-export async function extendHire(
+export async function extendRental(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -127,8 +127,8 @@ export async function extendHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, lender);
-  const hireEscrow = await query.findHireEscrowAddress(mint, lender);
+  const rental = await query.findRentalAddress(mint, lender);
+  const rentalEscrow = await query.findRentalEscrowAddress(mint, lender);
   const tokenManager = await query.findTokenManagerAddress(mint, lender);
 
   const creatorAccounts = metadata.data.creators?.map((creator) => ({
@@ -137,11 +137,11 @@ export async function extendHire(
     isWritable: true,
   }));
 
-  const method = program.methods.extendHire(days).accounts({
+  const method = program.methods.extendRental(days).accounts({
     lender,
     mint,
-    hire,
-    hireEscrow,
+    rental,
+    rentalEscrow,
     tokenManager,
     borrower: wallet.publicKey,
     systemProgram: anchor.web3.SystemProgram.programId,
@@ -158,7 +158,7 @@ export async function extendHire(
   await submitTransaction(connection, wallet, transaction);
 }
 
-export async function recoverHire(
+export async function recoverRental(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -168,28 +168,31 @@ export async function recoverHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
-  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
+  const rental = await query.findRentalAddress(mint, wallet.publicKey);
+  const rentalEscrow = await query.findRentalEscrowAddress(
+    mint,
+    wallet.publicKey
+  );
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
   );
   const [edition] = await query.findEditionAddress(mint);
 
-  const hireTokenAccount = (await connection.getTokenLargestAccounts(mint))
+  const rentalTokenAccount = (await connection.getTokenLargestAccounts(mint))
     .value[0].address;
 
   const transaction = await program.methods
-    .recoverHire()
+    .recoverRental()
     .accounts({
       borrower,
       mint,
-      hire,
-      hireEscrow,
+      rental,
+      rentalEscrow,
       tokenManager,
       edition,
       depositTokenAccount,
-      hireTokenAccount,
+      rentalTokenAccount,
       lender: wallet.publicKey,
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
@@ -202,7 +205,7 @@ export async function recoverHire(
   await submitTransaction(connection, wallet, transaction);
 }
 
-export async function withdrawFromHireEscrow(
+export async function withdrawFromRentalEscrow(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey
@@ -210,15 +213,18 @@ export async function withdrawFromHireEscrow(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
-  const hireEscrow = await query.findHireEscrowAddress(mint, wallet.publicKey);
+  const rental = await query.findRentalAddress(mint, wallet.publicKey);
+  const rentalEscrow = await query.findRentalEscrowAddress(
+    mint,
+    wallet.publicKey
+  );
 
   const transaction = await program.methods
-    .withdrawFromHireEscrow()
+    .withdrawFromRentalEscrow()
     .accounts({
       mint,
-      hire,
-      hireEscrow,
+      rental,
+      rentalEscrow,
       lender: wallet.publicKey,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
@@ -230,7 +236,7 @@ export async function withdrawFromHireEscrow(
   await submitTransaction(connection, wallet, transaction);
 }
 
-export async function closeHire(
+export async function closeRental(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -239,7 +245,7 @@ export async function closeHire(
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const hire = await query.findHireAddress(mint, wallet.publicKey);
+  const rental = await query.findRentalAddress(mint, wallet.publicKey);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
     wallet.publicKey
@@ -247,9 +253,9 @@ export async function closeHire(
   const [edition] = await query.findEditionAddress(mint);
 
   const transaction = await program.methods
-    .closeHire()
+    .closeRental()
     .accounts({
-      hire,
+      rental,
       tokenManager,
       depositTokenAccount,
       mint,

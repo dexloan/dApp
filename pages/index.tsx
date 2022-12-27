@@ -2,17 +2,17 @@ import type { NextPage } from "next";
 import { Container, Heading } from "@chakra-ui/react";
 import { useMemo } from "react";
 
-import { CallOption, Hire, Loan } from "../common/model";
+import { CallOption, Rental, Loan } from "../common/model";
 import {
   CallOptionCard,
   CardList,
-  HireCard,
+  RentalCard,
   LoanCard,
 } from "../components/card";
 import { Masthead } from "../components/masthead";
 import {
   useCallOptionsQuery,
-  useHiresQuery,
+  useRentalsQuery,
   useLoansQuery,
 } from "../hooks/query";
 import { CallOptionStateEnum, LoanStateEnum } from "../common/types";
@@ -20,7 +20,7 @@ import { CallOptionStateEnum, LoanStateEnum } from "../common/types";
 const Home: NextPage = () => {
   const loansQuery = useLoansQuery();
   const callOptionsQuery = useCallOptionsQuery();
-  const hiresQuery = useHiresQuery();
+  const hiresQuery = useRentalsQuery();
 
   return (
     <>

@@ -13,8 +13,8 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
-import { HireStateEnum } from "../../common/types";
-import { Hire } from "../../common/model";
+import { RentalStateEnum } from "../../common/types";
+import { Rental } from "../../common/model";
 import { useMetadataFileQuery } from "../../hooks/query";
 import { useCollectionName } from "../../hooks/render";
 
@@ -104,7 +104,7 @@ export const CardList = ({ children }: CardListProps) => {
 };
 
 interface RentalCardProps {
-  rental: Hire;
+  rental: Rental;
   onRent?: () => void;
 }
 
@@ -115,7 +115,7 @@ export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
 
   function renderStatus() {
     switch (rental.state) {
-      case HireStateEnum.Listed: {
+      case RentalStateEnum.Listed: {
         return null;
       }
 

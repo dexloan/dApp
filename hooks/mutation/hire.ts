@@ -11,17 +11,17 @@ import toast from "react-hot-toast";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import { SECONDS_PER_DAY } from "../../common/constants";
-import { HireStateEnum, NftResult } from "../../common/types";
-import { HirePretty } from "../../common/model";
+import { RentalStateEnum, NftResult } from "../../common/types";
+import { RentalPretty } from "../../common/model";
 import {
-  getHireCacheKey,
-  getHiresCacheKey,
-  getHiresGivenCacheKey,
-  getHiresTakenCacheKey,
+  getRentalCacheKey,
+  getRentalsCacheKey,
+  getRentalsGivenCacheKey,
+  getRentalsTakenCacheKey,
   getNftByOwnerCacheKey,
 } from "../query";
 
-export interface InitHireMutationVariables {
+export interface InitRentalMutationVariables {
   mint: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {
@@ -31,15 +31,15 @@ export interface InitHireMutationVariables {
   };
 }
 
-export const useInitHireMutation = (onSuccess: () => void) => {
+export const useInitRentalMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
 
   return useMutation(
-    (variables: InitHireMutationVariables) => {
+    (variables: InitRentalMutationVariables) => {
       if (anchorWallet) {
-        return actions.initHire(
+        return actions.initRental(
           connection,
           anchorWallet,
           variables.mint,
@@ -71,15 +71,18 @@ export const useInitHireMutation = (onSuccess: () => void) => {
         );
 
         if (anchorWallet) {
-          const hireAddress = await query.findHireAddress(
+          const hireAddress = await query.findRentalAddress(
             variables.mint,
             anchorWallet.publicKey
           );
 
           try {
-            const hire = await query.waitForHire(connection, hireAddress);
+            const rental = await query.waitForRental(connection, hireAddress);
 
-            await queryClient.setQueryData(getHireCacheKey(hireAddress), hire);
+            await queryClient.setQueryData(
+              getRentalCacheKey(hireAddress),
+              rental
+            );
           } catch {}
         }
 
@@ -91,20 +94,20 @@ export const useInitHireMutation = (onSuccess: () => void) => {
   );
 };
 
-interface TakeHireVariables {
+interface TakeRentalVariables {
   mint: anchor.web3.PublicKey;
   lender: anchor.web3.PublicKey;
   metadata: Metadata;
   days: number;
 }
 
-export const useTakeHireMutation = (onSuccess: () => void) => {
+export const useTakeRentalMutation = (onSuccess: () => void) => {
   const anchorWallet = useAnchorWallet();
   const wallet = useWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, TakeHireVariables>(
+  return useMutation<void, Error, TakeRentalVariables>(
     async ({ mint, lender, metadata, days }) => {
       if (anchorWallet && wallet.publicKey) {
         const hireTokenAccount = await actions.getOrCreateTokenAccount(
@@ -113,7 +116,7 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
           mint
         );
 
-        return actions.takeHire(
+        return actions.takeRental(
           connection,
           anchorWallet,
           mint,
@@ -127,13 +130,13 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const hireAddress = await query.findHireAddress(
+        const hireAddress = await query.findRentalAddress(
           variables.mint,
           variables.lender
         );
 
-        queryClient.setQueryData<HirePretty[] | undefined>(
-          getHiresCacheKey(),
+        queryClient.setQueryData<RentalPretty[] | undefined>(
+          getRentalsCacheKey(),
           (data) => {
             if (data) {
               return data?.filter(
@@ -146,20 +149,20 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
         setTimeout(
           () =>
             queryClient.invalidateQueries(
-              getHiresTakenCacheKey(anchorWallet?.publicKey)
+              getRentalsTakenCacheKey(anchorWallet?.publicKey)
             ),
           500
         );
 
-        queryClient.setQueryData<HirePretty | undefined>(
-          getHireCacheKey(hireAddress),
+        queryClient.setQueryData<RentalPretty | undefined>(
+          getRentalCacheKey(hireAddress),
           (item) => {
             if (item && anchorWallet) {
               return {
                 ...item,
                 data: {
                   ...item.data,
-                  state: HireStateEnum.Hired,
+                  state: RentalStateEnum.Rentald,
                   borrower: anchorWallet.publicKey.toBase58(),
                   currentStart: Date.now() / 1000,
                   currentExpiry:
@@ -187,23 +190,23 @@ export const useTakeHireMutation = (onSuccess: () => void) => {
   );
 };
 
-interface ExtendHireVariables {
+interface ExtendRentalVariables {
   mint: anchor.web3.PublicKey;
   lender: anchor.web3.PublicKey;
   metadata: Metadata;
   days: number;
 }
 
-export const useExtendHireMutation = (onSuccess: () => void) => {
+export const useExtendRentalMutation = (onSuccess: () => void) => {
   const anchorWallet = useAnchorWallet();
   const wallet = useWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, ExtendHireVariables>(
+  return useMutation<void, Error, ExtendRentalVariables>(
     async ({ mint, lender, metadata, days }) => {
       if (anchorWallet && wallet.publicKey) {
-        return actions.extendHire(
+        return actions.extendRental(
           connection,
           anchorWallet,
           mint,
@@ -216,7 +219,7 @@ export const useExtendHireMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const hireAddress = await query.findHireAddress(
+        const hireAddress = await query.findRentalAddress(
           variables.mint,
           variables.lender
         );
@@ -224,13 +227,13 @@ export const useExtendHireMutation = (onSuccess: () => void) => {
         setTimeout(
           () =>
             queryClient.invalidateQueries(
-              getHiresTakenCacheKey(anchorWallet?.publicKey)
+              getRentalsTakenCacheKey(anchorWallet?.publicKey)
             ),
           500
         );
 
-        queryClient.setQueryData<HirePretty | undefined>(
-          getHireCacheKey(hireAddress),
+        queryClient.setQueryData<RentalPretty | undefined>(
+          getRentalCacheKey(hireAddress),
           (item) => {
             if (item && anchorWallet) {
               return {
@@ -260,18 +263,18 @@ export const useExtendHireMutation = (onSuccess: () => void) => {
   );
 };
 
-interface RecoverHireMutation {
+interface RecoverRentalMutation {
   mint: anchor.web3.PublicKey;
   borrower: anchor.web3.PublicKey;
 }
 
-export const useRecoverHireMutation = (onSuccess: () => void) => {
+export const useRecoverRentalMutation = (onSuccess: () => void) => {
   const { connection } = useConnection();
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, RecoverHireMutation>(
+  return useMutation<void, Error, RecoverRentalMutation>(
     async ({ mint, borrower }) => {
       if (anchorWallet) {
         const depositTokenAccount = await actions.getOrCreateTokenAccount(
@@ -280,7 +283,7 @@ export const useRecoverHireMutation = (onSuccess: () => void) => {
           mint
         );
 
-        return actions.recoverHire(
+        return actions.recoverRental(
           connection,
           anchorWallet,
           mint,
@@ -301,15 +304,15 @@ export const useRecoverHireMutation = (onSuccess: () => void) => {
         toast.success("Your NFT has been returned to you.");
 
         queryClient.setQueryData(
-          getHiresGivenCacheKey(anchorWallet?.publicKey),
-          (items: HirePretty[] | undefined) => {
+          getRentalsGivenCacheKey(anchorWallet?.publicKey),
+          (items: RentalPretty[] | undefined) => {
             if (!items) return [];
 
             return items.map((item) => {
               if (item.data.mint === variables.mint.toBase58()) {
                 return {
                   ...item,
-                  state: HireStateEnum.Listed,
+                  state: RentalStateEnum.Listed,
                 };
               }
 
@@ -318,12 +321,12 @@ export const useRecoverHireMutation = (onSuccess: () => void) => {
           }
         );
 
-        const loanAddress = await query.findHireAddress(
+        const loanAddress = await query.findRentalAddress(
           variables.mint,
           variables.borrower
         );
 
-        setHireState(queryClient, loanAddress, HireStateEnum.Listed);
+        setRentalState(queryClient, loanAddress, RentalStateEnum.Listed);
 
         onSuccess();
       },
@@ -331,19 +334,19 @@ export const useRecoverHireMutation = (onSuccess: () => void) => {
   );
 };
 
-interface WithdrawFromHireEscrowMutation {
+interface WithdrawFromRentalEscrowMutation {
   mint: anchor.web3.PublicKey;
 }
 
-export function useWithdrawFromHireEscrowMutation() {
+export function useWithdrawFromRentalEscrowMutation() {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, WithdrawFromHireEscrowMutation>(
+  return useMutation<void, Error, WithdrawFromRentalEscrowMutation>(
     async ({ mint }) => {
       if (anchorWallet) {
-        return actions.withdrawFromHireEscrow(connection, anchorWallet, mint);
+        return actions.withdrawFromRentalEscrow(connection, anchorWallet, mint);
       }
       throw new Error("Not ready");
     },
@@ -358,13 +361,13 @@ export function useWithdrawFromHireEscrowMutation() {
         toast.success("Withdrawl successful");
 
         if (anchorWallet) {
-          const hireAddress = await query.findHireAddress(
+          const hireAddress = await query.findRentalAddress(
             variables.mint,
             anchorWallet.publicKey
           );
 
-          queryClient.setQueryData<HirePretty | undefined>(
-            getHireCacheKey(hireAddress),
+          queryClient.setQueryData<RentalPretty | undefined>(
+            getRentalCacheKey(hireAddress),
             (data) => {
               if (data) {
                 return {
@@ -383,17 +386,17 @@ export function useWithdrawFromHireEscrowMutation() {
   );
 }
 
-interface CloseHireMutation {
+interface CloseRentalMutation {
   mint: anchor.web3.PublicKey;
 }
 
-export function useCloseHireMutation(onSuccess: () => void) {
+export function useCloseRentalMutation(onSuccess: () => void) {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
   const wallet = useWallet();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, CloseHireMutation>(
+  return useMutation<void, Error, CloseRentalMutation>(
     async ({ mint }) => {
       if (anchorWallet) {
         const lenderTokenAccount = await actions.getOrCreateTokenAccount(
@@ -402,7 +405,7 @@ export function useCloseHireMutation(onSuccess: () => void) {
           mint
         );
 
-        return actions.closeHire(
+        return actions.closeRental(
           connection,
           anchorWallet,
           mint,
@@ -419,8 +422,8 @@ export function useCloseHireMutation(onSuccess: () => void) {
         }
       },
       async onSuccess(_, variables) {
-        queryClient.setQueryData<HirePretty[] | undefined>(
-          getHiresGivenCacheKey(anchorWallet?.publicKey),
+        queryClient.setQueryData<RentalPretty[] | undefined>(
+          getRentalsGivenCacheKey(anchorWallet?.publicKey),
           (data) => {
             if (data) {
               return data?.filter(
@@ -430,8 +433,8 @@ export function useCloseHireMutation(onSuccess: () => void) {
           }
         );
 
-        queryClient.setQueryData<HirePretty[] | undefined>(
-          getHiresCacheKey(),
+        queryClient.setQueryData<RentalPretty[] | undefined>(
+          getRentalsCacheKey(),
           (data) => {
             if (data) {
               return data?.filter(
@@ -442,12 +445,12 @@ export function useCloseHireMutation(onSuccess: () => void) {
         );
 
         if (anchorWallet) {
-          const hireAddress = await query.findHireAddress(
+          const hireAddress = await query.findRentalAddress(
             variables.mint,
             anchorWallet?.publicKey
           );
 
-          setHireState(queryClient, hireAddress, HireStateEnum.Cancelled);
+          setRentalState(queryClient, hireAddress, RentalStateEnum.Cancelled);
         }
 
         toast.success("Call option closed");
@@ -458,13 +461,13 @@ export function useCloseHireMutation(onSuccess: () => void) {
   );
 }
 
-function setHireState(
+function setRentalState(
   queryClient: QueryClient,
   hireAddress: anchor.web3.PublicKey,
-  state: HireStateEnum
+  state: RentalStateEnum
 ) {
-  queryClient.setQueryData<HirePretty | undefined>(
-    getHireCacheKey(hireAddress),
+  queryClient.setQueryData<RentalPretty | undefined>(
+    getRentalCacheKey(hireAddress),
     (item) => {
       if (item) {
         return {

@@ -9,11 +9,11 @@ import {
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { Hire } from "../../common/model";
+import { Rental } from "../../common/model";
 
 interface TakeRentalFormProps {
   label?: string;
-  rental: Hire;
+  rental: Rental;
   onSubmit: (data: { days: number }) => void;
 }
 

@@ -1,6 +1,6 @@
 export * from "./callOption";
 export * from "./collection";
 export * from "./loan";
-export * from "./hire";
+export * from "./rental";
 export * from "./common";
 export * from "./tokenManager";

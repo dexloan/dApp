@@ -20,8 +20,8 @@ import { useMemo, useState } from "react";
 import dayjs from "../../common/lib/dayjs";
 import { NftResult } from "../../common/types";
 import {
-  InitHireMutationVariables,
-  useInitHireMutation,
+  InitRentalMutationVariables,
+  useInitRentalMutation,
 } from "../../hooks/mutation";
 import { SelectNftForm, ModalProps, SelectNftModalProps } from "./common";
 
@@ -31,7 +31,7 @@ export const OfferRentalModal = ({
   onRequestClose,
 }: SelectNftModalProps) => {
   const [innerSelected, setSelected] = useState<NftResult | null>(selected);
-  const mutation = useInitHireMutation(() => onRequestClose());
+  const mutation = useInitRentalMutation(() => onRequestClose());
 
   return (
     <Modal
@@ -76,7 +76,7 @@ interface OfferRentalFormProps extends Pick<ModalProps, "onRequestClose"> {
   isLoading: boolean;
   selected: NftResult;
   onCancel: () => void;
-  onSubmit: (data: InitHireMutationVariables) => void;
+  onSubmit: (data: InitRentalMutationVariables) => void;
 }
 
 const OfferRentalForm = ({

@@ -87,6 +87,7 @@ export class CallOption implements CallOptionArgs {
       data: {
         state: this.state,
         amount: this.data.amount.toNumber(),
+        creatorBasisPoints: this.data.creatorBasisPoints,
         seller: this.data.seller.toBase58(),
         buyer: this.data.buyer?.toBase58(),
         expiry: this.data.expiry.toNumber(),
@@ -104,6 +105,7 @@ export class CallOption implements CallOptionArgs {
       {
         state: { [args.data.state as string]: {} },
         amount: new BN(args.data.amount),
+        creatorBasisPoints: args.data.creatorBasisPoints,
         seller: new web3.PublicKey(args.data.seller),
         buyer: args.data.buyer ? new web3.PublicKey(args.data.buyer) : null,
         expiry: new BN(args.data.expiry),

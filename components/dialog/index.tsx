@@ -9,7 +9,7 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import { CallOption, Loan, Hire } from "../../common/model";
+import { CallOption, Loan, Rental } from "../../common/model";
 
 interface MutationDialogProps {
   open: boolean;
@@ -299,22 +299,22 @@ export const CloseCallOptionDialog = ({
   );
 };
 
-interface HireDialogProps
+interface RentalDialogProps
   extends Pick<
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  hire: Hire;
+  rental: Rental;
 }
 
-export const TakeHireDialog = ({
-  hire,
+export const TakeRentalDialog = ({
+  rental,
   days,
   open,
   loading,
   onConfirm,
   onRequestClose,
-}: HireDialogProps & {
+}: RentalDialogProps & {
   days: number;
 }) => {
   return (
@@ -324,8 +324,8 @@ export const TakeHireDialog = ({
       header="Rental"
       content={
         <Text>
-          Rent {hire.metadata.data.name} for {days} day{days > 1 ? "s" : ""} at
-          a cost of <strong>{hire.getFullAmount(days)}</strong>?
+          Rent {rental.metadata.data.name} for {days} day{days > 1 ? "s" : ""}{" "}
+          at a cost of <strong>{rental.getFullAmount(days)}</strong>?
         </Text>
       }
       onConfirm={onConfirm}
@@ -334,14 +334,14 @@ export const TakeHireDialog = ({
   );
 };
 
-export const ExtendHireDialog = ({
-  hire,
+export const ExtendRentalDialog = ({
+  rental,
   days,
   open,
   loading,
   onConfirm,
   onRequestClose,
-}: HireDialogProps & {
+}: RentalDialogProps & {
   days: number;
 }) => {
   return (
@@ -351,9 +351,9 @@ export const ExtendHireDialog = ({
       header="Extend rental"
       content={
         <Text>
-          Extend rental of <strong>{hire.metadata.data.name}</strong> for {days}{" "}
-          day
-          {days > 1 ? "s" : ""} at a cost of {hire.getFullAmount(days)}?
+          Extend rental of <strong>{rental.metadata.data.name}</strong> for{" "}
+          {days} day
+          {days > 1 ? "s" : ""} at a cost of {rental.getFullAmount(days)}?
         </Text>
       }
       onConfirm={onConfirm}
@@ -362,13 +362,13 @@ export const ExtendHireDialog = ({
   );
 };
 
-export const RecoverHireDialog = ({
-  hire,
+export const RecoverRentalDialog = ({
+  rental,
   open,
   loading,
   onConfirm,
   onRequestClose,
-}: HireDialogProps) => {
+}: RentalDialogProps) => {
   return (
     <MutationDialog
       open={open}
@@ -376,9 +376,9 @@ export const RecoverHireDialog = ({
       header={`Recover NFT`}
       content={
         <Text>
-          The current hire period expired on {hire.currentExpiry}. Do you wish
-          to take back possession of the NFT? The listing will remain active
-          until closed or another user choses to take the hire.
+          The current rental period expired on {rental.currentExpiry}. Do you
+          wish to take back possession of the NFT? The listing will remain
+          active until closed or another user choses to take the rental.
         </Text>
       }
       onConfirm={onConfirm}
