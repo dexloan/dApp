@@ -51,7 +51,19 @@ export class Loan implements LoanArgs {
   }
 
   get apy() {
-    return this.data.basisPoints / 100 + "%";
+    return (
+      Number(
+        this.data.basisPoints / 100 + this.data.creatorBasisPoints / 100
+      ).toFixed(2) + "%"
+    );
+  }
+
+  get creatorApy() {
+    return Number(this.data.creatorBasisPoints / 100).toFixed(2) + "%";
+  }
+
+  get lenderApy() {
+    return Number(this.data.basisPoints / 100).toFixed(2) + "%";
   }
 
   get duration() {

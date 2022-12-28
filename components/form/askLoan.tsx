@@ -12,11 +12,15 @@ import {
   SimpleGrid,
   Spinner,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 import { NftResult } from "../../common/types";
-import { useFloorPriceQuery } from "../../hooks/query";
+import { Collection } from "../../common/model";
+import {
+  useFloorPriceQuery,
+  useCollectionByMintQuery,
+} from "../../hooks/query";
 import {
   AskLoanMutationVariables,
   useAskLoanMutation,
@@ -79,7 +83,7 @@ export const AskLoanModal = ({
             onSubmit={(vars) => mutation.mutate(vars)}
           />
         ) : (
-          <SelectNftForm onSelect={setSelected} />
+          <SelectNftForm listingType="loan" onSelect={setSelected} />
         )}
       </ModalContent>
     </Modal>
@@ -110,7 +114,15 @@ const AskLoanForm = ({
   });
 
   const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
-
+  const collectionQuery = useCollectionByMintQuery(
+    selected?.metadata.collection?.key
+  );
+  const collection = useMemo(() => {
+    if (collectionQuery.data) {
+      return Collection.fromJSON(collectionQuery.data);
+    }
+  }, [collectionQuery.data]);
+  console.log(collection);
   const onSubmit = handleSubmit((data) => {
     if (floorPriceQuery.data) {
       const options = {
@@ -149,6 +161,7 @@ const AskLoanForm = ({
                 floorPriceQuery.data?.floorPrice && (
                   <AskListingForecast
                     control={control}
+                    creatorBasisPoints={collection?.config.loanBasisPoints}
                     floorPrice={floorPriceQuery.data?.floorPrice}
                   />
                 )
@@ -236,11 +249,13 @@ const AskLoanForm = ({
 interface AskListingForecastProps {
   control: Control<LoanFormFields, any>;
   floorPrice: number;
+  creatorBasisPoints?: number;
 }
 
 const AskListingForecast = ({
   control,
   floorPrice,
+  creatorBasisPoints,
 }: AskListingForecastProps) => {
   const { ltv, apy, duration } = useWatch({ control });
 
@@ -252,9 +267,10 @@ const AskListingForecast = ({
 
   return (
     <LoanForecast
-      amountLabel="Lending"
+      amountLabel="Borrowing"
       amount={amount}
       basisPoints={basisPoints}
+      creatorBasisPoints={creatorBasisPoints}
       duration={durationSeconds}
     />
   );

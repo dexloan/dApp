@@ -1,6 +1,15 @@
-import { BN, web3 } from "@project-serum/anchor";
+import { web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import type { CollectionData } from "../types";
+
+export interface CollectionConfig {
+  loanBasisPoints: number;
+  loanEnabled: boolean;
+  optionBasisPoints: number;
+  optionEnabled: boolean;
+  rentalBasisPoints: number;
+  rentalEnabled: boolean;
+}
 
 export type CollectionArgs = {
   data: CollectionData;
@@ -17,10 +26,16 @@ export class Collection implements CollectionArgs {
     public readonly publicKey: web3.PublicKey
   ) {}
 
+  get config() {
+    return this.data.config as CollectionConfig;
+  }
+
   pretty() {
     return {
       data: {
         authority: this.data.authority.toBase58(),
+        config: this.data.config,
+        reserved: this.data.reserved,
         mint: this.data.mint.toBase58(),
         bump: this.data.bump,
       },
@@ -34,7 +49,8 @@ export class Collection implements CollectionArgs {
       {
         authority: new web3.PublicKey(args.data.authority),
         mint: new web3.PublicKey(args.data.mint),
-        reserved: [],
+        config: args.data.config,
+        reserved: args.data.reserved,
         bump: args.data.bump,
       },
       Metadata.fromArgs({
@@ -47,6 +63,7 @@ export class Collection implements CollectionArgs {
         editionNonce: args.metadata.editionNonce,
         tokenStandard: args.metadata.tokenStandard,
         collection: args.metadata.collection,
+        collectionDetails: args.metadata.collectionDetails,
         uses: args.metadata.uses,
       }),
       new web3.PublicKey(args.publicKey)

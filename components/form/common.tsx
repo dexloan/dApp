@@ -16,6 +16,7 @@ import {
   Spinner,
   Text,
   Tooltip,
+  Divider,
 } from "@chakra-ui/react";
 import { IconType } from "react-icons";
 import Image from "next/image";
@@ -29,7 +30,6 @@ import {
   useMetadataFileQuery,
   useMetadataQuery,
 } from "../../hooks/query";
-import { useCollectionName } from "../../hooks/render";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
 import { EllipsisProgress } from "../progress";
@@ -56,6 +56,7 @@ interface LoanForecastProps {
   duration?: anchor.BN;
   amount?: anchor.BN | null;
   basisPoints?: number;
+  creatorBasisPoints?: number;
 }
 
 export const LoanForecast = ({
@@ -63,12 +64,23 @@ export const LoanForecast = ({
   amountLabel = "Borrowing",
   duration,
   basisPoints,
+  creatorBasisPoints,
 }: LoanForecastProps) => {
-  const interest = useMemo(() => {
-    if (amount && basisPoints && duration) {
-      return utils.calculateInterestOnMaturity(amount, duration, basisPoints);
+  const totalDue = useMemo(() => {
+    if (
+      amount &&
+      basisPoints !== undefined &&
+      creatorBasisPoints !== undefined &&
+      duration
+    ) {
+      return utils.formatTotalDue(
+        amount,
+        new anchor.BN(Date.now() / 1000).sub(duration),
+        basisPoints + creatorBasisPoints,
+        false
+      );
     }
-  }, [amount, duration, basisPoints]);
+  }, [amount, duration, basisPoints, creatorBasisPoints]);
 
   const days = useMemo(() => {
     if (duration) {
@@ -76,30 +88,57 @@ export const LoanForecast = ({
     }
   }, [duration]);
 
+  console.log("creatorBasisPoints: ", creatorBasisPoints);
+
   return (
     <Flex direction="column" gap="2" justify="space-between">
       <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="sm" color="gray.500">
+        <Text fontSize="xs" color="gray.500">
           {amountLabel}
         </Text>
-        <Text fontSize="sm" whiteSpace="nowrap">
+        <Text fontSize="xs" whiteSpace="nowrap">
           {amount ? utils.formatAmount(amount) : <EllipsisProgress />}
         </Text>
       </Flex>
       <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
-          Interest on Maturity
+        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+          Duration
         </Text>
-        <Text fontSize="sm" whiteSpace="nowrap">
-          {interest ? utils.formatAmount(interest) : <EllipsisProgress />}
+        <Text fontSize="xs" whiteSpace="nowrap">
+          {days} days
         </Text>
       </Flex>
       <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
-          Duration
+        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+          Lender Interest Rate
+        </Text>
+        <Text fontSize="xs" whiteSpace="nowrap">
+          {typeof basisPoints === "number" ? (
+            utils.formatBasisPoints(basisPoints) + " APY"
+          ) : (
+            <EllipsisProgress />
+          )}
+        </Text>
+      </Flex>
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+          Creator Interest Rate
+        </Text>
+        <Text fontSize="xs" whiteSpace="nowrap">
+          {typeof creatorBasisPoints === "number" ? (
+            utils.formatBasisPoints(creatorBasisPoints) + " APY"
+          ) : (
+            <EllipsisProgress />
+          )}
+        </Text>
+      </Flex>
+      <Divider />
+      <Flex direction="row" justifyContent="space-between" w="100%">
+        <Text fontSize="sm" color="gray.500">
+          Total payable on maturity
         </Text>
         <Text fontSize="sm" whiteSpace="nowrap">
-          {days} days
+          {totalDue ?? <EllipsisProgress />}
         </Text>
       </Flex>
     </Flex>

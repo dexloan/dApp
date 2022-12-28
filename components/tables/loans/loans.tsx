@@ -75,8 +75,6 @@ interface LoanRowProps {
 }
 
 const LoanRow = ({ loan, onClick }: LoanRowProps) => {
-  const router = useRouter();
-
   const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
 
   const floorPriceSol = useMemo(() => {
@@ -96,7 +94,13 @@ const LoanRow = ({ loan, onClick }: LoanRowProps) => {
     >
       <NFTCell metadata={loan?.metadata} />
       <Td>{loan.duration}</Td>
-      <Td isNumeric>{loan.apy}</Td>
+      <Td isNumeric>
+        {loan.apy}
+        <br />
+        <small>
+          ({loan.lenderApy}, {loan.creatorApy})
+        </small>
+      </Td>
       <Td isNumeric>{ltv}</Td>
       <Td isNumeric>
         <Box>

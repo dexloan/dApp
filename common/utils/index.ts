@@ -22,6 +22,16 @@ export function formatDuration(duration: anchor.BN): string {
   return `${days} ${days === 1 ? "day" : "days"}`;
 }
 
+export function formatBasisPoints(basisPoints: number): string {
+  let percent = 0;
+
+  if (basisPoints !== 0) {
+    percent = basisPoints / 100;
+  }
+
+  return percent + "%";
+}
+
 export function hasExpired(startDate: anchor.BN, duration: anchor.BN): boolean {
   return Date.now() / 1000 > startDate.add(duration).toNumber();
 }
