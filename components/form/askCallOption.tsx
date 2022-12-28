@@ -72,7 +72,7 @@ export const AskCallOptionModal = ({
             onSubmit={(vars) => mutation.mutate(vars)}
           />
         ) : (
-          <SelectNftForm onSelect={setSelected} />
+          <SelectNftForm listingType="callOption" onSelect={setSelected} />
         )}
       </ModalContent>
     </Modal>
@@ -309,7 +309,7 @@ const Details = ({ control, selected }: DetailsProps) => {
 
   return (
     <CollectionDetails
-      nft={selected}
+      metadata={selected.metadata}
       forecast={
         <CallOptionDetails
           amount={amount}

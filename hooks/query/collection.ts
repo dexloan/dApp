@@ -1,5 +1,6 @@
 import { web3 } from "@project-serum/anchor";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 
 import * as query from "../../common/query";
@@ -18,19 +19,38 @@ export const useCollectionsQuery = () => {
   );
 };
 
-export const useCollectionByMintQuery = (mint?: web3.PublicKey) => {
+export const useCollectionQuery = (collectionPda?: web3.PublicKey) => {
   const { connection } = useConnection();
 
   return useQuery(
-    ["collection", mint?.toBase58()],
+    ["collection", collectionPda?.toBase58()],
     async () => {
-      if (mint) {
-        const collectionPda = await query.findCollectionAddress(mint);
+      if (collectionPda) {
         return query.fetchCollection(connection, collectionPda);
       }
     },
     {
-      enabled: typeof window !== "undefined" && Boolean(mint),
+      enabled: typeof window !== "undefined" && Boolean(collectionPda),
     }
   );
+};
+
+export const useCollectionByMintQuery = (mint?: web3.PublicKey) => {
+  const collectionPda = useCollectionPda(mint);
+  return useCollectionQuery(collectionPda);
+};
+
+export const useCollectionPda = (mint?: web3.PublicKey) => {
+  const [collectionPda, setCollectionPda] = useState<web3.PublicKey>();
+
+  useEffect(() => {
+    if (mint) {
+      query
+        .findCollectionAddress(mint)
+        .then((pda) => setCollectionPda(pda))
+        .catch();
+    }
+  }, [mint]);
+
+  return collectionPda;
 };

@@ -156,7 +156,7 @@ const AskLoanForm = ({
         ) : (
           <>
             <CollectionDetails
-              nft={selected}
+              metadata={selected.metadata}
               forecast={
                 floorPriceQuery.data?.floorPrice && (
                   <AskListingForecast

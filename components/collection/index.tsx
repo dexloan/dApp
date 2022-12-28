@@ -15,6 +15,10 @@ export function VerifiedCollection({
 }: VerifiedCollectionProps) {
   const collectionName = useCollectionName(metadata);
 
+  if (!metadata?.collection?.key) {
+    return null;
+  }
+
   return (
     <Flex direction="row" alignItems="center">
       <Icon as={IoAtCircleOutline} color="orange.300" mr="1" />

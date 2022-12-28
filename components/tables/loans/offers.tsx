@@ -1,15 +1,29 @@
 import * as anchor from "@project-serum/anchor";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Box, Button, Icon, Tr, Th, Td, Text } from "@chakra-ui/react";
+import { Button, Icon, Th } from "@chakra-ui/react";
 import { IoAdd } from "react-icons/io5";
 import { useMemo, useState } from "react";
 
-import { LoanOffer, LoanOfferPretty } from "../../../common/model";
-import { useFloorPriceQuery } from "../../../hooks/query";
+import {
+  Collection,
+  CollectionConfig,
+  LoanOffer,
+  LoanOfferPretty,
+} from "../../../common/model";
+import {
+  useCollectionByMintQuery,
+  useCollectionQuery,
+  useFloorPriceQuery,
+} from "../../../hooks/query";
 import { useLTV } from "../../../hooks/render";
-import { Col, ColumnHeader, ListingsTable, NFTCell } from "../../table";
+import { Col, ColumnHeader, ListingsTable } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
-import { LoanSortCols, useLoanSortState, useSortedLoanOffers } from "./common";
+import {
+  LoanRow,
+  LoanSortCols,
+  useLoanSortState,
+  useSortedLoanOffers,
+} from "./common";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
@@ -99,6 +113,7 @@ interface LoanOfferRowProps {
 }
 
 const LoanOfferRow = ({ offer, onSelect }: LoanOfferRowProps) => {
+  const collectionQuery = useCollectionQuery(offer.data.collection);
   const floorPriceQuery = useFloorPriceQuery(offer?.metadata.data.symbol);
 
   const floorPrice = useMemo(() => {
@@ -109,27 +124,28 @@ const LoanOfferRow = ({ offer, onSelect }: LoanOfferRowProps) => {
 
   const ltv = useLTV(offer?.data.amount, floorPriceQuery.data?.floorPrice);
 
+  const collectionConfig = collectionQuery.data?.data
+    .config as CollectionConfig;
+  const creatorApy = collectionConfig
+    ? collectionConfig.loanBasisPoints === 0
+      ? 0
+      : collectionConfig.loanBasisPoints / 100
+    : undefined;
+
+  const offerApy =
+    offer.data.basisPoints === 0 ? 0 : offer.data.basisPoints / 100;
+
   return (
-    <>
-      <Tr
-        key={offer.publicKey.toBase58()}
-        cursor="pointer"
-        _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
-        onClick={() => onSelect()}
-      >
-        <NFTCell metadata={offer?.metadata} />
-        <Td>{offer.duration}</Td>
-        <Td isNumeric>{offer.apy}</Td>
-        <Td isNumeric>{ltv}</Td>
-        <Td isNumeric>
-          <Box>
-            <Text mb="1">{offer.amount}</Text>
-            <Text fontSize="xs" color="gray.500">
-              Floor {floorPrice ?? "..."}
-            </Text>
-          </Box>
-        </Td>
-      </Tr>
-    </>
+    <LoanRow
+      amount={offer.amount}
+      duration={offer.duration}
+      apy={creatorApy ? offerApy + creatorApy + "%" : "..."}
+      lenderApy={offer.apy}
+      creatorApy={creatorApy ? creatorApy + "%" : "..."}
+      ltv={ltv}
+      floorPriceSol={floorPrice}
+      metadata={offer.metadata}
+      onClick={onSelect}
+    />
   );
 };

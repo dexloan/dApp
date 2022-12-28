@@ -1,4 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
+import { Box, Flex, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
+import Image from "next/image";
 
 import * as utils from "../../../common/utils";
 import {
@@ -8,6 +10,9 @@ import {
   LoanPretty,
 } from "../../../common/model";
 import { useFloorPricesQuery } from "../../../hooks/query";
+import { NftResult } from "../../../common/types";
+import { NFTCell } from "../../table";
+import { EllipsisProgress } from "../../progress";
 
 export type LoanSortCols =
   | "asset"
@@ -162,3 +167,67 @@ function sortByDuration(direction: number) {
     return args[0].data.duration.sub(args[1].data.duration).toNumber();
   };
 }
+
+interface LoanRowProps {
+  amount?: string;
+  duration: string;
+  apy: string;
+  creatorApy: string;
+  lenderApy: string;
+  floorPriceSol?: number;
+  ltv: React.ReactNode;
+  metadata: NftResult["metadata"];
+  onClick: () => void;
+}
+
+export const LoanRow = ({
+  amount,
+  duration,
+  apy,
+  creatorApy,
+  lenderApy,
+  floorPriceSol,
+  ltv,
+  metadata,
+  onClick,
+}: LoanRowProps) => {
+  return (
+    <Tr
+      cursor="pointer"
+      _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
+      onClick={onClick}
+    >
+      <NFTCell metadata={metadata} />
+      <Td>{duration}</Td>
+      <Td isNumeric>
+        <Text mb="1">{apy}</Text>
+        <Tooltip label="Lender and creator interest rates.">
+          <Text fontSize="xs" color="gray.500">
+            ({lenderApy}, {creatorApy})
+          </Text>
+        </Tooltip>
+      </Td>
+      <Td isNumeric>{ltv}</Td>
+      <Td isNumeric>
+        <Box>
+          <Text mb="1">{amount}</Text>
+          <Flex alignItems="center" justifyContent="flex-end">
+            {floorPriceSol ? (
+              <>
+                <Text fontSize="xs" color="gray.500" mr="1">
+                  (Floor {floorPriceSol ?? "..."}{" "}
+                </Text>
+                <Image src="/me.svg" height={16} width={16} alt="Magic Eden" />
+                <Text fontSize="xs" color="gray.500">
+                  )
+                </Text>
+              </>
+            ) : (
+              <EllipsisProgress />
+            )}
+          </Flex>
+        </Box>
+      </Td>
+    </Tr>
+  );
+};

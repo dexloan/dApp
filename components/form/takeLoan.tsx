@@ -72,7 +72,7 @@ const TakeLoan = ({ open, offer, onRequestClose }: TakeLoanModalProps) => {
     <>
       <ModalBody>
         <CollectionDetails
-          nft={selected}
+          metadata={selected.metadata}
           forecast={
             <LoanForecast
               amountLabel="Borrowing"
@@ -109,6 +109,7 @@ const TakeLoan = ({ open, offer, onRequestClose }: TakeLoanModalProps) => {
     </>
   ) : (
     <SelectNftForm
+      listingType="loan"
       collectionMint={offer?.metadata.mint}
       onSelect={setSelected}
     />

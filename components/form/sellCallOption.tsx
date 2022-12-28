@@ -74,7 +74,7 @@ const SellCallOption = ({
     <>
       <ModalBody>
         <CollectionDetails
-          nft={selected}
+          metadata={selected.metadata}
           forecast={
             <CallOptionDetails
               amount={bid?.data.amount}
@@ -109,7 +109,11 @@ const SellCallOption = ({
       </ModalFooter>
     </>
   ) : (
-    <SelectNftForm collectionMint={bid?.metadata.mint} onSelect={setSelected} />
+    <SelectNftForm
+      listingType="callOption"
+      collectionMint={bid?.metadata.mint}
+      onSelect={setSelected}
+    />
   );
 
   return (

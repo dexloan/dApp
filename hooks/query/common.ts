@@ -6,6 +6,7 @@ import {
 } from "@solana/wallet-adapter-react";
 import { useQuery, useQueryClient } from "react-query";
 
+import * as utils from "../../common/utils";
 import {
   fetchMetadata,
   fetchNft,
@@ -180,6 +181,7 @@ export const useFloorPricesQuery = () => {
 };
 
 async function fetchFloorPrice(symbol: string) {
+  const formattedSymbol = utils.trimNullChars(symbol).toLowerCase();
   const response = await fetch(`/api/floor/${symbol}`);
   return response.json() as Promise<{ floorPrice: number }>;
 }

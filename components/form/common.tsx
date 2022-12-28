@@ -465,16 +465,16 @@ const SectionHeader = ({
 );
 
 interface CollectionDetailsProps {
-  nft: NftResult;
+  metadata?: NftResult["metadata"];
   forecast: React.ReactNode;
 }
 
 export const CollectionDetails = ({
-  nft,
+  metadata,
   forecast,
 }: CollectionDetailsProps) => {
   const [isVisible, setVisible] = useState(false);
-  const metadataQuery = useMetadataFileQuery(nft?.metadata?.data.uri);
+  const metadataQuery = useMetadataFileQuery(metadata?.data.uri);
 
   return (
     <Box pb="4" pt="2" px="6">
@@ -499,7 +499,7 @@ export const CollectionDetails = ({
                     layout="fill"
                     objectFit="cover"
                     src={metadataQuery.data?.image}
-                    alt={nft?.metadata.data.name}
+                    alt={metadata?.data.name}
                     onLoad={() => setVisible(true)}
                   />
                 )}
@@ -510,8 +510,8 @@ export const CollectionDetails = ({
         <Flex flex={3} flexGrow={1}>
           <Box w="100%">
             <Box pb="4">
-              <Heading size="md">{nft?.metadata.data.name}</Heading>
-              <VerifiedCollection size="xs" metadata={nft?.metadata} />
+              <Heading size="md">{metadata?.data.name}</Heading>
+              <VerifiedCollection size="xs" metadata={metadata} />
             </Box>
             {forecast}
           </Box>

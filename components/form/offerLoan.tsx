@@ -30,6 +30,7 @@ import {
   ModalProps,
   SliderField,
   LoanForecast,
+  CollectionDetails,
 } from "./common";
 
 interface OfferFormFields extends LoanFormFields {
@@ -125,10 +126,27 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
           ) : (
             <>
               {floorPricesQuery.data && (
-                <OfferListingForecast
+                <Controller
+                  name="collection"
                   control={control}
-                  collections={collections}
-                  floorPrices={floorPricesQuery.data}
+                  render={({ field: { value, onChange } }) => {
+                    const selectedCollection = collections.find(
+                      (c) => c.publicKey.toBase58() == value
+                    );
+
+                    return (
+                      <CollectionDetails
+                        metadata={selectedCollection?.metadata}
+                        forecast={
+                          <OfferListingForecast
+                            control={control}
+                            collection={selectedCollection}
+                            floorPrices={floorPricesQuery.data}
+                          />
+                        }
+                      />
+                    );
+                  }}
                 />
               )}
               <Box pb="4" pt="6" pl="6" pr="6">
@@ -251,40 +269,41 @@ function pickIds(offers: LoanOfferPretty[], count: number) {
 
 interface OfferListingForecastProps {
   control: Control<OfferFormFields, any>;
-  collections: Collection[];
+  collection?: Collection;
   floorPrices: Record<string, number>;
 }
 
 const OfferListingForecast = ({
   control,
-  collections = [],
-  floorPrices = {},
+  collection,
+  floorPrices,
 }: OfferListingForecastProps) => {
-  const { ltv, apy, duration, offers, collection } = useWatch({ control });
+  const { ltv, apy, duration, offers } = useWatch({ control });
 
-  if (!ltv || !apy || !duration || !offers) return null;
+  const basisPoints = useMemo(() => (apy ? apy * 100 : undefined), [apy]);
+  const durationSeconds = useMemo(
+    () => (duration ? new anchor.BN(duration * 86_400) : undefined),
+    [duration]
+  );
 
-  const collectionSymbol = collection
-    ? collections.find((c) => c.publicKey.toBase58() == collection)?.metadata
-        .data.symbol
-    : undefined;
+  const collectionSymbol = collection?.metadata.data.symbol;
+  const creatorBasisPoints = collection?.config.loanBasisPoints;
+  const floorPrice = utils.getFloorPrice(floorPrices, collectionSymbol);
 
-  const symbol = collectionSymbol
-    ? utils.trimNullChars(collectionSymbol).toLowerCase()
-    : undefined;
-  const floorPrice = symbol ? floorPrices[symbol] : undefined;
-
-  const amount = floorPrice
-    ? new anchor.BN((ltv / 100) * floorPrice * offers)
-    : undefined;
-  const basisPoints = apy * 100;
-  const durationSeconds = new anchor.BN(duration * 86_400);
+  const amount = useMemo(
+    () =>
+      floorPrice && ltv && offers
+        ? new anchor.BN((ltv / 100) * floorPrice * offers)
+        : undefined,
+    [floorPrice, ltv, offers]
+  );
 
   return (
     <LoanForecast
       amountLabel="Lending"
       amount={amount}
       basisPoints={basisPoints}
+      creatorBasisPoints={creatorBasisPoints}
       duration={durationSeconds}
     />
   );

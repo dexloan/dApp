@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { Box, Tr, Th, Td, Text } from "@chakra-ui/react";
+import { Box, Flex, Tr, Th, Td, Text, Tooltip } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { useRouter } from "next/router";
 
@@ -7,7 +7,13 @@ import { Loan, LoanPretty } from "../../../common/model";
 import { useFloorPriceQuery } from "../../../hooks/query";
 import { useLTV } from "../../../hooks/render";
 import { Col, ColumnHeader, ListingsTable, NFTCell } from "../../table";
-import { LoanSortCols, useLoanSortState, useSortedLoans } from "./common";
+import {
+  LoanRow,
+  LoanSortCols,
+  useLoanSortState,
+  useSortedLoans,
+} from "./common";
+import { EllipsisProgress } from "../../progress";
 
 const LOAN_COLS: Readonly<Col<LoanSortCols>[]> = [
   { name: "asset", label: "Asset" },
@@ -58,7 +64,7 @@ export const LoanListings = ({
         );
       }}
       renderRow={(item) => (
-        <LoanRow
+        <LoanAskRow
           key={item.address}
           loan={item}
           onClick={() => router.push(`/loans/${item.address}`)}
@@ -70,11 +76,10 @@ export const LoanListings = ({
 
 interface LoanRowProps {
   loan: Loan;
-  floorPrices?: Record<string, number>;
   onClick: () => void;
 }
 
-const LoanRow = ({ loan, onClick }: LoanRowProps) => {
+const LoanAskRow = ({ loan, onClick }: LoanRowProps) => {
   const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
 
   const floorPriceSol = useMemo(() => {
@@ -86,30 +91,16 @@ const LoanRow = ({ loan, onClick }: LoanRowProps) => {
   const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
 
   return (
-    <Tr
-      key={loan.publicKey.toBase58()}
-      cursor="pointer"
-      _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
+    <LoanRow
+      amount={loan.amount}
+      duration={loan.duration}
+      apy={loan.apy}
+      lenderApy={loan.lenderApy}
+      creatorApy={loan.creatorApy}
+      ltv={ltv}
+      floorPriceSol={floorPriceSol}
+      metadata={loan.metadata}
       onClick={onClick}
-    >
-      <NFTCell metadata={loan?.metadata} />
-      <Td>{loan.duration}</Td>
-      <Td isNumeric>
-        {loan.apy}
-        <br />
-        <small>
-          ({loan.lenderApy}, {loan.creatorApy})
-        </small>
-      </Td>
-      <Td isNumeric>{ltv}</Td>
-      <Td isNumeric>
-        <Box>
-          <Text mb="1">{loan.amount}</Text>
-          <Text fontSize="xs" color="gray.500">
-            Floor {floorPriceSol ?? "..."}
-          </Text>
-        </Box>
-      </Td>
-    </Tr>
+    />
   );
 };
