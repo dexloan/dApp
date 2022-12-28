@@ -48,7 +48,7 @@ export type DexloanListings = {
         },
         {
           name: "basisPoints";
-          type: "u32";
+          type: "u16";
         },
         {
           name: "duration";
@@ -278,7 +278,7 @@ export type DexloanListings = {
         },
         {
           name: "basisPoints";
-          type: "u32";
+          type: "u16";
         },
         {
           name: "duration";
@@ -432,6 +432,11 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
+          name: "metadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "edition";
           isMut: false;
           isSigner: false;
@@ -536,7 +541,7 @@ export type DexloanListings = {
       args: [];
     },
     {
-      name: "repossessWithHire";
+      name: "repossessWithRental";
       accounts: [
         {
           name: "signer";
@@ -564,12 +569,12 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hireEscrow";
+          name: "rentalEscrow";
           isMut: true;
           isSigner: false;
         },
@@ -585,6 +590,11 @@ export type DexloanListings = {
         },
         {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
           isMut: false;
           isSigner: false;
         },
@@ -939,7 +949,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
+          name: "collection";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
           isMut: false;
           isSigner: false;
         },
@@ -1053,7 +1073,7 @@ export type DexloanListings = {
       args: [];
     },
     {
-      name: "exerciseCallOptionWithHire";
+      name: "exerciseCallOptionWithRental";
       accounts: [
         {
           name: "signer";
@@ -1076,12 +1096,12 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hireEscrow";
+          name: "rentalEscrow";
           isMut: true;
           isSigner: false;
         },
@@ -1205,7 +1225,7 @@ export type DexloanListings = {
       args: [];
     },
     {
-      name: "initHire";
+      name: "initRental";
       accounts: [
         {
           name: "signer";
@@ -1223,7 +1243,7 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
@@ -1282,13 +1302,13 @@ export type DexloanListings = {
         {
           name: "args";
           type: {
-            defined: "HireArgs";
+            defined: "RentalArgs";
           };
         }
       ];
     },
     {
-      name: "takeHire";
+      name: "takeRental";
       accounts: [
         {
           name: "signer";
@@ -1306,12 +1326,12 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hireEscrow";
+          name: "rentalEscrow";
           isMut: true;
           isSigner: false;
         },
@@ -1321,7 +1341,7 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "hireTokenAccount";
+          name: "rentalTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -1374,7 +1394,7 @@ export type DexloanListings = {
       ];
     },
     {
-      name: "extendHire";
+      name: "extendRental";
       accounts: [
         {
           name: "signer";
@@ -1392,12 +1412,12 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hireEscrow";
+          name: "rentalEscrow";
           isMut: true;
           isSigner: false;
         },
@@ -1435,7 +1455,7 @@ export type DexloanListings = {
       ];
     },
     {
-      name: "recoverHire";
+      name: "recoverRental";
       accounts: [
         {
           name: "signer";
@@ -1458,17 +1478,17 @@ export type DexloanListings = {
           isSigner: false;
         },
         {
-          name: "hireTokenAccount";
+          name: "rentalTokenAccount";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hireEscrow";
+          name: "rentalEscrow";
           isMut: true;
           isSigner: false;
         },
@@ -1479,6 +1499,11 @@ export type DexloanListings = {
         },
         {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
           isMut: false;
           isSigner: false;
         },
@@ -1511,7 +1536,7 @@ export type DexloanListings = {
       args: [];
     },
     {
-      name: "withdrawFromHireEscrow";
+      name: "withdrawFromRentalEscrow";
       accounts: [
         {
           name: "signer";
@@ -1524,17 +1549,27 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "hireEscrow";
+          name: "collection";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rentalEscrow";
           isMut: true;
           isSigner: false;
         },
         {
           name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "metadata";
           isMut: false;
           isSigner: false;
         },
@@ -1557,7 +1592,7 @@ export type DexloanListings = {
       args: [];
     },
     {
-      name: "closeHire";
+      name: "closeRental";
       accounts: [
         {
           name: "signer";
@@ -1570,7 +1605,7 @@ export type DexloanListings = {
           isSigner: true;
         },
         {
-          name: "hire";
+          name: "rental";
           isMut: true;
           isSigner: false;
         },
@@ -1651,7 +1686,57 @@ export type DexloanListings = {
           isSigner: false;
         }
       ];
-      args: [];
+      args: [
+        {
+          name: "config";
+          type: {
+            defined: "Config";
+          };
+        }
+      ];
+    },
+    {
+      name: "updateCollection";
+      accounts: [
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "collection";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "config";
+          type: {
+            defined: "Config";
+          };
+        }
+      ];
     },
     {
       name: "closeCollection";
@@ -1705,6 +1790,10 @@ export type DexloanListings = {
           {
             name: "amount";
             type: "u64";
+          },
+          {
+            name: "creatorBasisPoints";
+            type: "u16";
           },
           {
             name: "seller";
@@ -1795,66 +1884,16 @@ export type DexloanListings = {
             type: "publicKey";
           },
           {
+            name: "config";
+            type: {
+              defined: "Config";
+            };
+          },
+          {
             name: "reserved";
             type: {
-              array: ["u8", 128];
+              array: ["u8", 64];
             };
-          },
-          {
-            name: "bump";
-            type: "u8";
-          }
-        ];
-      };
-    },
-    {
-      name: "hire";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "state";
-            type: {
-              defined: "HireState";
-            };
-          },
-          {
-            name: "amount";
-            type: "u64";
-          },
-          {
-            name: "lender";
-            type: "publicKey";
-          },
-          {
-            name: "borrower";
-            type: {
-              option: "publicKey";
-            };
-          },
-          {
-            name: "expiry";
-            type: "i64";
-          },
-          {
-            name: "currentStart";
-            type: {
-              option: "i64";
-            };
-          },
-          {
-            name: "currentExpiry";
-            type: {
-              option: "i64";
-            };
-          },
-          {
-            name: "escrowBalance";
-            type: "u64";
-          },
-          {
-            name: "mint";
-            type: "publicKey";
           },
           {
             name: "bump";
@@ -1875,22 +1914,6 @@ export type DexloanListings = {
             };
           },
           {
-            name: "amount";
-            type: {
-              option: "u64";
-            };
-          },
-          {
-            name: "outstanding";
-            type: "u64";
-          },
-          {
-            name: "threshold";
-            type: {
-              option: "u32";
-            };
-          },
-          {
             name: "borrower";
             type: "publicKey";
           },
@@ -1901,8 +1924,28 @@ export type DexloanListings = {
             };
           },
           {
+            name: "amount";
+            type: {
+              option: "u64";
+            };
+          },
+          {
             name: "basisPoints";
-            type: "u32";
+            type: "u16";
+          },
+          {
+            name: "creatorBasisPoints";
+            type: "u16";
+          },
+          {
+            name: "outstanding";
+            type: "u64";
+          },
+          {
+            name: "threshold";
+            type: {
+              option: "u32";
+            };
           },
           {
             name: "installments";
@@ -1966,7 +2009,7 @@ export type DexloanListings = {
           },
           {
             name: "basisPoints";
-            type: "u32";
+            type: "u16";
           },
           {
             name: "duration";
@@ -2000,6 +2043,70 @@ export type DexloanListings = {
       };
     },
     {
+      name: "rental";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "state";
+            type: {
+              defined: "RentalState";
+            };
+          },
+          {
+            name: "amount";
+            type: "u64";
+          },
+          {
+            name: "creatorBasisPoints";
+            type: "u16";
+          },
+          {
+            name: "lender";
+            type: "publicKey";
+          },
+          {
+            name: "borrower";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "expiry";
+            type: "i64";
+          },
+          {
+            name: "currentStart";
+            type: {
+              option: "i64";
+            };
+          },
+          {
+            name: "currentExpiry";
+            type: {
+              option: "i64";
+            };
+          },
+          {
+            name: "escrowBalance";
+            type: "u64";
+          },
+          {
+            name: "mint";
+            type: "publicKey";
+          },
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "escrowBump";
+            type: "u8";
+          }
+        ];
+      };
+    },
+    {
       name: "tokenManager";
       type: {
         kind: "struct";
@@ -2020,7 +2127,7 @@ export type DexloanListings = {
   ];
   types: [
     {
-      name: "HireArgs";
+      name: "RentalArgs";
       type: {
         kind: "struct";
         fields: [
@@ -2042,6 +2149,38 @@ export type DexloanListings = {
       };
     },
     {
+      name: "Config";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "loanEnabled";
+            type: "bool";
+          },
+          {
+            name: "loanBasisPoints";
+            type: "u16";
+          },
+          {
+            name: "optionEnabled";
+            type: "bool";
+          },
+          {
+            name: "optionBasisPoints";
+            type: "u16";
+          },
+          {
+            name: "rentalEnabled";
+            type: "bool";
+          },
+          {
+            name: "rentalBasisPoints";
+            type: "u16";
+          }
+        ];
+      };
+    },
+    {
       name: "AccountState";
       type: {
         kind: "struct";
@@ -2055,7 +2194,7 @@ export type DexloanListings = {
             type: "bool";
           },
           {
-            name: "hire";
+            name: "rental";
             type: "bool";
           }
         ];
@@ -2079,20 +2218,6 @@ export type DexloanListings = {
       };
     },
     {
-      name: "HireState";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "Listed";
-          },
-          {
-            name: "Hired";
-          }
-        ];
-      };
-    },
-    {
       name: "LoanState";
       type: {
         kind: "enum";
@@ -2108,6 +2233,20 @@ export type DexloanListings = {
           },
           {
             name: "Defaulted";
+          }
+        ];
+      };
+    },
+    {
+      name: "RentalState";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Listed";
+          },
+          {
+            name: "Rented";
           }
         ];
       };
@@ -2242,7 +2381,7 @@ export const IDL: DexloanListings = {
         },
         {
           name: "basisPoints",
-          type: "u32",
+          type: "u16",
         },
         {
           name: "duration",
@@ -2472,7 +2611,7 @@ export const IDL: DexloanListings = {
         },
         {
           name: "basisPoints",
-          type: "u32",
+          type: "u16",
         },
         {
           name: "duration",
@@ -2626,6 +2765,11 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
+          name: "metadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "edition",
           isMut: false,
           isSigner: false,
@@ -2730,7 +2874,7 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
-      name: "repossessWithHire",
+      name: "repossessWithRental",
       accounts: [
         {
           name: "signer",
@@ -2758,12 +2902,12 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hireEscrow",
+          name: "rentalEscrow",
           isMut: true,
           isSigner: false,
         },
@@ -2779,6 +2923,11 @@ export const IDL: DexloanListings = {
         },
         {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },
@@ -3133,7 +3282,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
+          name: "collection",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },
@@ -3247,7 +3406,7 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
-      name: "exerciseCallOptionWithHire",
+      name: "exerciseCallOptionWithRental",
       accounts: [
         {
           name: "signer",
@@ -3270,12 +3429,12 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hireEscrow",
+          name: "rentalEscrow",
           isMut: true,
           isSigner: false,
         },
@@ -3399,7 +3558,7 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
-      name: "initHire",
+      name: "initRental",
       accounts: [
         {
           name: "signer",
@@ -3417,7 +3576,7 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
@@ -3476,13 +3635,13 @@ export const IDL: DexloanListings = {
         {
           name: "args",
           type: {
-            defined: "HireArgs",
+            defined: "RentalArgs",
           },
         },
       ],
     },
     {
-      name: "takeHire",
+      name: "takeRental",
       accounts: [
         {
           name: "signer",
@@ -3500,12 +3659,12 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hireEscrow",
+          name: "rentalEscrow",
           isMut: true,
           isSigner: false,
         },
@@ -3515,7 +3674,7 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "hireTokenAccount",
+          name: "rentalTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -3568,7 +3727,7 @@ export const IDL: DexloanListings = {
       ],
     },
     {
-      name: "extendHire",
+      name: "extendRental",
       accounts: [
         {
           name: "signer",
@@ -3586,12 +3745,12 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hireEscrow",
+          name: "rentalEscrow",
           isMut: true,
           isSigner: false,
         },
@@ -3629,7 +3788,7 @@ export const IDL: DexloanListings = {
       ],
     },
     {
-      name: "recoverHire",
+      name: "recoverRental",
       accounts: [
         {
           name: "signer",
@@ -3652,17 +3811,17 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
         {
-          name: "hireTokenAccount",
+          name: "rentalTokenAccount",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hireEscrow",
+          name: "rentalEscrow",
           isMut: true,
           isSigner: false,
         },
@@ -3673,6 +3832,11 @@ export const IDL: DexloanListings = {
         },
         {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },
@@ -3705,7 +3869,7 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
-      name: "withdrawFromHireEscrow",
+      name: "withdrawFromRentalEscrow",
       accounts: [
         {
           name: "signer",
@@ -3718,17 +3882,27 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "hireEscrow",
+          name: "collection",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rentalEscrow",
           isMut: true,
           isSigner: false,
         },
         {
           name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "metadata",
           isMut: false,
           isSigner: false,
         },
@@ -3751,7 +3925,7 @@ export const IDL: DexloanListings = {
       args: [],
     },
     {
-      name: "closeHire",
+      name: "closeRental",
       accounts: [
         {
           name: "signer",
@@ -3764,7 +3938,7 @@ export const IDL: DexloanListings = {
           isSigner: true,
         },
         {
-          name: "hire",
+          name: "rental",
           isMut: true,
           isSigner: false,
         },
@@ -3845,7 +4019,57 @@ export const IDL: DexloanListings = {
           isSigner: false,
         },
       ],
-      args: [],
+      args: [
+        {
+          name: "config",
+          type: {
+            defined: "Config",
+          },
+        },
+      ],
+    },
+    {
+      name: "updateCollection",
+      accounts: [
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "collection",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "config",
+          type: {
+            defined: "Config",
+          },
+        },
+      ],
     },
     {
       name: "closeCollection",
@@ -3899,6 +4123,10 @@ export const IDL: DexloanListings = {
           {
             name: "amount",
             type: "u64",
+          },
+          {
+            name: "creatorBasisPoints",
+            type: "u16",
           },
           {
             name: "seller",
@@ -3989,66 +4217,16 @@ export const IDL: DexloanListings = {
             type: "publicKey",
           },
           {
+            name: "config",
+            type: {
+              defined: "Config",
+            },
+          },
+          {
             name: "reserved",
             type: {
-              array: ["u8", 128],
+              array: ["u8", 64],
             },
-          },
-          {
-            name: "bump",
-            type: "u8",
-          },
-        ],
-      },
-    },
-    {
-      name: "hire",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "state",
-            type: {
-              defined: "HireState",
-            },
-          },
-          {
-            name: "amount",
-            type: "u64",
-          },
-          {
-            name: "lender",
-            type: "publicKey",
-          },
-          {
-            name: "borrower",
-            type: {
-              option: "publicKey",
-            },
-          },
-          {
-            name: "expiry",
-            type: "i64",
-          },
-          {
-            name: "currentStart",
-            type: {
-              option: "i64",
-            },
-          },
-          {
-            name: "currentExpiry",
-            type: {
-              option: "i64",
-            },
-          },
-          {
-            name: "escrowBalance",
-            type: "u64",
-          },
-          {
-            name: "mint",
-            type: "publicKey",
           },
           {
             name: "bump",
@@ -4069,22 +4247,6 @@ export const IDL: DexloanListings = {
             },
           },
           {
-            name: "amount",
-            type: {
-              option: "u64",
-            },
-          },
-          {
-            name: "outstanding",
-            type: "u64",
-          },
-          {
-            name: "threshold",
-            type: {
-              option: "u32",
-            },
-          },
-          {
             name: "borrower",
             type: "publicKey",
           },
@@ -4095,8 +4257,28 @@ export const IDL: DexloanListings = {
             },
           },
           {
+            name: "amount",
+            type: {
+              option: "u64",
+            },
+          },
+          {
             name: "basisPoints",
-            type: "u32",
+            type: "u16",
+          },
+          {
+            name: "creatorBasisPoints",
+            type: "u16",
+          },
+          {
+            name: "outstanding",
+            type: "u64",
+          },
+          {
+            name: "threshold",
+            type: {
+              option: "u32",
+            },
           },
           {
             name: "installments",
@@ -4160,7 +4342,7 @@ export const IDL: DexloanListings = {
           },
           {
             name: "basisPoints",
-            type: "u32",
+            type: "u16",
           },
           {
             name: "duration",
@@ -4194,6 +4376,70 @@ export const IDL: DexloanListings = {
       },
     },
     {
+      name: "rental",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "state",
+            type: {
+              defined: "RentalState",
+            },
+          },
+          {
+            name: "amount",
+            type: "u64",
+          },
+          {
+            name: "creatorBasisPoints",
+            type: "u16",
+          },
+          {
+            name: "lender",
+            type: "publicKey",
+          },
+          {
+            name: "borrower",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "expiry",
+            type: "i64",
+          },
+          {
+            name: "currentStart",
+            type: {
+              option: "i64",
+            },
+          },
+          {
+            name: "currentExpiry",
+            type: {
+              option: "i64",
+            },
+          },
+          {
+            name: "escrowBalance",
+            type: "u64",
+          },
+          {
+            name: "mint",
+            type: "publicKey",
+          },
+          {
+            name: "bump",
+            type: "u8",
+          },
+          {
+            name: "escrowBump",
+            type: "u8",
+          },
+        ],
+      },
+    },
+    {
       name: "tokenManager",
       type: {
         kind: "struct",
@@ -4214,7 +4460,7 @@ export const IDL: DexloanListings = {
   ],
   types: [
     {
-      name: "HireArgs",
+      name: "RentalArgs",
       type: {
         kind: "struct",
         fields: [
@@ -4236,6 +4482,38 @@ export const IDL: DexloanListings = {
       },
     },
     {
+      name: "Config",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "loanEnabled",
+            type: "bool",
+          },
+          {
+            name: "loanBasisPoints",
+            type: "u16",
+          },
+          {
+            name: "optionEnabled",
+            type: "bool",
+          },
+          {
+            name: "optionBasisPoints",
+            type: "u16",
+          },
+          {
+            name: "rentalEnabled",
+            type: "bool",
+          },
+          {
+            name: "rentalBasisPoints",
+            type: "u16",
+          },
+        ],
+      },
+    },
+    {
       name: "AccountState",
       type: {
         kind: "struct",
@@ -4249,7 +4527,7 @@ export const IDL: DexloanListings = {
             type: "bool",
           },
           {
-            name: "hire",
+            name: "rental",
             type: "bool",
           },
         ],
@@ -4273,20 +4551,6 @@ export const IDL: DexloanListings = {
       },
     },
     {
-      name: "HireState",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "Listed",
-          },
-          {
-            name: "Hired",
-          },
-        ],
-      },
-    },
-    {
       name: "LoanState",
       type: {
         kind: "enum",
@@ -4302,6 +4566,20 @@ export const IDL: DexloanListings = {
           },
           {
             name: "Defaulted",
+          },
+        ],
+      },
+    },
+    {
+      name: "RentalState",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Listed",
+          },
+          {
+            name: "Rented",
           },
         ],
       },

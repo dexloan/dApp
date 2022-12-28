@@ -221,7 +221,7 @@ export const SliderField = <Fields extends FieldValues>({
   );
 };
 
-type ListingType = "loan" | "callOption" | "hire";
+type ListingType = "loan" | "callOption" | "rental";
 
 interface SelectNftFormProps {
   listingType: ListingType;

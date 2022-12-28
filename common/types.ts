@@ -28,9 +28,9 @@ export enum CallOptionStateEnum {
   Cancelled = "cancelled",
 }
 
-export enum HireStateEnum {
+export enum RentalStateEnum {
   Listed = "listed",
-  Hired = "hired",
+  Rentald = "hired",
   Cancelled = "cancelled",
 }
 
@@ -61,9 +61,9 @@ export type CollectionData = TypeDef<
   typeof IDL["accounts"][2],
   DexloanListings
 >;
-export type HireData = TypeDef<typeof IDL["accounts"][3], DexloanListings>;
-export type LoanData = TypeDef<typeof IDL["accounts"][4], DexloanListings>;
-export type LoanOfferData = TypeDef<typeof IDL["accounts"][5], DexloanListings>;
+export type LoanData = TypeDef<typeof IDL["accounts"][3], DexloanListings>;
+export type LoanOfferData = TypeDef<typeof IDL["accounts"][4], DexloanListings>;
+export type RentalData = TypeDef<typeof IDL["accounts"][5], DexloanListings>;
 export type TokenManagerData = TypeDef<
   typeof IDL["accounts"][6],
   DexloanListings

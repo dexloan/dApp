@@ -4,17 +4,24 @@ import NextLink from "next/link";
 import { useState, useMemo } from "react";
 import { IoBicycle } from "react-icons/io5";
 
-import { HireStateEnum, NftResult } from "../../common/types";
-import { Hire } from "../../common/model";
-import { useHireAddressQuery, useHireQuery, useNft } from "../../hooks/query";
-import { InitHireModal } from "../form";
+import { RentalStateEnum, NftResult } from "../../common/types";
+import { Rental } from "../../common/model";
+import {
+  useRentalAddressQuery,
+  useRentalQuery,
+  useNft,
+} from "../../hooks/query";
+import { InitRentalModal } from "../form";
 
-interface HireButtonProps {
+interface RentalButtonProps {
   selected: NftResult | null;
   disabled?: boolean;
 }
 
-export const HireButton = ({ selected, disabled = false }: HireButtonProps) => {
+export const RentalButton = ({
+  selected,
+  disabled = false,
+}: RentalButtonProps) => {
   const [modal, setModal] = useState(false);
 
   return (
@@ -27,7 +34,7 @@ export const HireButton = ({ selected, disabled = false }: HireButtonProps) => {
       >
         Rent NFT
       </Button>
-      <InitHireModal
+      <InitRentalModal
         open={modal}
         selected={selected}
         onRequestClose={() => setModal(false)}
@@ -36,28 +43,28 @@ export const HireButton = ({ selected, disabled = false }: HireButtonProps) => {
   );
 };
 
-interface SecondaryHireButtonProps {
+interface SecondaryRentalButtonProps {
   mint: anchor.web3.PublicKey;
   issuer: anchor.web3.PublicKey;
   disabled?: boolean;
 }
 
-export const SecondaryHireButton = ({
+export const SecondaryRentalButton = ({
   mint,
   issuer,
   disabled = false,
-}: SecondaryHireButtonProps) => {
-  const hireAddress = useHireAddressQuery(mint, issuer);
-  const hireQuery = useHireQuery(hireAddress.data);
+}: SecondaryRentalButtonProps) => {
+  const hireAddress = useRentalAddressQuery(mint, issuer);
+  const hireQuery = useRentalQuery(hireAddress.data);
   const nftQuery = useNft(mint);
 
-  const hire = useMemo(() => {
+  const rental = useMemo(() => {
     if (hireQuery.data) {
-      return Hire.fromJSON(hireQuery.data);
+      return Rental.fromJSON(hireQuery.data);
     }
   }, [hireQuery.data]);
 
-  if (hire && hire.state !== HireStateEnum.Cancelled) {
+  if (rental && rental.state !== RentalStateEnum.Cancelled) {
     return (
       <NextLink href={`/rental/${hireAddress.data?.toBase58()}`}>
         <Button w="100%">View Rental</Button>
@@ -65,5 +72,5 @@ export const SecondaryHireButton = ({
     );
   }
 
-  return <HireButton selected={nftQuery.data ?? null} disabled={disabled} />;
+  return <RentalButton selected={nftQuery.data ?? null} disabled={disabled} />;
 };

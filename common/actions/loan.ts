@@ -5,7 +5,7 @@ import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-toke
 
 import * as query from "../query";
 import { SIGNER } from "../constants";
-import { HireData } from "../types";
+import { RentalData } from "../types";
 import { LoanOffer } from "../model";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
@@ -302,32 +302,32 @@ export async function repossessCollateral(
   const program = getProgram(provider);
 
   const loan = await query.findLoanAddress(mint, borrower);
-  const hire = await query.findHireAddress(mint, borrower);
-  const hireEscrow = await query.findHireEscrowAddress(mint, borrower);
+  const rental = await query.findRentalAddress(mint, borrower);
+  const rentalEscrow = await query.findRentalEscrowAddress(mint, borrower);
   const tokenManager = await query.findTokenManagerAddress(mint, borrower);
   const [edition] = await query.findEditionAddress(mint);
 
   const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
     .address;
 
-  let hireAccount: HireData | null = null;
+  let hireAccount: RentalData | null = null;
 
   try {
-    hireAccount = (await program.account.hire.fetch(hire)) as HireData;
+    hireAccount = (await program.account.rental.fetch(rental)) as RentalData;
   } catch (err) {
     // account does not exist
   }
 
   if (hireAccount) {
-    const method = program.methods.repossessWithHire().accounts({
+    const method = program.methods.repossessWithRental().accounts({
       loan,
       tokenManager,
       mint,
       edition,
       lenderTokenAccount,
       borrower,
-      hire,
-      hireEscrow,
+      rental,
+      rentalEscrow,
       tokenAccount,
       lender: wallet.publicKey,
       metadataProgram: METADATA_PROGRAM_ID,

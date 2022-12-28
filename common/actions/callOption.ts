@@ -7,7 +7,7 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
-import { HireData } from "../types";
+import { RentalData } from "../types";
 import { CallOptionBid } from "../model";
 import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
@@ -239,8 +239,8 @@ export async function exerciseCallOption(
 
   const callOption = await query.findCallOptionAddress(mint, seller);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
-  const hire = await query.findHireAddress(mint, seller);
-  const hireEscrow = await query.findHireEscrowAddress(mint, seller);
+  const rental = await query.findRentalAddress(mint, seller);
+  const rentalEscrow = await query.findRentalEscrowAddress(mint, seller);
   const [metadataAddress] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
 
@@ -253,21 +253,21 @@ export async function exerciseCallOption(
     isWritable: true,
   }));
 
-  let hireAccount: HireData | null = null;
+  let hireAccount: RentalData | null = null;
 
   try {
-    hireAccount = (await program.account.hire.fetch(hire)) as HireData;
+    hireAccount = (await program.account.rental.fetch(rental)) as RentalData;
   } catch (err) {
     // account does not exist
   }
 
   if (hireAccount) {
-    const method = program.methods.exerciseCallOptionWithHire().accounts({
+    const method = program.methods.exerciseCallOptionWithRental().accounts({
       buyerTokenAccount,
       callOption,
       tokenManager,
-      hire,
-      hireEscrow,
+      rental,
+      rentalEscrow,
       mint,
       edition,
       seller,

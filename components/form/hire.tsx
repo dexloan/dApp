@@ -18,7 +18,7 @@ import {
 import { useMemo } from "react";
 
 import dayjs from "../../common/lib/dayjs";
-import { useInitHireMutation } from "../../hooks/mutation";
+import { useInitRentalMutation } from "../../hooks/mutation";
 import { NftResult } from "../../common/types";
 
 interface FormFields {
@@ -34,7 +34,7 @@ interface ListingFormProps {
   onRequestClose: () => void;
 }
 
-export const InitHireModal = ({
+export const InitRentalModal = ({
   open,
   selected,
   onRequestClose,
@@ -52,7 +52,7 @@ export const InitHireModal = ({
     },
   });
 
-  const mutation = useInitHireMutation(() => onRequestClose());
+  const mutation = useInitRentalMutation(() => onRequestClose());
 
   function onSubmit() {
     handleSubmit((data) => {

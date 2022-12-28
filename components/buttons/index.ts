@@ -1,3 +1,3 @@
 export * from "./callOption";
-export * from "./hire";
+export * from "./rental";
 export * from "./loan";

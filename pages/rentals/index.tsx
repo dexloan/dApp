@@ -13,11 +13,11 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 
-import { Hire, HirePretty } from "../../common/model";
+import { Rental, RentalPretty } from "../../common/model";
 import {
-  useHiresQuery,
-  useHiresTakenQuery,
-  useLenderHiresQuery,
+  useRentalsQuery,
+  useRentalsTakenQuery,
+  useLenderRentalsQuery,
 } from "../../hooks/query";
 import { RentalCard, CardList } from "../../components/card";
 import { EmptyMessage } from "../../components/table";
@@ -47,8 +47,8 @@ const Rentals: NextPage = () => {
   );
 };
 
-function renderCard(json: HirePretty) {
-  const rental = Hire.fromJSON(json);
+function renderCard(json: RentalPretty) {
+  const rental = Rental.fromJSON(json);
 
   return <RentalCard key={rental.address} rental={rental} />;
 }
@@ -69,7 +69,7 @@ const Actions = () => {
 };
 
 const Listings = () => {
-  const rentalsQuery = useHiresQuery();
+  const rentalsQuery = useRentalsQuery();
 
   function renderListings() {
     if (rentalsQuery.isLoading) {
@@ -106,8 +106,8 @@ const Listings = () => {
 };
 
 const MyRentals = () => {
-  const lenderQuery = useLenderHiresQuery();
-  const rentalsTakenQuery = useHiresTakenQuery();
+  const lenderQuery = useLenderRentalsQuery();
+  const rentalsTakenQuery = useRentalsTakenQuery();
 
   function renderLists() {
     if (lenderQuery.isLoading || rentalsTakenQuery.isLoading) {

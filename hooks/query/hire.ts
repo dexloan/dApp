@@ -5,7 +5,7 @@ import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
-export const useHireAddressQuery = (
+export const useRentalAddressQuery = (
   mint?: anchor.web3.PublicKey,
   lender?: anchor.web3.PublicKey
 ) => {
@@ -13,38 +13,38 @@ export const useHireAddressQuery = (
     ["hire_address", mint?.toBase58(), lender?.toBase58()],
     () => {
       if (mint && lender) {
-        return query.findHireAddress(mint, lender);
+        return query.findRentalAddress(mint, lender);
       }
     },
     { enabled: Boolean(mint && lender) }
   );
 };
 
-export const getHireCacheKey = (
+export const getRentalCacheKey = (
   hireAddress: anchor.web3.PublicKey | undefined
-) => ["hire", hireAddress?.toBase58()];
+) => ["rental", hireAddress?.toBase58()];
 
-export function useHireQuery(hireAddress: anchor.web3.PublicKey | undefined) {
+export function useRentalQuery(hireAddress: anchor.web3.PublicKey | undefined) {
   const { connection } = useConnection();
 
   return useQuery(
-    getHireCacheKey(hireAddress),
+    getRentalCacheKey(hireAddress),
     () => {
-      if (hireAddress) return query.fetchHire(connection, hireAddress);
+      if (hireAddress) return query.fetchRental(connection, hireAddress);
     },
     { enabled: Boolean(hireAddress) }
   );
 }
 
-export const getHiresCacheKey = () => ["hires"];
+export const getRentalsCacheKey = () => ["hires"];
 
-export function useHiresQuery() {
+export function useRentalsQuery() {
   const { connection } = useConnection();
 
   return useQuery(
-    getHiresCacheKey(),
+    getRentalsCacheKey(),
     () => {
-      return query.fetchMultipleHires(connection, [
+      return query.fetchMultipleRentals(connection, [
         {
           memcmp: {
             // filter listed
@@ -60,19 +60,19 @@ export function useHiresQuery() {
   );
 }
 
-export const getHiresGivenCacheKey = (
+export const getRentalsGivenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["hires_given", walletAddress?.toBase58()];
 
-export function useLenderHiresQuery() {
+export function useLenderRentalsQuery() {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
 
   return useQuery(
-    getHiresGivenCacheKey(anchorWallet?.publicKey),
+    getRentalsGivenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
-        return query.fetchMultipleHires(connection, [
+        return query.fetchMultipleRentals(connection, [
           {
             memcmp: {
               // filter lender
@@ -90,19 +90,19 @@ export function useLenderHiresQuery() {
   );
 }
 
-export const getHiresTakenCacheKey = (
+export const getRentalsTakenCacheKey = (
   walletAddress: anchor.web3.PublicKey | undefined
 ) => ["hires_taken", walletAddress?.toBase58()];
 
-export function useHiresTakenQuery() {
+export function useRentalsTakenQuery() {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
 
   return useQuery(
-    getHiresTakenCacheKey(anchorWallet?.publicKey),
+    getRentalsTakenCacheKey(anchorWallet?.publicKey),
     () => {
       if (anchorWallet) {
-        return query.fetchMultipleHires(connection, [
+        return query.fetchMultipleRentals(connection, [
           {
             memcmp: {
               // filter borrower

@@ -21,13 +21,13 @@ import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 
 import {
   CallOptionStateEnum,
-  HireStateEnum,
+  RentalStateEnum,
   LoanStateEnum,
 } from "../../common/types";
-import { fetchHire } from "../../common/query";
-import { CallOption, Hire, Loan } from "../../common/model";
+import { fetchRental } from "../../common/query";
+import { CallOption, Rental, Loan } from "../../common/model";
 import {
-  getHireCacheKey,
+  getRentalCacheKey,
   getMetadataFileCacheKey,
   useMetadataFileQuery,
   useCallOptionAddressQuery,
@@ -36,40 +36,40 @@ import {
   useLoanQuery,
 } from "../../hooks/query";
 import {
-  useTakeHireMutation,
-  useRecoverHireMutation,
-  useExtendHireMutation,
-  useWithdrawFromHireEscrowMutation,
-  useCloseHireMutation,
+  useTakeRentalMutation,
+  useRecoverRentalMutation,
+  useExtendRentalMutation,
+  useWithdrawFromRentalEscrowMutation,
+  useCloseRentalMutation,
 } from "../../hooks/mutation";
 import {
-  TakeHireDialog,
-  RecoverHireDialog,
-  ExtendHireDialog,
+  TakeRentalDialog,
+  RecoverRentalDialog,
+  ExtendRentalDialog,
   CancelDialog,
 } from "../../components/dialog";
 import { DocumentHead } from "../../components/document";
-import { useHireQuery } from "../../hooks/query";
+import { useRentalQuery } from "../../hooks/query";
 import { CallOptionButton, LoanButton } from "../../components/buttons";
 import { TakeRentalForm } from "../../components/form";
 import { NftLayout } from "../../components/layout";
 import { Detail } from "../../components/detail";
 
-interface HireProps {
+interface RentalProps {
   dehydratedState: DehydratedState | undefined;
 }
 
-const HirePage: NextPage<HireProps> = () => {
+const RentalPage: NextPage<RentalProps> = () => {
   const hireAddress = usePageParam();
-  const hireQueryResult = useHireQuery(hireAddress);
+  const hireQueryResult = useRentalQuery(hireAddress);
   const metadataQuery = useMetadataFileQuery(
     hireQueryResult.data?.metadata.data.uri
   );
   const jsonMetadata = metadataQuery.data;
 
-  const hire = useMemo(() => {
+  const rental = useMemo(() => {
     if (hireQueryResult.data) {
-      return Hire.fromJSON(hireQueryResult.data);
+      return Rental.fromJSON(hireQueryResult.data);
     }
   }, [hireQueryResult.data]);
 
@@ -88,29 +88,29 @@ const HirePage: NextPage<HireProps> = () => {
     );
   }
 
-  if (!hire || !jsonMetadata) {
+  if (!rental || !jsonMetadata) {
     return null;
   }
 
   return (
     <>
       <DocumentHead
-        title={hire.metadata.data.name}
-        description={`Hire for ${hire.amount} per day`}
+        title={rental.metadata.data.name}
+        description={`Rental for ${rental.amount} per day`}
         image={jsonMetadata.image}
-        imageAlt={hire.metadata.data.name}
-        url={`hire/${hire.publicKey.toBase58()}`}
+        imageAlt={rental.metadata.data.name}
+        url={`rental/${rental.publicKey.toBase58()}`}
         twitterLabels={[
-          { label: "Daily fee", value: hire.amount },
-          { label: "Available Until", value: hire.expiry },
+          { label: "Daily fee", value: rental.amount },
+          { label: "Available Until", value: rental.expiry },
         ]}
       />
-      <HireLayout hire={hire} />
+      <RentalLayout rental={rental} />
     </>
   );
 };
 
-HirePage.getInitialProps = async (ctx) => {
+RentalPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
@@ -121,15 +121,15 @@ HirePage.getInitialProps = async (ctx) => {
         ctx.query.rentalId as string
       );
 
-      const hire = await queryClient.fetchQuery(
-        getHireCacheKey(hireAddress),
-        () => fetchHire(connection, hireAddress)
+      const rental = await queryClient.fetchQuery(
+        getRentalCacheKey(hireAddress),
+        () => fetchRental(connection, hireAddress)
       );
 
       await queryClient.prefetchQuery(
-        getMetadataFileCacheKey(hire.metadata.data.uri),
+        getMetadataFileCacheKey(rental.metadata.data.uri),
         () =>
-          fetch(hire.metadata.data.uri).then((response) => {
+          fetch(rental.metadata.data.uri).then((response) => {
             return response.json().then((data) => data);
           })
       );
@@ -155,47 +155,47 @@ function usePageParam() {
   );
 }
 
-interface HireLayoutProps {
-  hire: Hire;
+interface RentalLayoutProps {
+  rental: Rental;
 }
 
-const HireLayout = ({ hire }: HireLayoutProps) => {
+const RentalLayout = ({ rental }: RentalLayoutProps) => {
   const anchorWallet = useAnchorWallet();
 
   const isBorrower = useMemo(
-    () => hire.isBorrower(anchorWallet),
-    [hire, anchorWallet]
+    () => rental.isBorrower(anchorWallet),
+    [rental, anchorWallet]
   );
   const isLender = useMemo(
-    () => hire.isLender(anchorWallet),
-    [hire, anchorWallet]
+    () => rental.isLender(anchorWallet),
+    [rental, anchorWallet]
   );
 
   function renderActiveButton() {
-    if (anchorWallet && hire.isBorrower(anchorWallet)) {
-      return <ExtendButton hire={hire} />;
-    } else if (anchorWallet && hire.currentPeriodExpired && isLender) {
-      return <RecoverButton hire={hire} />;
-    } else if (hire.currentPeriodExpired) {
-      return <HireButton hire={hire} />;
+    if (anchorWallet && rental.isBorrower(anchorWallet)) {
+      return <ExtendButton rental={rental} />;
+    } else if (anchorWallet && rental.currentPeriodExpired && isLender) {
+      return <RecoverButton rental={rental} />;
+    } else if (rental.currentPeriodExpired) {
+      return <RentalButton rental={rental} />;
     }
 
     return null;
   }
 
   function renderListedButton() {
-    if (anchorWallet && hire.isLender(anchorWallet)) {
-      return <CloseButton hire={hire} />;
+    if (anchorWallet && rental.isLender(anchorWallet)) {
+      return <CloseButton rental={rental} />;
     } else {
-      return <HireButton hire={hire} />;
+      return <RentalButton rental={rental} />;
     }
   }
 
   function renderByState() {
-    if (hire === undefined) return null;
+    if (rental === undefined) return null;
 
-    switch (hire.state) {
-      case HireStateEnum.Listed:
+    switch (rental.state) {
+      case RentalStateEnum.Listed:
         return (
           <>
             <Box display="flex" pb="4">
@@ -208,21 +208,21 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
               footer={
                 <Box mt="4">
                   {renderListedButton()}
-                  <EscrowBalance hire={hire} />
-                  <SecondaryButtons hire={hire} />
+                  <EscrowBalance rental={rental} />
+                  <SecondaryButtons rental={rental} />
                 </Box>
               }
             >
-              <Text>Available for rent until {hire.expiryLongFormat}.</Text>
+              <Text>Available for rent until {rental.expiryLongFormat}.</Text>
             </Detail>
           </>
         );
 
-      case HireStateEnum.Hired:
+      case RentalStateEnum.Rentald:
         return (
           <>
             <Box display="flex" pb="4">
-              {hire.currentPeriodExpired ? (
+              {rental.currentPeriodExpired ? (
                 <Tag>
                   <TagLeftIcon boxSize="12px" as={IoList} />
                   <TagLabel>Listed</TagLabel>
@@ -233,7 +233,7 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
                   <TagLabel>Rental Active</TagLabel>
                 </Tag>
               )}
-              {(isBorrower || isLender) && hire.currentPeriodExpired && (
+              {(isBorrower || isLender) && rental.currentPeriodExpired && (
                 <Tag ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Expired</TagLabel>
@@ -244,29 +244,31 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
               footer={
                 <Box mt="4">
                   {renderActiveButton()}
-                  <EscrowBalance hire={hire} />
-                  <SecondaryButtons hire={hire} />
+                  <EscrowBalance rental={rental} />
+                  <SecondaryButtons rental={rental} />
                 </Box>
               }
             >
-              {hire.currentPeriodExpired ? (
+              {rental.currentPeriodExpired ? (
                 isBorrower || isLender ? (
                   <Text>
-                    Current rental expired on {hire.currentExpiryLongFormat}.
+                    Current rental expired on {rental.currentExpiryLongFormat}.
                   </Text>
                 ) : (
-                  <Text>Available for rent until {hire.expiryLongFormat}</Text>
+                  <Text>
+                    Available for rent until {rental.expiryLongFormat}
+                  </Text>
                 )
               ) : (
                 <Text>
-                  Currently rented until {hire.currentExpiryLongFormat}
+                  Currently rented until {rental.currentExpiryLongFormat}
                 </Text>
               )}
             </Detail>
           </>
         );
 
-      case HireStateEnum.Cancelled:
+      case RentalStateEnum.Cancelled:
         return (
           <>
             <Detail>
@@ -282,13 +284,13 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 
   return (
     <NftLayout
-      metadata={hire?.metadata}
+      metadata={rental?.metadata}
       stats={
-        hire
+        rental
           ? [
               [
-                { label: "Daily Fee", value: hire.amount },
-                { label: "Available Until", value: hire.expiry },
+                { label: "Daily Fee", value: rental.amount },
+                { label: "Available Until", value: rental.expiry },
               ],
             ]
           : undefined
@@ -299,32 +301,32 @@ const HireLayout = ({ hire }: HireLayoutProps) => {
 };
 
 interface EscrowBalanceProps {
-  hire: Hire;
+  rental: Rental;
 }
 
-const EscrowBalance = ({ hire }: EscrowBalanceProps) => {
+const EscrowBalance = ({ rental }: EscrowBalanceProps) => {
   const anchorWallet = useAnchorWallet();
-  const mutation = useWithdrawFromHireEscrowMutation();
+  const mutation = useWithdrawFromRentalEscrowMutation();
 
   const amount = useMemo(() => {
     if (
-      !hire.data.escrowBalance.isZero() &&
-      !hire.calculateWithdrawlAmount().isZero()
+      !rental.data.escrowBalance.isZero() &&
+      !rental.calculateWithdrawlAmount().isZero()
     ) {
-      return hire.withdrawlAmount;
+      return rental.withdrawlAmount;
     }
-  }, [hire]);
+  }, [rental]);
 
-  if (hire.isLender(anchorWallet) && amount) {
+  if (rental.isLender(anchorWallet) && amount) {
     return (
       <Box flex={1} mb="2">
         <Button
           w="100%"
           variant="primary"
           isLoading={mutation.isLoading}
-          onClick={() => mutation.mutate(hire.data)}
+          onClick={() => mutation.mutate(rental.data)}
         >
-          Collect {hire.withdrawlAmount} in rental fees
+          Collect {rental.withdrawlAmount} in rental fees
         </Button>
       </Box>
     );
@@ -334,20 +336,20 @@ const EscrowBalance = ({ hire }: EscrowBalanceProps) => {
 };
 
 interface SecondaryButtonProps {
-  hire: Hire;
+  rental: Rental;
 }
 
-const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
+const SecondaryButtons = ({ rental }: SecondaryButtonProps) => {
   const anchorWallet = useAnchorWallet();
 
   const callOptionAddressQuery = useCallOptionAddressQuery(
-    hire.data.mint,
+    rental.data.mint,
     anchorWallet?.publicKey
   );
   const callOptionQuery = useCallOptionQuery(callOptionAddressQuery?.data);
 
   const loanAddressQuery = useLoanAddressQuery(
-    hire.data.mint,
+    rental.data.mint,
     anchorWallet?.publicKey
   );
   const loanQuery = useLoanQuery(loanAddressQuery?.data);
@@ -364,7 +366,7 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
     }
   }, [callOptionQuery.data]);
 
-  if (hire.isLender(anchorWallet)) {
+  if (rental.isLender(anchorWallet)) {
     if (callOption && callOption.state !== CallOptionStateEnum.Cancelled) {
       return (
         <Box mt="2" mb="2" flex={1}>
@@ -393,10 +395,10 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
     return (
       <Flex direction="row" gap="2">
         <Box mt="2" mb="2" flex={1}>
-          <CallOptionButton mint={hire.data.mint} />
+          <CallOptionButton mint={rental.data.mint} />
         </Box>
         <Box mt="2" mb="2" flex={1}>
-          <LoanButton mint={hire.data.mint} />
+          <LoanButton mint={rental.data.mint} />
         </Box>
       </Flex>
     );
@@ -405,14 +407,14 @@ const SecondaryButtons = ({ hire }: SecondaryButtonProps) => {
   return null;
 };
 
-interface HireButtonProps {
-  hire: Hire;
+interface RentalButtonProps {
+  rental: Rental;
 }
 
-const HireButton = ({ hire }: HireButtonProps) => {
+const RentalButton = ({ rental }: RentalButtonProps) => {
   const [dialog, setDialog] = useState<boolean>(false);
   const [days, setDays] = useState<number>(1);
-  const mutation = useTakeHireMutation(() => setDialog(false));
+  const mutation = useTakeRentalMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
@@ -427,9 +429,9 @@ const HireButton = ({ hire }: HireButtonProps) => {
 
   return (
     <>
-      <TakeRentalForm rental={hire} onSubmit={onLend} />
-      <TakeHireDialog
-        hire={hire}
+      <TakeRentalForm rental={rental} onSubmit={onLend} />
+      <TakeRentalDialog
+        rental={rental}
         days={days}
         open={dialog}
         loading={mutation.isLoading}
@@ -437,8 +439,8 @@ const HireButton = ({ hire }: HireButtonProps) => {
         onConfirm={() => {
           if (days) {
             mutation.mutate({
-              ...hire.data,
-              metadata: hire.metadata,
+              ...rental.data,
+              metadata: rental.metadata,
               days,
             });
           }
@@ -449,13 +451,13 @@ const HireButton = ({ hire }: HireButtonProps) => {
 };
 
 interface ExtendButtonProps {
-  hire: Hire;
+  rental: Rental;
 }
 
-const ExtendButton = ({ hire }: ExtendButtonProps) => {
+const ExtendButton = ({ rental }: ExtendButtonProps) => {
   const [dialog, setDialog] = useState<boolean>(false);
   const [days, setDays] = useState<number>(1);
-  const mutation = useExtendHireMutation(() => setDialog(false));
+  const mutation = useExtendRentalMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
@@ -470,9 +472,9 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
 
   return (
     <>
-      <TakeRentalForm label="Extend Rental" rental={hire} onSubmit={onLend} />
-      <ExtendHireDialog
-        hire={hire}
+      <TakeRentalForm label="Extend Rental" rental={rental} onSubmit={onLend} />
+      <ExtendRentalDialog
+        rental={rental}
         days={days ?? 0}
         open={Boolean(dialog)}
         loading={mutation.isLoading}
@@ -480,8 +482,8 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
         onConfirm={() => {
           if (days) {
             mutation.mutate({
-              ...hire.data,
-              metadata: hire.metadata,
+              ...rental.data,
+              metadata: rental.metadata,
               days,
             });
           }
@@ -492,12 +494,12 @@ const ExtendButton = ({ hire }: ExtendButtonProps) => {
 };
 
 interface CloseButtonProps {
-  hire: Hire;
+  rental: Rental;
 }
 
-const CloseButton = ({ hire }: CloseButtonProps) => {
+const CloseButton = ({ rental }: CloseButtonProps) => {
   const [dialog, setDialog] = useState(false);
-  const mutation = useCloseHireMutation(() => setDialog(false));
+  const mutation = useCloseRentalMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
@@ -518,19 +520,19 @@ const CloseButton = ({ hire }: CloseButtonProps) => {
         open={dialog}
         loading={mutation.isLoading}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(hire.data)}
+        onConfirm={() => mutation.mutate(rental.data)}
       />
     </>
   );
 };
 
 interface RecoverButtonProps {
-  hire: Hire;
+  rental: Rental;
 }
 
-const RecoverButton = ({ hire }: RecoverButtonProps) => {
+const RecoverButton = ({ rental }: RecoverButtonProps) => {
   const [dialog, setDialog] = useState(false);
-  const mutation = useRecoverHireMutation(() => setDialog(false));
+  const mutation = useRecoverRentalMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
@@ -547,13 +549,13 @@ const RecoverButton = ({ hire }: RecoverButtonProps) => {
       <Button variant="primary" w="100%" onClick={onRecover}>
         Recover NFT
       </Button>
-      <RecoverHireDialog
+      <RecoverRentalDialog
         open={dialog}
         loading={mutation.isLoading}
-        hire={hire}
+        rental={rental}
         onRequestClose={() => setDialog(false)}
         onConfirm={() => {
-          const data = hire.data;
+          const data = rental.data;
           if (data.borrower) {
             mutation.mutate({
               mint: data.mint,
@@ -566,4 +568,4 @@ const RecoverButton = ({ hire }: RecoverButtonProps) => {
   );
 };
 
-export default HirePage;
+export default RentalPage;

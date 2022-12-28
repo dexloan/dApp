@@ -2,22 +2,22 @@ import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
-import type { HireData, HireStateEnum } from "../types";
+import type { RentalData, RentalStateEnum } from "../types";
 import * as utils from "../utils";
 import { SECONDS_PER_DAY } from "../constants";
-import dayjs from "../../common/lib/dayjs";
+import dayjs from "../lib/dayjs";
 
-export type HireArgs = {
-  data: HireData;
+export type RentalArgs = {
+  data: RentalData;
   metadata: Metadata;
   publicKey: web3.PublicKey;
 };
 
-export type HirePretty = ReturnType<Hire["pretty"]>;
+export type RentalPretty = ReturnType<Rental["pretty"]>;
 
-export class Hire implements HireArgs {
+export class Rental implements RentalArgs {
   constructor(
-    public readonly data: HireData,
+    public readonly data: RentalData,
     public readonly metadata: Metadata,
     public readonly publicKey: web3.PublicKey
   ) {}
@@ -111,9 +111,9 @@ export class Hire implements HireArgs {
     return this.data.lender ? this.data.lender.toBase58() : "";
   }
 
-  get state(): HireStateEnum | undefined {
+  get state(): RentalStateEnum | undefined {
     if (typeof this.data.state === "object" && this.data.state !== null) {
-      return Object.keys(this.data.state)[0] as HireStateEnum;
+      return Object.keys(this.data.state)[0] as RentalStateEnum;
     }
   }
 
@@ -129,6 +129,7 @@ export class Hire implements HireArgs {
       data: {
         state: this.state,
         amount: this.data.amount.toNumber(),
+        creatorBasisPoints: this.data.creatorBasisPoints,
         lender: this.data.lender.toBase58(),
         borrower: this.data.borrower?.toBase58(),
         expiry: this.data.expiry.toNumber(),
@@ -137,17 +138,19 @@ export class Hire implements HireArgs {
         escrowBalance: this.data.escrowBalance.toNumber(),
         mint: this.data.mint.toBase58(),
         bump: this.data.bump,
+        escrowBump: this.data.escrowBump,
       },
       metadata: this.metadata.pretty(),
       publicKey: this.publicKey.toBase58(),
     };
   }
 
-  static fromJSON(args: HirePretty) {
-    return new Hire(
+  static fromJSON(args: RentalPretty) {
+    return new Rental(
       {
         state: { [args.data.state as string]: {} },
         amount: new BN(args.data.amount),
+        creatorBasisPoints: args.data.creatorBasisPoints,
         lender: new web3.PublicKey(args.data.lender),
         borrower: args.data.borrower
           ? new web3.PublicKey(args.data.borrower)
@@ -162,6 +165,7 @@ export class Hire implements HireArgs {
         escrowBalance: new BN(args.data.escrowBalance),
         mint: new web3.PublicKey(args.data.mint),
         bump: args.data.bump,
+        escrowBump: args.data.escrowBump,
       },
       Metadata.fromArgs({
         key: 0 as Key, // TODO
