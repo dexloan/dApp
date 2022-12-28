@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 
 export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
-  "GDNxgyEcP6b2FtTtCGrGhmoy5AQEiwuv26hV1CLmL1yu"
+  "F2BTn5cmYkTzo52teXhG6jyLS3y2BujdE56yZaGyvxwC"
 );
 
 export const SECONDS_PER_DAY = new anchor.BN(86_400);
