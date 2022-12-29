@@ -15,6 +15,7 @@ import {
   ModalBody,
   SimpleGrid,
   Select,
+  Tooltip,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -32,6 +33,8 @@ import {
   CollectionDetails,
   CallOptionDetails,
 } from "./common";
+import { useCollectionByMintQuery } from "../../hooks/query";
+import { CollectionConfig } from "../../common/model";
 
 export const AskCallOptionModal = ({
   open,
@@ -61,7 +64,7 @@ export const AskCallOptionModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          {innerSelected ? "Call Option - Create Ask" : "Select NFT"}
+          {innerSelected ? "Call Option - Sell" : "Select NFT"}
         </ModalHeader>
         {innerSelected ? (
           <AskCallOptionForm
@@ -307,6 +310,13 @@ const Details = ({ control, selected }: DetailsProps) => {
     [fields.expiry]
   );
 
+  const collectionQuery = useCollectionByMintQuery(
+    selected?.metadata.collection?.key
+  );
+  const config = collectionQuery?.data?.data.config as
+    | CollectionConfig
+    | undefined;
+
   return (
     <CollectionDetails
       metadata={selected.metadata}
@@ -315,6 +325,7 @@ const Details = ({ control, selected }: DetailsProps) => {
           amount={amount}
           strikePrice={strikePrice}
           expiry={expiry}
+          creatorBasisPoints={config?.optionBasisPoints}
         />
       }
     />

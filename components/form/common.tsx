@@ -88,8 +88,6 @@ export const LoanForecast = ({
     }
   }, [duration]);
 
-  console.log("creatorBasisPoints: ", creatorBasisPoints);
-
   return (
     <Flex direction="column" gap="2" justify="space-between">
       <Flex direction="row" justifyContent="space-between" w="100%">
@@ -149,12 +147,14 @@ interface CallOptionDetailsProps {
   amount?: anchor.BN;
   strikePrice?: anchor.BN;
   expiry?: anchor.BN;
+  creatorBasisPoints?: number;
 }
 
 export const CallOptionDetails = ({
   amount,
   strikePrice,
   expiry,
+  creatorBasisPoints,
 }: CallOptionDetailsProps) => {
   return (
     <Flex direction="column" gap="2" justify="space-between">
@@ -186,6 +186,20 @@ export const CallOptionDetails = ({
           )}
         </Text>
       </Flex>
+      <Tooltip label="Creator's split of the option cost">
+        <Flex direction="row" justifyContent="space-between" w="100%">
+          <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
+            Creator Fee
+          </Text>
+          <Text fontSize="sm" whiteSpace="nowrap">
+            {creatorBasisPoints ? (
+              utils.formatBasisPoints(creatorBasisPoints)
+            ) : (
+              <EllipsisProgress />
+            )}
+          </Text>
+        </Flex>
+      </Tooltip>
     </Flex>
   );
 };
@@ -481,8 +495,8 @@ export const CollectionDetails = ({
       <Flex width="100%" gap="4">
         <Flex flex={1}>
           <Box
-            h="36"
-            w="36"
+            h="44"
+            w="44"
             position="relative"
             borderRadius="sm"
             overflow="hidden"

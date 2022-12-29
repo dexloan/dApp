@@ -1,6 +1,4 @@
-import * as anchor from "@project-serum/anchor";
 import { useState } from "react";
-import { Control, Controller, useForm, useWatch } from "react-hook-form";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import {
   Box,
@@ -14,7 +12,7 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { NftResult } from "../../common/types";
-import { Collection, LoanOffer } from "../../common/model";
+import { LoanOffer } from "../../common/model";
 import {
   useCloseLoanOfferMutation,
   useTakeLoanMutation,
