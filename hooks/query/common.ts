@@ -11,7 +11,9 @@ import {
   fetchMetadata,
   fetchNft,
   fetchNfts,
+  fetchTokenManager,
   fetchTokenAccountAddress,
+  findTokenManagerAddress,
 } from "../../common/query";
 import { NftResult } from "../../common/types";
 
@@ -170,6 +172,23 @@ export const useFloorPriceQuery = (symbol?: string) => {
       staleTime: 1000 * 60 * 60 * 5,
       refetchOnWindowFocus: false,
     }
+  );
+};
+
+export const useTokenManagerQuery = (
+  mint: anchor.web3.PublicKey,
+  issuer: anchor.web3.PublicKey | null
+) => {
+  const { connection } = useConnection();
+
+  return useQuery(
+    ["tokenManager", mint?.toBase58(), issuer?.toBase58()],
+    () => {
+      if (mint && issuer) {
+        return fetchTokenManager(connection, mint, issuer);
+      }
+    },
+    { enabled: Boolean(mint && issuer) }
   );
 };
 

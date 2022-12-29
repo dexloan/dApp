@@ -1,15 +1,6 @@
 import { web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
-import type { CollectionData } from "../types";
-
-export interface CollectionConfig {
-  loanBasisPoints: number;
-  loanEnabled: boolean;
-  optionBasisPoints: number;
-  optionEnabled: boolean;
-  rentalBasisPoints: number;
-  rentalEnabled: boolean;
-}
+import type { CollectionData, CollectionConfig } from "../types";
 
 export type CollectionArgs = {
   data: CollectionData;

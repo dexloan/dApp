@@ -64,6 +64,10 @@ export class CallOption implements CallOptionArgs {
     return utils.formatAmount(this.data.strikePrice);
   }
 
+  get sellerFeeBasisPoints() {
+    return utils.formatBasisPoints(this.metadata.data.sellerFeeBasisPoints);
+  }
+
   get buyer() {
     return this.data.buyer ? this.data.buyer.toBase58() : "";
   }
@@ -169,6 +173,10 @@ export class CallOptionBid implements CallOptionBidArgs {
 
   get strikePrice() {
     return utils.formatAmount(this.data.strikePrice);
+  }
+
+  get sellerFeeBasisPoints() {
+    return utils.formatBasisPoints(this.metadata.data.sellerFeeBasisPoints);
   }
 
   get cost() {

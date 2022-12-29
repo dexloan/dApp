@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { useCallback, useState, useMemo } from "react";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 import {
@@ -23,9 +23,15 @@ import Image from "next/image";
 
 import * as utils from "../../common/utils";
 import dayjs from "../../common/lib/dayjs";
-import { NftResult, CollectionItem, CollectionMap } from "../../common/types";
+import {
+  NftResult,
+  CollectionItem,
+  CollectionMap,
+  TokenManagerAccountState,
+} from "../../common/types";
 import {
   useNftByOwnerQuery,
+  useTokenManagerQuery,
   useFloorPriceQuery,
   useMetadataFileQuery,
   useMetadataQuery,
@@ -436,9 +442,30 @@ interface NftItemProps {
 }
 
 const NftItem = ({ item, listingType, onSelectItem }: NftItemProps) => {
+  const wallet = useWallet();
   const metadataQuery = useMetadataQuery(
     item.metadata.collection?.key as anchor.web3.PublicKey
   );
+
+  const tokenManagerQuery = useTokenManagerQuery(
+    item.metadata.mint,
+    wallet.publicKey
+  );
+  const accounts = tokenManagerQuery.data?.accounts as
+    | TokenManagerAccountState
+    | undefined;
+
+  if (tokenManagerQuery.isLoading) {
+    return null;
+  }
+
+  if (listingType === "callOption" && accounts?.loan) {
+    return null;
+  }
+
+  if (listingType === "loan" && accounts?.callOption) {
+    return null;
+  }
 
   return (
     <Card

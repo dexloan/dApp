@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { Box, Flex, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
-import Image from "next/image";
+import { Box, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
 
 import * as utils from "../../../common/utils";
 import {
@@ -12,7 +11,7 @@ import {
 import { useFloorPricesQuery } from "../../../hooks/query";
 import { NftResult } from "../../../common/types";
 import { NFTCell } from "../../table";
-import { EllipsisProgress } from "../../progress";
+import { FloorPrice } from "../../floorPrice";
 
 export type LoanSortCols =
   | "asset"
@@ -211,21 +210,7 @@ export const LoanRow = ({
       <Td isNumeric>
         <Box>
           <Text mb="1">{amount}</Text>
-          <Flex alignItems="center" justifyContent="flex-end">
-            {floorPriceSol ? (
-              <>
-                <Text fontSize="xs" color="gray.500" mr="1">
-                  (Floor {floorPriceSol ?? "..."}{" "}
-                </Text>
-                <Image src="/me.svg" height={16} width={16} alt="Magic Eden" />
-                <Text fontSize="xs" color="gray.500">
-                  )
-                </Text>
-              </>
-            ) : (
-              <EllipsisProgress />
-            )}
-          </Flex>
+          <FloorPrice>{floorPriceSol}</FloorPrice>
         </Box>
       </Td>
     </Tr>

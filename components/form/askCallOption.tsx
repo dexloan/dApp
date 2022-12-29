@@ -15,16 +15,16 @@ import {
   ModalBody,
   SimpleGrid,
   Select,
-  Tooltip,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 
 import dayjs from "../../common/lib/dayjs";
-import { NftResult } from "../../common/types";
+import { NftResult, CollectionConfig } from "../../common/types";
 import {
   AskCallOptionMutationVariables,
   useAskCallOptionMutation,
 } from "../../hooks/mutation";
+import { useCollectionByMintQuery } from "../../hooks/query";
 import {
   CallOptionFormFields,
   SelectNftForm,
@@ -33,8 +33,6 @@ import {
   CollectionDetails,
   CallOptionDetails,
 } from "./common";
-import { useCollectionByMintQuery } from "../../hooks/query";
-import { CollectionConfig } from "../../common/model";
 
 export const AskCallOptionModal = ({
   open,
