@@ -35,7 +35,7 @@ export const useLoanSortState = (): [LoanSortState, LoanSortFn] => {
 export const useSortedLoanOffers = (
   offers: LoanOfferPretty[] = [],
   state: LoanSortState
-) => {
+): LoanOffer[] => {
   const floorPriceQueries = useFloorPricesQuery();
 
   return useMemo(() => {

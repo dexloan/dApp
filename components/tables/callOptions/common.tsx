@@ -8,7 +8,7 @@ import {
   CallOptionBid,
   CallOptionBidPretty,
 } from "../../../common/model";
-import { useFloorPriceQuery } from "../../../hooks/query";
+import { useFloorPrice } from "../../../hooks/render";
 import { NFTCell } from "../../table";
 import { FloorPrice } from "../../floorPrice";
 
@@ -125,13 +125,13 @@ interface OptionRowProps {
 }
 
 export const OptionRow = ({ option, onClick }: OptionRowProps) => {
-  const floorPriceQuery = useFloorPriceQuery(option?.metadata.data.symbol);
+  const floorPrice = useFloorPrice(option?.metadata.data.symbol);
 
   const floorPriceSol = useMemo(() => {
-    if (floorPriceQuery.data?.floorPrice) {
-      return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+    if (floorPrice) {
+      return floorPrice / anchor.web3.LAMPORTS_PER_SOL;
     }
-  }, [floorPriceQuery.data]);
+  }, [floorPrice]);
 
   return (
     <Tr
