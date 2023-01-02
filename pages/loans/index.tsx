@@ -56,7 +56,7 @@ const Loans: NextPage = () => {
 
 const Offers = () => {
   const offersQuery = useLoanOffersQuery();
-
+  console.log(offersQuery);
   return <LoanOffers heading="Offers" offers={offersQuery.data} />;
 };
 

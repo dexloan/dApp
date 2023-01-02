@@ -13,7 +13,6 @@ import {
   fetchNfts,
   fetchTokenManager,
   fetchTokenAccountAddress,
-  findTokenManagerAddress,
 } from "../../common/query";
 import { NftResult } from "../../common/types";
 
@@ -161,7 +160,7 @@ export function useMetadataFileQuery(uri?: string) {
 
 export const useFloorPriceQuery = (symbol?: string) => {
   return useQuery(
-    ["floorPrice", symbol],
+    ["floorPrices", symbol],
     () => {
       if (symbol) {
         return fetchFloorPrice(symbol);
@@ -201,6 +200,6 @@ export const useFloorPricesQuery = () => {
 
 async function fetchFloorPrice(symbol: string) {
   const formattedSymbol = utils.trimNullChars(symbol).toLowerCase();
-  const response = await fetch(`/api/floor/${symbol}`);
+  const response = await fetch(`/api/floor/${formattedSymbol}`);
   return response.json() as Promise<{ floorPrice: number }>;
 }

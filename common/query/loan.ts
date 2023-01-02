@@ -134,7 +134,6 @@ export async function fetchMultipleLoanOffers(
     connection,
     collections.map((c) => c.account.mint)
   );
-
   const collectionMap = collections.reduce((prev, curr) => {
     prev[curr.publicKey.toBase58()] = curr.account;
     return prev;
@@ -149,7 +148,7 @@ export async function fetchMultipleLoanOffers(
     .map((listing) => {
       const collectionData =
         collectionMap[listing.account.collection.toBase58()];
-      const metadata = metadataMap[listing.account.collection.toBase58()];
+      const metadata = metadataMap[collectionData.mint.toBase58()];
 
       if (collectionData && metadata) {
         const collection = new Collection(
