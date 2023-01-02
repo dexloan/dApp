@@ -9,8 +9,8 @@ import {
   LoanOfferPretty,
   LoanPretty,
 } from "../../../common/model";
-import { useFloorPricesQuery, useFloorPriceQuery } from "../../../hooks/query";
-import { useLTV } from "../../../hooks/render";
+import { useFloorPricesQuery } from "../../../hooks/query";
+import { useFloorPrice, useLTV } from "../../../hooks/render";
 import { NFTCell } from "../../table";
 import { FloorPrice } from "../../floorPrice";
 
@@ -174,15 +174,14 @@ interface LoanRowProps {
 }
 
 export const LoanRow = ({ loan, onClick }: LoanRowProps) => {
-  const floorPriceQuery = useFloorPriceQuery(loan.metadata.data.symbol);
-
+  const floorPrice = useFloorPrice(loan.metadata.data.symbol);
   const floorPriceSol = useMemo(() => {
-    if (floorPriceQuery.data?.floorPrice) {
-      return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+    if (floorPrice) {
+      return floorPrice / anchor.web3.LAMPORTS_PER_SOL;
     }
-  }, [floorPriceQuery.data]);
+  }, [floorPrice]);
 
-  const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
+  const ltv = useLTV(loan?.data.amount, floorPrice);
 
   return (
     <Tr

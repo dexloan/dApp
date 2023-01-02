@@ -1,11 +1,7 @@
-import * as anchor from "@project-serum/anchor";
 import { Th } from "@chakra-ui/react";
-import { useMemo } from "react";
 import { useRouter } from "next/router";
 
 import { Loan, LoanPretty } from "../../../common/model";
-import { useFloorPriceQuery } from "../../../hooks/query";
-import { useLTV } from "../../../hooks/render";
 import { Col, ColumnHeader, ListingsTable } from "../../table";
 import {
   LoanRow,
@@ -13,7 +9,6 @@ import {
   useLoanSortState,
   useSortedLoans,
 } from "./common";
-import { EllipsisProgress } from "../../progress";
 
 const LOAN_COLS: Readonly<Col<LoanSortCols>[]> = [
   { name: "asset", label: "Asset" },
@@ -73,34 +68,3 @@ export const LoanListings = ({
     />
   );
 };
-
-// interface LoanRowProps {
-//   loan: Loan;
-//   onClick: () => void;
-// }
-
-// const LoanAskRow = ({ loan, onClick }: LoanRowProps) => {
-//   const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
-
-//   const floorPriceSol = useMemo(() => {
-//     if (floorPriceQuery.data?.floorPrice) {
-//       return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
-//     }
-//   }, [floorPriceQuery.data]);
-
-//   const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
-
-//   return (
-//     <LoanRow
-//       amount={loan.amount}
-//       duration={loan.duration}
-//       apy={loan.apy}
-//       lenderApy={loan.lenderApy}
-//       creatorApy={loan.creatorApy}
-//       ltv={ltv}
-//       floorPriceSol={floorPriceSol}
-//       metadata={loan.metadata}
-//       onClick={onClick}
-//     />
-//   );
-// };

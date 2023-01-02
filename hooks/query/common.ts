@@ -4,6 +4,7 @@ import {
   useAnchorWallet,
   useConnection,
 } from "@solana/wallet-adapter-react";
+import { useMemo } from "react";
 import { useQuery, useQueryClient } from "react-query";
 
 import * as utils from "../../common/utils";
@@ -158,22 +159,6 @@ export function useMetadataFileQuery(uri?: string) {
   );
 }
 
-export const useFloorPriceQuery = (symbol?: string) => {
-  return useQuery(
-    ["floorPrices", symbol],
-    () => {
-      if (symbol) {
-        return fetchFloorPrice(symbol);
-      }
-    },
-    {
-      enabled: symbol !== "undefined",
-      staleTime: 1000 * 60 * 60 * 5,
-      refetchOnWindowFocus: false,
-    }
-  );
-};
-
 export const useTokenManagerQuery = (
   mint: anchor.web3.PublicKey,
   issuer: anchor.web3.PublicKey | null
@@ -199,7 +184,6 @@ export const useFloorPricesQuery = () => {
 };
 
 async function fetchFloorPrice(symbol: string) {
-  const formattedSymbol = utils.trimNullChars(symbol).toLowerCase();
-  const response = await fetch(`/api/floor/${formattedSymbol}`);
+  const response = await fetch(`/api/floor/${symbol}`);
   return response.json() as Promise<{ floorPrice: number }>;
 }

@@ -2,8 +2,23 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import * as anchor from "@project-serum/anchor";
 import { useMemo } from "react";
 
+import * as utils from "../../common/utils";
 import { EllipsisProgress } from "../../components/progress";
-import { useMetadataQuery } from "../query";
+import { useFloorPricesQuery, useMetadataQuery } from "../query";
+
+export const useFloorPrice = (symbol?: string): number | undefined => {
+  const formattedSymbol = useMemo(() => {
+    if (symbol) {
+      return utils.trimNullChars(symbol).toLowerCase();
+    }
+  }, [symbol]);
+
+  const floorPricesQuery = useFloorPricesQuery();
+
+  if (formattedSymbol) {
+    return floorPricesQuery.data?.[formattedSymbol];
+  }
+};
 
 export function useLTV(amount?: anchor.BN | null, floorPrice?: number) {
   return useMemo(() => {
