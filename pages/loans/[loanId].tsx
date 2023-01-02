@@ -24,10 +24,10 @@ import { Loan } from "../../common/model";
 import {
   getLoanCacheKey,
   getMetadataFileCacheKey,
-  useFloorPriceQuery,
   useLoanQuery,
   useMetadataFileQuery,
 } from "../../hooks/query";
+import { useFloorPrice } from "../../hooks/render";
 import {
   useCloseLoanMutation,
   useGiveLoanMutation,
@@ -152,7 +152,7 @@ const LoanLayout = () => {
   const loanQuery = useLoanQuery(loanAddress);
 
   const symbol = loanQuery.data?.metadata?.data.symbol;
-  const floorPriceQuery = useFloorPriceQuery(symbol);
+  const floorPrice = useFloorPrice(symbol);
 
   const loan = useMemo(() => {
     if (loanQuery.data) {
@@ -188,15 +188,15 @@ const LoanLayout = () => {
   }
 
   const currentLTV = useMemo(() => {
-    if (loan?.data?.amount && floorPriceQuery.data?.floorPrice) {
+    if (loan?.data?.amount && floorPrice) {
       const percentage = Number(
-        (loan.data.amount.toNumber() / floorPriceQuery.data.floorPrice) * 100
+        (loan.data.amount.toNumber() / floorPrice) * 100
       ).toFixed(2);
       return percentage + "%";
     }
 
     return <EllipsisProgress />;
-  }, [loan?.data, floorPriceQuery.data]);
+  }, [loan?.data, floorPrice]);
 
   function renderByState() {
     if (loan === undefined) return null;

@@ -27,9 +27,9 @@ import {
   getCallOptionCacheKey,
   getMetadataFileCacheKey,
   useCallOptionQuery,
-  useFloorPriceQuery,
   useMetadataFileQuery,
 } from "../../hooks/query";
+import { useFloorPrice } from "../../hooks/render";
 import {
   useBuyCallOptionMutation,
   useCloseCallOptionMutation,
@@ -152,7 +152,7 @@ const CallOptionLayout = () => {
   const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
 
   const symbol = callOptionQueryResult.data?.metadata?.data.symbol;
-  const floorPriceQuery = useFloorPriceQuery(symbol);
+  const floorPrice = useFloorPrice(symbol);
 
   const callOption = useMemo(() => {
     if (callOptionQueryResult.data) {
@@ -161,11 +161,11 @@ const CallOptionLayout = () => {
   }, [callOptionQueryResult.data]);
 
   const floorValue = useMemo(() => {
-    if (floorPriceQuery.data?.floorPrice) {
-      return utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice));
+    if (floorPrice) {
+      return utils.formatAmount(new anchor.BN(floorPrice));
     }
     return <EllipsisProgress />;
-  }, [floorPriceQuery.data]);
+  }, [floorPrice]);
 
   function renderListedButton() {
     if (callOption && callOption.isSeller(anchorWallet)) {
