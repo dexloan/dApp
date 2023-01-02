@@ -77,6 +77,7 @@ const TakeLoan = ({ open, offer, onRequestClose }: TakeLoanModalProps) => {
               amount={offer?.data.amount}
               duration={offer?.data.duration}
               basisPoints={offer?.data.basisPoints}
+              creatorBasisPoints={offer?.collection.config.loanBasisPoints}
             />
           }
         />

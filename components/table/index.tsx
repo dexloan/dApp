@@ -69,10 +69,11 @@ export const ColumnHeader = ({
 };
 
 interface NFTCellProps {
+  subtitle?: string;
   metadata?: Metadata;
 }
 
-export const NFTCell = ({ metadata }: NFTCellProps) => {
+export const NFTCell = ({ subtitle, metadata }: NFTCellProps) => {
   const [isVisible, setVisible] = useState(false);
   const metadataQuery = useMetadataFileQuery(metadata?.data.uri);
   const collectionName = useCollectionName(metadata);
@@ -118,7 +119,7 @@ export const NFTCell = ({ metadata }: NFTCellProps) => {
         <Box ml="4">
           <Text mb="1">{metadata?.data.name}</Text>
           <Text fontSize="xs" color="gray.500">
-            {collectionName}
+            {subtitle ?? collectionName}
           </Text>
         </Box>
       </Box>

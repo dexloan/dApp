@@ -24,7 +24,7 @@ const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
 
 interface LoanOffersProps {
   heading: string;
-  offers?: LoanOfferPretty[];
+  offers?: LoanOfferPretty[][];
 }
 
 export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
@@ -37,7 +37,7 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
 
   return (
     <>
-      <ListingsTable<LoanSortCols, LoanOffer>
+      <ListingsTable<LoanSortCols, LoanOfferPretty[]>
         heading={heading}
         placeholder="No offers currently"
         action={
@@ -68,19 +68,23 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
             </ColumnHeader>
           );
         }}
-        renderRow={(item) => (
-          <LoanRow
-            key={item.address}
-            loan={item}
-            onClick={() => {
-              if (!wallet.publicKey) {
-                modal.setVisible(true);
-              }
+        renderRow={(items) => {
+          const loanOffer = LoanOffer.fromJSON(items[0]);
+          return (
+            <LoanRow
+              key={loanOffer.address}
+              loan={loanOffer}
+              subtitle={`${items.length} Offer${items.length > 1 ? "s" : ""}`}
+              onClick={() => {
+                if (!wallet.publicKey) {
+                  modal.setVisible(true);
+                }
 
-              setOffer(item);
-            }}
-          />
-        )}
+                setOffer(loanOffer);
+              }}
+            />
+          );
+        }}
       />
       <OfferLoanModal
         open={offerModal}

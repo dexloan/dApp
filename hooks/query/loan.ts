@@ -1,23 +1,24 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import bs58 from "bs58";
 
 import * as query from "../../common/query";
 
-export const useLoanAddressQuery = (
+export const useLoanAddress = (
   mint?: anchor.web3.PublicKey,
   borrower?: anchor.web3.PublicKey
 ) => {
-  return useQuery(
-    ["loan_address", mint?.toBase58(), borrower?.toBase58()],
-    () => {
-      if (mint && borrower) {
-        return query.findLoanAddress(mint, borrower);
-      }
-    },
-    { enabled: Boolean(mint && borrower) }
-  );
+  const [address, setAddress] = useState<anchor.web3.PublicKey>();
+
+  useEffect(() => {
+    if (mint && borrower) {
+      query.findLoanAddress(mint, borrower).then((a) => setAddress(a));
+    }
+  }, [mint, borrower]);
+
+  return address;
 };
 
 export const getLoanCacheKey = (

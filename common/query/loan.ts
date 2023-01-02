@@ -14,6 +14,28 @@ import {
 import { getProgram, getProvider } from "../provider";
 import { fetchMetadata, fetchMetadataAccounts } from "./common";
 
+/**
+ * KEYS
+ */
+// export const loanKeys = {
+//   all: () => ["loans"] as const,
+//   list: (filter: anchor.web3.GetProgramAccountsFilter[] = []) =>
+//     ["loans", "list", ...filter] as const,
+//   byAddress: (address: anchor.web3.PublicKey) =>
+//     ["loans", "details", address.toBase58()] as const,
+// };
+
+// export const offerKeys = {
+//   all: () => ["offers"] as const,
+//   list: (filter: anchor.web3.GetProgramAccountsFilter[] = []) =>
+//     ["offers", "list", ...filter] as const,
+//   byAddress: (address: anchor.web3.PublicKey) =>
+//     ["offers", "details", address.toBase58()] as const,
+// };
+
+/**
+ * PDAs
+ */
 export async function findLoanAddress(
   mint: anchor.web3.PublicKey,
   borrower: anchor.web3.PublicKey
@@ -55,6 +77,9 @@ export async function findLoanOfferVaultAddress(
   return vaultAddress;
 }
 
+/**
+ * Queries
+ */
 export async function fetchLoan(
   connection: anchor.web3.Connection,
   address: anchor.web3.PublicKey
@@ -123,7 +148,7 @@ export async function fetchMultipleLoans(
 export async function fetchMultipleLoanOffers(
   connection: anchor.web3.Connection,
   filter: anchor.web3.GetProgramAccountsFilter[] = []
-): Promise<LoanOfferPretty[]> {
+): Promise<LoanOfferPretty[][]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
   const [listings, collections] = await Promise.all([
@@ -144,7 +169,7 @@ export async function fetchMultipleLoanOffers(
     return prev;
   }, {} as Record<string, Metadata>);
 
-  return listings
+  const listingsMap = listings
     .map((listing) => {
       const collectionData =
         collectionMap[listing.account.collection.toBase58()];
@@ -166,5 +191,18 @@ export async function fetchMultipleLoanOffers(
 
       return null;
     })
-    .filter(utils.notNull);
+    .filter(utils.notNull)
+    .reduce((map, offer) => {
+      const key = `${offer.data.collection}:
+        ${offer.data.amount}:
+        ${offer.data.basisPoints}:
+        ${offer.data.duration}`;
+
+      map[key] = map[key] || [];
+      map[key].push(offer);
+
+      return map;
+    }, {} as Record<string, LoanOfferPretty[]>);
+
+  return Object.values(listingsMap);
 }

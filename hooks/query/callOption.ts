@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useState, useEffect } from "react";
 import { useQuery } from "react-query";
 import bs58 from "bs58";
 
@@ -49,19 +50,19 @@ export function useCallOptionBidsByBuyerQuery(
   );
 }
 
-export const useCallOptionAddressQuery = (
+export const useCallOptionAddress = (
   mint?: anchor.web3.PublicKey,
   seller?: anchor.web3.PublicKey
 ) => {
-  return useQuery(
-    ["call_option_address", mint?.toBase58(), seller?.toBase58()],
-    () => {
-      if (mint && seller) {
-        return query.findCallOptionAddress(mint, seller);
-      }
-    },
-    { enabled: Boolean(mint && seller) }
-  );
+  const [address, setAddress] = useState<anchor.web3.PublicKey>();
+
+  useEffect(() => {
+    if (mint && seller) {
+      query.findCallOptionAddress(mint, seller).then((a) => setAddress(a));
+    }
+  }, [mint, seller]);
+
+  return address;
 };
 
 export const getCallOptionCacheKey = (

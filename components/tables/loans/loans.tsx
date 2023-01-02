@@ -36,7 +36,7 @@ export const LoanListings = ({
   const sortedLoans = useSortedLoans(loans, sortState);
 
   return (
-    <ListingsTable<LoanSortCols, Loan>
+    <ListingsTable<LoanSortCols, LoanPretty>
       heading={heading}
       placeholder={placeholderMessage}
       action={action}
@@ -60,9 +60,9 @@ export const LoanListings = ({
       }}
       renderRow={(item) => (
         <LoanRow
-          key={item.address}
-          loan={item}
-          onClick={() => router.push(`/loans/${item.address}`)}
+          key={item.publicKey}
+          loan={Loan.fromJSON(item)}
+          onClick={() => router.push(`/loans/${item.publicKey}`)}
         />
       )}
     />

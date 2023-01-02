@@ -30,9 +30,9 @@ import {
   getRentalCacheKey,
   getMetadataFileCacheKey,
   useMetadataFileQuery,
-  useCallOptionAddressQuery,
+  useCallOptionAddress,
   useCallOptionQuery,
-  useLoanAddressQuery,
+  useLoanAddress,
   useLoanQuery,
 } from "../../hooks/query";
 import {
@@ -342,17 +342,14 @@ interface SecondaryButtonProps {
 const SecondaryButtons = ({ rental }: SecondaryButtonProps) => {
   const anchorWallet = useAnchorWallet();
 
-  const callOptionAddressQuery = useCallOptionAddressQuery(
+  const callOptionAddress = useCallOptionAddress(
     rental.data.mint,
     anchorWallet?.publicKey
   );
-  const callOptionQuery = useCallOptionQuery(callOptionAddressQuery?.data);
+  const callOptionQuery = useCallOptionQuery(callOptionAddress);
 
-  const loanAddressQuery = useLoanAddressQuery(
-    rental.data.mint,
-    anchorWallet?.publicKey
-  );
-  const loanQuery = useLoanQuery(loanAddressQuery?.data);
+  const loanAddress = useLoanAddress(rental.data.mint, anchorWallet?.publicKey);
+  const loanQuery = useLoanQuery(loanAddress);
 
   const loan = useMemo(() => {
     if (loanQuery.data) {
@@ -370,9 +367,7 @@ const SecondaryButtons = ({ rental }: SecondaryButtonProps) => {
     if (callOption && callOption.state !== CallOptionStateEnum.Cancelled) {
       return (
         <Box mt="2" mb="2" flex={1}>
-          <NextLink
-            href={`/option/${callOptionAddressQuery?.data?.toBase58()}`}
-          >
+          <NextLink href={`/option/${callOptionAddress?.toBase58()}`}>
             <Button w="100%">View Call Option</Button>
           </NextLink>
         </Box>
@@ -386,7 +381,7 @@ const SecondaryButtons = ({ rental }: SecondaryButtonProps) => {
     )
       return (
         <Box mt="2" mb="2" flex={1}>
-          <NextLink href={`/loan/${loanAddressQuery?.data?.toBase58()}`}>
+          <NextLink href={`/loan/${loanAddress?.toBase58()}`}>
             <Button w="100%">View Loan</Button>
           </NextLink>
         </Box>

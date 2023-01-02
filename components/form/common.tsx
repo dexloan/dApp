@@ -32,10 +32,10 @@ import {
 import {
   useNftByOwnerQuery,
   useTokenManagerQuery,
-  useFloorPriceQuery,
   useMetadataFileQuery,
   useMetadataQuery,
 } from "../../hooks/query";
+import { useFloorPrice } from "../../hooks/render";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
 import { EllipsisProgress } from "../progress";
@@ -403,7 +403,7 @@ const Collection = ({
   listingType,
   onSelectItem,
 }: CollectionProps) => {
-  const floorPriceQuery = useFloorPriceQuery(collection.symbol);
+  const floorPrice = useFloorPrice(collection.symbol);
 
   const renderItem = useCallback(
     (item: NftResult) => {
@@ -418,17 +418,19 @@ const Collection = ({
     [listingType, onSelectItem]
   );
 
-  const floorPrice = useMemo(() => {
-    if (floorPriceQuery.data?.floorPrice) {
-      return utils.formatAmount(new anchor.BN(floorPriceQuery.data.floorPrice));
+  const formattedFloorPrice = useMemo(() => {
+    if (floorPrice) {
+      return utils.formatAmount(new anchor.BN(floorPrice));
     }
-  }, [floorPriceQuery.data]);
+  }, [floorPrice]);
 
   return (
     <>
       <SectionHeader
         title={collection.name}
-        subtitle={<>Floor Price {floorPrice ?? <EllipsisProgress />}</>}
+        subtitle={
+          <>Floor Price {formattedFloorPrice ?? <EllipsisProgress />}</>
+        }
       />
       <CardList>{collection.items.map(renderItem)}</CardList>
     </>

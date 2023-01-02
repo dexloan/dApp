@@ -33,17 +33,15 @@ export const useLoanSortState = (): [LoanSortState, LoanSortFn] => {
 };
 
 export const useSortedLoanOffers = (
-  offers: LoanOfferPretty[] = [],
+  offers: LoanOfferPretty[][] = [],
   state: LoanSortState
-): LoanOffer[] => {
+): LoanOfferPretty[][] => {
   const floorPriceQueries = useFloorPricesQuery();
 
   return useMemo(() => {
     const [sortCol, direction] = state;
-
-    return offers
-      .map(LoanOffer.fromJSON)
-      .sort(compareBy(sortCol, direction, floorPriceQueries.data));
+    const sortFn = compareBy(sortCol, direction, floorPriceQueries.data);
+    return offers.sort(([a], [b]) => sortFn(a, b));
   }, [offers, state, floorPriceQueries.data]);
 };
 
@@ -56,9 +54,7 @@ export const useSortedLoans = (
   return useMemo(() => {
     const [sortCol, direction] = state;
 
-    return offers
-      .map(Loan.fromJSON)
-      .sort(compareBy(sortCol, direction, floorPriceQueries.data));
+    return offers.sort(compareBy(sortCol, direction, floorPriceQueries.data));
   }, [offers, state, floorPriceQueries.data]);
 };
 
@@ -101,14 +97,14 @@ export function compareBy(
 }
 
 function sortByAmount(direction: number) {
-  return (...args: Loan[] | LoanOffer[]) => {
+  return (...args: LoanPretty[] | LoanOfferPretty[]) => {
     if (direction === -1) {
       args.reverse();
     }
 
     if (args[0].data.amount) {
       if (args[1].data.amount) {
-        return args[0].data.amount.sub(args[1].data.amount).toNumber();
+        return args[0].data.amount - args[1].data.amount;
       }
       return 1;
     }
@@ -117,7 +113,7 @@ function sortByAmount(direction: number) {
 }
 
 function sortByBasisPoints(direction: number) {
-  return (...args: Loan[] | LoanOffer[]) => {
+  return (...args: LoanPretty[] | LoanOfferPretty[]) => {
     if (direction === -1) {
       args.reverse();
     }
@@ -127,7 +123,7 @@ function sortByBasisPoints(direction: number) {
 }
 
 function sortByLTV(direction: number, floorPrices?: Record<string, number>) {
-  return (...args: Loan[] | LoanOffer[]) => {
+  return (...args: LoanPretty[] | LoanOfferPretty[]) => {
     if (direction === -1) {
       args.reverse();
     }
@@ -136,20 +132,19 @@ function sortByLTV(direction: number, floorPrices?: Record<string, number>) {
       return -1;
     }
 
-    const floorPriceA = utils.getFloorPrice(
-      floorPrices,
-      args[0]?.metadata.data.symbol
-    );
-    const floorPriceB = utils.getFloorPrice(
-      floorPrices,
-      args[1]?.metadata.data.symbol
-    );
+    const metadataA =
+      "metadata" in args[0] ? args[0].metadata : args[0].collection.metadata;
+    const metadataB =
+      "metadata" in args[1] ? args[1].metadata : args[1].collection.metadata;
+
+    const floorPriceA = utils.getFloorPrice(floorPrices, metadataA.data.symbol);
+    const floorPriceB = utils.getFloorPrice(floorPrices, metadataB.data.symbol);
     const amountA = args[0].data.amount;
     const amountB = args[1].data.amount;
 
     if (floorPriceA && floorPriceB && amountA && amountB) {
-      const ltvA = Number((amountA.toNumber() / floorPriceA) * 100);
-      const ltvB = Number((amountB.toNumber() / floorPriceB) * 100);
+      const ltvA = Number((amountA / floorPriceA) * 100);
+      const ltvB = Number((amountB / floorPriceB) * 100);
 
       return ltvA - ltvB;
     }
@@ -159,21 +154,22 @@ function sortByLTV(direction: number, floorPrices?: Record<string, number>) {
 }
 
 function sortByDuration(direction: number) {
-  return (...args: Loan[] | LoanOffer[]) => {
+  return (...args: LoanPretty[] | LoanOfferPretty[]) => {
     if (direction === -1) {
       args.reverse();
     }
 
-    return args[0].data.duration.sub(args[1].data.duration).toNumber();
+    return args[0].data.duration - args[1].data.duration;
   };
 }
 
 interface LoanRowProps {
   loan: Loan | LoanOffer;
+  subtitle?: string;
   onClick: () => void;
 }
 
-export const LoanRow = ({ loan, onClick }: LoanRowProps) => {
+export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
   const floorPrice = useFloorPrice(loan.metadata.data.symbol);
   const floorPriceSol = useMemo(() => {
     if (floorPrice) {
@@ -189,7 +185,7 @@ export const LoanRow = ({ loan, onClick }: LoanRowProps) => {
       _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
       onClick={onClick}
     >
-      <NFTCell metadata={loan.metadata} />
+      <NFTCell subtitle={subtitle} metadata={loan.metadata} />
       <Td>{loan.duration}</Td>
       <Td isNumeric>
         <Text mb="1">{loan.apy}</Text>
