@@ -4,6 +4,8 @@ import {
   Metadata,
   PROGRAM_ID as METADATA_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
+
+import * as utils from "../utils";
 import { getProgram, getProvider } from "../provider";
 import { NftResult } from "../types";
 import { findTokenManagerAddress } from "./tokenManager";
@@ -47,9 +49,9 @@ export async function fetchMetadataAccounts(
     metadataAddresses
   );
 
-  return rawMetadataAccounts.map((account) =>
-    account ? Metadata.fromAccountInfo(account)[0] : null
-  );
+  return rawMetadataAccounts
+    .map((account) => (account ? Metadata.fromAccountInfo(account)[0] : null))
+    .filter(utils.notNull);
 }
 
 // Can remove this when we update spl-token lib

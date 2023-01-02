@@ -1,3 +1,4 @@
+import * as anchor from "@project-serum/anchor";
 import { useState, useCallback, useMemo } from "react";
 import { Box, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
 
@@ -8,8 +9,8 @@ import {
   LoanOfferPretty,
   LoanPretty,
 } from "../../../common/model";
-import { useFloorPricesQuery } from "../../../hooks/query";
-import { NftResult } from "../../../common/types";
+import { useFloorPricesQuery, useFloorPriceQuery } from "../../../hooks/query";
+import { useLTV } from "../../../hooks/render";
 import { NFTCell } from "../../table";
 import { FloorPrice } from "../../floorPrice";
 
@@ -168,48 +169,41 @@ function sortByDuration(direction: number) {
 }
 
 interface LoanRowProps {
-  amount?: string;
-  duration: string;
-  apy: string;
-  creatorApy: string;
-  lenderApy: string;
-  floorPriceSol?: number;
-  ltv: React.ReactNode;
-  metadata: NftResult["metadata"];
+  loan: Loan | LoanOffer;
   onClick: () => void;
 }
 
-export const LoanRow = ({
-  amount,
-  duration,
-  apy,
-  creatorApy,
-  lenderApy,
-  floorPriceSol,
-  ltv,
-  metadata,
-  onClick,
-}: LoanRowProps) => {
+export const LoanRow = ({ loan, onClick }: LoanRowProps) => {
+  const floorPriceQuery = useFloorPriceQuery(loan.metadata.data.symbol);
+
+  const floorPriceSol = useMemo(() => {
+    if (floorPriceQuery.data?.floorPrice) {
+      return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+    }
+  }, [floorPriceQuery.data]);
+
+  const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
+
   return (
     <Tr
       cursor="pointer"
       _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
       onClick={onClick}
     >
-      <NFTCell metadata={metadata} />
-      <Td>{duration}</Td>
+      <NFTCell metadata={loan.metadata} />
+      <Td>{loan.duration}</Td>
       <Td isNumeric>
-        <Text mb="1">{apy}</Text>
+        <Text mb="1">{loan.apy}</Text>
         <Tooltip label="Lender and creator interest rates.">
           <Text fontSize="xs" color="gray.500">
-            ({lenderApy}, {creatorApy})
+            ({loan.lenderApy}, {loan.creatorApy})
           </Text>
         </Tooltip>
       </Td>
       <Td isNumeric>{ltv}</Td>
       <Td isNumeric>
         <Box>
-          <Text mb="1">{amount}</Text>
+          <Text mb="1">{loan.amount}</Text>
           <FloorPrice>{floorPriceSol}</FloorPrice>
         </Box>
       </Td>

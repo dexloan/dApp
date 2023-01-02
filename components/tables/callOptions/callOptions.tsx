@@ -1,26 +1,14 @@
-import * as anchor from "@project-serum/anchor";
-import { Text, Tr, Th, Td, Tooltip } from "@chakra-ui/react";
-import { useMemo } from "react";
+import { Th } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
+import { CallOption, CallOptionPretty } from "../../../common/model";
+import { ColumnHeader, ListingsTable, Col } from "../../table";
 import {
-  CallOption,
-  CallOptionPretty,
-  CallOptionBid,
-} from "../../../common/model";
-import { useFloorPriceQuery } from "../../../hooks/query";
-import {
-  ColumnHeader,
-  NFTCell,
-  ListingsTable,
-  Col,
-} from "../../../components/table";
-import {
+  OptionRow,
   CallOptionSortCols,
   useCallOptionSortState,
   useSortedCallOptions,
 } from "./common";
-import { FloorPrice } from "../../floorPrice";
 
 export const CALL_OPTION_COLS: Readonly<Col<CallOptionSortCols>[]> = [
   { name: "asset", label: "Asset" },
@@ -80,37 +68,5 @@ export const CallOptionListings = ({
         />
       )}
     />
-  );
-};
-
-interface OptionRowProps {
-  option: CallOption | CallOptionBid;
-  onClick: () => void;
-}
-
-export const OptionRow = ({ option, onClick }: OptionRowProps) => {
-  const floorPriceQuery = useFloorPriceQuery(option?.metadata.data.symbol);
-
-  const floorPriceSol = useMemo(() => {
-    if (floorPriceQuery.data?.floorPrice) {
-      return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
-    }
-  }, [floorPriceQuery.data]);
-
-  return (
-    <Tr
-      key={option.publicKey.toBase58()}
-      cursor="pointer"
-      _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
-      onClick={onClick}
-    >
-      <NFTCell metadata={option?.metadata} />
-      <Td>{option.expiry}</Td>
-      <Td isNumeric>{option.cost}</Td>
-      <Td isNumeric>
-        <Text mb="1">{option.strikePrice}</Text>
-        <FloorPrice>{floorPriceSol}</FloorPrice>
-      </Td>
-    </Tr>
   );
 };

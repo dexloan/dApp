@@ -1,21 +1,9 @@
-import * as anchor from "@project-serum/anchor";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Button, Icon, Th } from "@chakra-ui/react";
 import { IoAdd } from "react-icons/io5";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
-import {
-  Collection,
-  CollectionConfig,
-  LoanOffer,
-  LoanOfferPretty,
-} from "../../../common/model";
-import {
-  useCollectionByMintQuery,
-  useCollectionQuery,
-  useFloorPriceQuery,
-} from "../../../hooks/query";
-import { useLTV } from "../../../hooks/render";
+import { LoanOffer, LoanOfferPretty } from "../../../common/model";
 import { Col, ColumnHeader, ListingsTable } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
 import {
@@ -81,10 +69,10 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
           );
         }}
         renderRow={(item) => (
-          <LoanOfferRow
+          <LoanRow
             key={item.address}
-            offer={item}
-            onSelect={() => {
+            loan={item}
+            onClick={() => {
               if (!wallet.publicKey) {
                 modal.setVisible(true);
               }
@@ -107,45 +95,45 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
   );
 };
 
-interface LoanOfferRowProps {
-  offer: LoanOffer;
-  onSelect: () => void;
-}
+// interface LoanOfferRowProps {
+//   offer: LoanOffer;
+//   onSelect: () => void;
+// }
 
-const LoanOfferRow = ({ offer, onSelect }: LoanOfferRowProps) => {
-  const collectionQuery = useCollectionQuery(offer.data.collection);
-  const floorPriceQuery = useFloorPriceQuery(offer?.metadata.data.symbol);
+// const LoanOfferRow = ({ offer, onSelect }: LoanOfferRowProps) => {
+//   const collectionQuery = useCollectionQuery(offer.data.collection);
+//   const floorPriceQuery = useFloorPriceQuery(offer?.metadata.data.symbol);
 
-  const floorPrice = useMemo(() => {
-    if (floorPriceQuery.data?.floorPrice) {
-      return floorPriceQuery.data.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
-    }
-  }, [floorPriceQuery.data]);
+//   const floorPrice = useMemo(() => {
+//     if (floorPriceQuery.data?.floorPrice) {
+//       return floorPriceQuery.data.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+//     }
+//   }, [floorPriceQuery.data]);
 
-  const ltv = useLTV(offer?.data.amount, floorPriceQuery.data?.floorPrice);
+//   const ltv = useLTV(offer?.data.amount, floorPriceQuery.data?.floorPrice);
 
-  const collectionConfig = collectionQuery.data?.data
-    .config as CollectionConfig;
-  const creatorApy = collectionConfig
-    ? collectionConfig.loanBasisPoints === 0
-      ? 0
-      : collectionConfig.loanBasisPoints / 100
-    : undefined;
+//   const collectionConfig = collectionQuery.data?.data
+//     .config as CollectionConfig;
+//   const creatorApy = collectionConfig
+//     ? collectionConfig.loanBasisPoints === 0
+//       ? 0
+//       : collectionConfig.loanBasisPoints / 100
+//     : undefined;
 
-  const offerApy =
-    offer.data.basisPoints === 0 ? 0 : offer.data.basisPoints / 100;
+//   const offerApy =
+//     offer.data.basisPoints === 0 ? 0 : offer.data.basisPoints / 100;
 
-  return (
-    <LoanRow
-      amount={offer.amount}
-      duration={offer.duration}
-      apy={creatorApy ? offerApy + creatorApy + "%" : "..."}
-      lenderApy={offer.apy}
-      creatorApy={creatorApy ? creatorApy + "%" : "..."}
-      ltv={ltv}
-      floorPriceSol={floorPrice}
-      metadata={offer.metadata}
-      onClick={onSelect}
-    />
-  );
-};
+//   return (
+//     <LoanRow
+//       amount={offer.amount}
+//       duration={offer.duration}
+//       apy={creatorApy ? offerApy + creatorApy + "%" : "..."}
+//       lenderApy={offer.apy}
+//       creatorApy={creatorApy ? creatorApy + "%" : "..."}
+//       ltv={ltv}
+//       floorPriceSol={floorPrice}
+//       metadata={offer.metadata}
+//       onClick={onSelect}
+//     />
+//   );
+// };

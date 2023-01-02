@@ -1,12 +1,12 @@
 import * as anchor from "@project-serum/anchor";
-import { Box, Flex, Tr, Th, Td, Text, Tooltip } from "@chakra-ui/react";
+import { Th } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { useRouter } from "next/router";
 
 import { Loan, LoanPretty } from "../../../common/model";
 import { useFloorPriceQuery } from "../../../hooks/query";
 import { useLTV } from "../../../hooks/render";
-import { Col, ColumnHeader, ListingsTable, NFTCell } from "../../table";
+import { Col, ColumnHeader, ListingsTable } from "../../table";
 import {
   LoanRow,
   LoanSortCols,
@@ -64,7 +64,7 @@ export const LoanListings = ({
         );
       }}
       renderRow={(item) => (
-        <LoanAskRow
+        <LoanRow
           key={item.address}
           loan={item}
           onClick={() => router.push(`/loans/${item.address}`)}
@@ -74,33 +74,33 @@ export const LoanListings = ({
   );
 };
 
-interface LoanRowProps {
-  loan: Loan;
-  onClick: () => void;
-}
+// interface LoanRowProps {
+//   loan: Loan;
+//   onClick: () => void;
+// }
 
-const LoanAskRow = ({ loan, onClick }: LoanRowProps) => {
-  const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
+// const LoanAskRow = ({ loan, onClick }: LoanRowProps) => {
+//   const floorPriceQuery = useFloorPriceQuery(loan?.metadata.data.symbol);
 
-  const floorPriceSol = useMemo(() => {
-    if (floorPriceQuery.data?.floorPrice) {
-      return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
-    }
-  }, [floorPriceQuery.data]);
+//   const floorPriceSol = useMemo(() => {
+//     if (floorPriceQuery.data?.floorPrice) {
+//       return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+//     }
+//   }, [floorPriceQuery.data]);
 
-  const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
+//   const ltv = useLTV(loan?.data.amount, floorPriceQuery.data?.floorPrice);
 
-  return (
-    <LoanRow
-      amount={loan.amount}
-      duration={loan.duration}
-      apy={loan.apy}
-      lenderApy={loan.lenderApy}
-      creatorApy={loan.creatorApy}
-      ltv={ltv}
-      floorPriceSol={floorPriceSol}
-      metadata={loan.metadata}
-      onClick={onClick}
-    />
-  );
-};
+//   return (
+//     <LoanRow
+//       amount={loan.amount}
+//       duration={loan.duration}
+//       apy={loan.apy}
+//       lenderApy={loan.lenderApy}
+//       creatorApy={loan.creatorApy}
+//       ltv={ltv}
+//       floorPriceSol={floorPriceSol}
+//       metadata={loan.metadata}
+//       onClick={onClick}
+//     />
+//   );
+// };

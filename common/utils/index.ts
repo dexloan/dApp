@@ -213,3 +213,7 @@ export function trimNullChars(str: string) {
 export async function wait(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export function notNull<T>(value: T): value is NonNullable<T> {
+  return value != null;
+}

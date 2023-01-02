@@ -4,6 +4,7 @@ import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 import * as utils from "../utils";
 import { LoanData, LoanOfferData, LoanStateEnum } from "../types";
+import { Collection } from "./collection";
 
 export type LoanArgs = {
   data: LoanData;
@@ -215,6 +216,7 @@ export class Loan implements LoanArgs {
 
 export type LoanOfferArgs = {
   data: LoanOfferData;
+  collection: Collection;
   publicKey: web3.PublicKey;
 };
 
@@ -223,7 +225,7 @@ export type LoanOfferPretty = ReturnType<LoanOffer["pretty"]>;
 export class LoanOffer implements LoanOfferArgs {
   constructor(
     public readonly data: LoanOfferData,
-    public readonly metadata: Metadata,
+    public readonly collection: Collection,
     public readonly publicKey: web3.PublicKey
   ) {}
 
@@ -234,12 +236,26 @@ export class LoanOffer implements LoanOfferArgs {
     return false;
   }
 
+  get metadata() {
+    return this.collection.metadata;
+  }
+
   get address() {
     return this.publicKey.toBase58();
   }
 
   get apy() {
-    return this.data.basisPoints / 100 + "%";
+    return utils.formatBasisPoints(
+      this.data.basisPoints + this.collection.config.loanBasisPoints
+    );
+  }
+
+  get creatorApy() {
+    return utils.formatBasisPoints(this.collection.config.loanBasisPoints);
+  }
+
+  get lenderApy() {
+    return utils.formatBasisPoints(this.data.basisPoints);
   }
 
   get duration() {
@@ -266,7 +282,7 @@ export class LoanOffer implements LoanOfferArgs {
         bump: this.data.bump,
         escrowBump: this.data.escrowBump,
       },
-      metadata: this.metadata.pretty(),
+      collection: this.collection.pretty(),
       publicKey: this.publicKey.toBase58(),
     };
   }
@@ -285,19 +301,7 @@ export class LoanOffer implements LoanOfferArgs {
         bump: args.data.bump,
         escrowBump: args.data.escrowBump,
       },
-      Metadata.fromArgs({
-        key: 0 as Key, // TODO
-        updateAuthority: new web3.PublicKey(args.metadata.updateAuthority),
-        mint: new web3.PublicKey(args.metadata.mint),
-        data: args.metadata.data,
-        primarySaleHappened: args.metadata.primarySaleHappened,
-        isMutable: args.metadata.isMutable,
-        editionNonce: args.metadata.editionNonce,
-        tokenStandard: args.metadata.tokenStandard,
-        collection: args.metadata.collection,
-        collectionDetails: args.metadata.collectionDetails,
-        uses: args.metadata.uses,
-      }),
+      Collection.fromJSON(args.collection),
       new web3.PublicKey(args.publicKey)
     );
   }

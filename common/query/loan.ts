@@ -1,9 +1,16 @@
 import * as anchor from "@project-serum/anchor";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { LoanData, LoanOfferData } from "../types";
-import { Loan, LoanPretty, LoanOffer, LoanOfferPretty } from "../model";
+import { CollectionData, LoanData, LoanOfferData } from "../types";
+import {
+  Collection,
+  Loan,
+  LoanPretty,
+  LoanOffer,
+  LoanOfferPretty,
+} from "../model";
 import { getProgram, getProvider } from "../provider";
 import { fetchMetadata, fetchMetadataAccounts } from "./common";
 
@@ -97,20 +104,20 @@ export async function fetchMultipleLoans(
     listings.map((l) => l.account.mint)
   );
 
-  const combinedAccounts = listings.map((listing, index) => {
-    const metadataAccount = metadataAccounts[index];
+  return listings
+    .map((listing, index) => {
+      const metadataAccount = metadataAccounts[index];
 
-    if (metadataAccount) {
-      return new Loan(
-        listing.account as LoanData,
-        metadataAccount,
-        listing.publicKey
-      ).pretty();
-    }
-    return null;
-  });
-
-  return combinedAccounts.filter(Boolean) as LoanPretty[];
+      if (metadataAccount) {
+        return new Loan(
+          listing.account as LoanData,
+          metadataAccount,
+          listing.publicKey
+        ).pretty();
+      }
+      return null;
+    })
+    .filter(utils.notNull);
 }
 
 export async function fetchMultipleLoanOffers(
@@ -128,27 +135,37 @@ export async function fetchMultipleLoanOffers(
     collections.map((c) => c.account.mint)
   );
 
+  const collectionMap = collections.reduce((prev, curr) => {
+    prev[curr.publicKey.toBase58()] = curr.account;
+    return prev;
+  }, {} as Record<string, CollectionData>);
+
+  const metadataMap = metadataAccounts.reduce((prev, curr) => {
+    prev[curr.mint.toBase58()] = curr;
+    return prev;
+  }, {} as Record<string, Metadata>);
+
   return listings
     .map((listing) => {
-      const collection = collections.find((col) =>
-        col.publicKey.equals(listing.account.collection)
-      );
+      const collectionData =
+        collectionMap[listing.account.collection.toBase58()];
+      const metadata = metadataMap[listing.account.collection.toBase58()];
 
-      if (collection) {
-        const metadata = metadataAccounts.find((acc) =>
-          acc?.mint.equals(collection.account.mint)
+      if (collectionData && metadata) {
+        const collection = new Collection(
+          collectionData,
+          metadata,
+          listing.account.collection
         );
 
-        if (metadata) {
-          return new LoanOffer(
-            listing.account as LoanOfferData,
-            metadata,
-            listing.publicKey
-          ).pretty();
-        }
+        return new LoanOffer(
+          listing.account as LoanOfferData,
+          collection,
+          listing.publicKey
+        ).pretty();
       }
 
       return null;
     })
-    .filter(Boolean) as LoanOfferPretty[];
+    .filter(utils.notNull);
 }

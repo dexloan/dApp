@@ -1,10 +1,16 @@
+import * as anchor from "@project-serum/anchor";
 import { useCallback, useMemo, useState } from "react";
+import { Text, Tr, Td } from "@chakra-ui/react";
+
 import {
   CallOption,
   CallOptionPretty,
   CallOptionBid,
   CallOptionBidPretty,
 } from "../../../common/model";
+import { useFloorPriceQuery } from "../../../hooks/query";
+import { NFTCell } from "../../table";
+import { FloorPrice } from "../../floorPrice";
 
 export type CallOptionSortCols =
   | "collection"
@@ -112,3 +118,35 @@ function sortByCost(direction: number) {
     return args[0].data.amount.sub(args[1].data.amount).toNumber();
   };
 }
+
+interface OptionRowProps {
+  option: CallOption | CallOptionBid;
+  onClick: () => void;
+}
+
+export const OptionRow = ({ option, onClick }: OptionRowProps) => {
+  const floorPriceQuery = useFloorPriceQuery(option?.metadata.data.symbol);
+
+  const floorPriceSol = useMemo(() => {
+    if (floorPriceQuery.data?.floorPrice) {
+      return floorPriceQuery.data?.floorPrice / anchor.web3.LAMPORTS_PER_SOL;
+    }
+  }, [floorPriceQuery.data]);
+
+  return (
+    <Tr
+      key={option.publicKey.toBase58()}
+      cursor="pointer"
+      _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
+      onClick={onClick}
+    >
+      <NFTCell metadata={option?.metadata} />
+      <Td>{option.expiry}</Td>
+      <Td isNumeric>{option.cost}</Td>
+      <Td isNumeric>
+        <Text mb="1">{option.strikePrice}</Text>
+        <FloorPrice>{floorPriceSol}</FloorPrice>
+      </Td>
+    </Tr>
+  );
+};
