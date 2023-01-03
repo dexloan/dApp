@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Collection {
+  address String @id @unique
+  mint    String @unique
+  authority String
+  config  Json
+}
+
+model TokenManager {
+  address  String @id @unique
+  accounts Json
+}
+
+enum LoanState {
+  Unlisted
+  Listed
+  Active
+  Defaulted
+}
+
+model Loan {
+  address  String     @id @unique
+  state    LoanState
+  borrower String
+  lender   String?
+  amount   BigInt?
+  basisPoints Int
+  creatorBasisPoints Int
+  outstanding BigInt
+  threshold  Int?
+  installments Int
+  noticeIssued BigInt?
+  duration BigInt
+  startDate BigInt
+  mint String
+  tokenMint String?
+}
+
+model LoanOffer {
+  address  String    @id @unique
+  id       Int
+  lender   String
+  amount   BigInt?
+  basisPoints Int
+  duration BigInt
+  collection String
+  ltv      Int?
+  threshold Int?
+}
+
+enum CallOptionState {
+  Listed
+  Active
+  Exercised
+}
+
+model CallOption {
+  address  String    @id @unique
+  state    CallOptionState
+  amount   BigInt
+  creatorBasisPoints Int
+  seller   String
+  buyer    String?
+  expiry   BigInt
+  strikePrice BigInt 
+  mint  String
+  tokenMint String?
+}
+
+model CallOptionBid {
+  address  String    @id @unique
+  id       Int
+  buyer    String
+  expiry   BigInt
+  strikePrice  BigInt
+  amount   BigInt
+  collection  String
+}
+
+enum RentalState {
+  Listed
+  Rented
+}
+
+model Rental {
+  address  String    @id @unique
+  state    RentalState
+  amount   BigInt
+  creatorBasisPoints  Int
+  lender   String
+  borrower String?
+  expiry   BigInt
+  currentStart  BigInt?
+  currentExpiry BigInt?
+  escrowBalance BigInt
+  mint     String
+}
