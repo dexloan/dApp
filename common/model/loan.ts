@@ -1,6 +1,7 @@
 import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import camelcase from "camelcase";
 
 import * as utils from "../utils";
 import { LoanData, LoanOfferData, LoanStateEnum } from "../types";
@@ -145,9 +146,11 @@ export class Loan implements LoanArgs {
     }
   }
 
-  get state(): LoanStateEnum | undefined {
+  get state(): keyof typeof LoanStateEnum | undefined {
     if (typeof this.data.state === "object" && this.data.state !== null) {
-      return Object.keys(this.data.state)[0] as LoanStateEnum;
+      return camelcase(Object.keys(this.data.state)[0], {
+        pascalCase: true,
+      }) as keyof typeof LoanStateEnum;
     }
   }
 

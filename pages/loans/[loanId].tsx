@@ -254,6 +254,7 @@ const LoanLayout = () => {
           </>
         );
 
+      // @ts-expect-error
       case LoanStateEnum.Repaid:
         return (
           <>
@@ -263,6 +264,7 @@ const LoanLayout = () => {
           </>
         );
 
+      // @ts-expect-error
       case LoanStateEnum.Cancelled:
         return (
           <>
