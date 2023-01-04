@@ -17,10 +17,8 @@ import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 import { NftResult } from "../../common/types";
 import { Collection } from "../../common/model";
-import {
-  useFloorPriceQuery,
-  useCollectionByMintQuery,
-} from "../../hooks/query";
+import { useCollectionByMintQuery } from "../../hooks/query";
+import { useFloorPrice } from "../../hooks/render";
 import {
   AskLoanMutationVariables,
   useAskLoanMutation,
@@ -113,7 +111,7 @@ const AskLoanForm = ({
     defaultValues,
   });
 
-  const floorPriceQuery = useFloorPriceQuery(selected?.metadata.data.symbol);
+  const floorPrice = useFloorPrice(selected?.metadata.data.symbol);
   const collectionQuery = useCollectionByMintQuery(
     selected?.metadata.collection?.key
   );
@@ -124,9 +122,9 @@ const AskLoanForm = ({
   }, [collectionQuery.data]);
   console.log(collection);
   const onSubmit = handleSubmit((data) => {
-    if (floorPriceQuery.data) {
+    if (floorPrice) {
       const options = {
-        amount: (data.ltv / 100) * floorPriceQuery.data.floorPrice,
+        amount: (data.ltv / 100) * floorPrice,
         basisPoints: data.apy * 100,
         duration: data.duration * 24 * 60 * 60,
       };
@@ -144,7 +142,7 @@ const AskLoanForm = ({
   return (
     <>
       <ModalBody>
-        {floorPriceQuery.data?.floorPrice === undefined ? (
+        {floorPrice === undefined ? (
           <Box
             display="flex"
             flex={1}
@@ -158,11 +156,11 @@ const AskLoanForm = ({
             <CollectionDetails
               metadata={selected.metadata}
               forecast={
-                floorPriceQuery.data?.floorPrice && (
+                floorPrice && (
                   <AskListingForecast
                     control={control}
                     creatorBasisPoints={collection?.config.loanBasisPoints}
-                    floorPrice={floorPriceQuery.data?.floorPrice}
+                    floorPrice={floorPrice}
                   />
                 )
               }
@@ -222,7 +220,7 @@ const AskLoanForm = ({
               <Button
                 isFullWidth
                 variant="primary"
-                disabled={floorPriceQuery.isLoading}
+                disabled={floorPrice === undefined}
                 isLoading={isLoading}
                 onClick={onSubmit}
               >
@@ -234,7 +232,7 @@ const AskLoanForm = ({
           <Button
             isFullWidth
             variant="primary"
-            disabled={floorPriceQuery.isLoading}
+            disabled={floorPrice === undefined}
             isLoading={isLoading}
             onClick={onSubmit}
           >

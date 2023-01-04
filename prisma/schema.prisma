@@ -42,7 +42,7 @@ model Loan {
   installments Int
   noticeIssued BigInt?
   duration BigInt
-  startDate BigInt
+  startDate BigInt?
   mint String
   tokenMint String?
 }

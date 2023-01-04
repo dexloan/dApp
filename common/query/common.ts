@@ -8,7 +8,7 @@ import {
 import * as utils from "../utils";
 import { getProgram, getProvider } from "../provider";
 import { NftResult } from "../types";
-import { findTokenManagerAddress } from "./tokenManager";
+import { fetchTokenManager } from "./tokenManager";
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(
@@ -104,7 +104,7 @@ export async function fetchNft(
 
 export async function fetchNfts(
   connection: anchor.web3.Connection,
-  address: anchor.web3.PublicKey
+  owner: anchor.web3.PublicKey
 ): Promise<NftResult[]> {
   const provider = getProvider(connection);
   const program = getProgram(provider);
@@ -116,16 +116,13 @@ export async function fetchNfts(
         collections.map((collection) => collection.account.mint)
       ),
     connection
-      .getTokenAccountsByOwner(address, {
+      .getTokenAccountsByOwner(owner, {
         programId: splToken.TOKEN_PROGRAM_ID,
       })
       .then((rawTokenAccounts) => {
         return rawTokenAccounts.value.map(({ pubkey, account }) =>
           unpackToken(pubkey, account)
         );
-        // .filter(
-        //   (account) => account.amount === BigInt("1") && !account.isFrozen
-        // );
       }),
   ]);
 
@@ -133,46 +130,48 @@ export async function fetchNfts(
     connection,
     tokenAccounts.map((a) => a.mint)
   );
+  console.log("tokenAccounts: ", tokenAccounts);
+  console.log("metadataAccounts:", metadataAccounts);
 
   const combinedAccounts = await Promise.all(
-    metadataAccounts.map(async (metadata, index) => {
+    metadataAccounts.map(async (metadata) => {
       const collectionMint = metadata?.collection?.key;
+      const tokenAccount = tokenAccounts.find((account) =>
+        account.mint.equals(metadata.mint)
+      );
 
       if (
         metadata &&
+        tokenAccount &&
         collectionMint !== undefined &&
         collectionMints.some((mint) => mint.equals(collectionMint))
       ) {
-        try {
-          const tokenAccount = tokenAccounts[index];
-
-          if (tokenAccount.amount === BigInt("0") || tokenAccount.isFrozen) {
-            // Check if token manager exists
-            const tokenManager = await findTokenManagerAddress(
+        if (tokenAccount.amount === BigInt("0") || tokenAccount.isFrozen) {
+          // Check if token manager exists
+          try {
+            const tokenManager = await fetchTokenManager(
+              connection,
               tokenAccount.mint,
-              address
+              owner
             );
-            try {
-              await program.account.tokenManager.fetch(tokenManager);
-            } catch (err) {
-              return null;
-            }
+            console.log("tokenManager: ", tokenManager);
+          } catch (err) {
+            console.log(err);
+            return null;
           }
-
-          return {
-            metadata,
-            tokenAccount,
-          };
-        } catch (err) {
-          console.error(err);
-          return null;
         }
+
+        return {
+          metadata,
+          tokenAccount,
+        };
       }
       return null;
     })
-  );
-
-  return combinedAccounts.filter(Boolean) as NftResult[];
+  ).then((accounts) => accounts.filter(utils.notNull));
+  console.log(combinedAccounts);
+  console.log(combinedAccounts);
+  return combinedAccounts;
 }
 
 export async function fetchTokenAccountAddress(

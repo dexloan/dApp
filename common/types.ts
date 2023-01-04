@@ -1,37 +1,14 @@
 import * as splToken from "@solana/spl-token";
+import type { LoanState, CallOptionState, RentalState } from "@prisma/client";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { DexloanListings, IDL } from "./idl/dexloan";
 
-export enum ListingState {
-  Initialized = 0,
-  Listed = 1,
-  Active = 2,
-  Repaid = 3,
-  Cancelled = 4,
-  Defaulted = 5,
-}
-
-export enum LoanStateEnum {
-  Listed = "listed",
-  Active = "active",
-  Defaulted = "defaulted",
-  Repaid = "repaid",
-  Cancelled = "cancelled",
-}
-
-export enum CallOptionStateEnum {
-  Listed = "listed",
-  Active = "active",
-  Exercised = "exercised",
-  Cancelled = "cancelled",
-}
-
-export enum RentalStateEnum {
-  Listed = "listed",
-  Rentald = "hired",
-  Cancelled = "cancelled",
-}
+export {
+  LoanState as LoanStateEnum,
+  CallOptionState as CallOptionStateEnum,
+  RentalState as RentalStateEnum,
+};
 
 export interface NftResult {
   tokenAccount: splToken.Account;
