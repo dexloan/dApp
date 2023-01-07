@@ -181,6 +181,7 @@ nameMap.set("XAPE", "exiled_degen_ape_academy");
 nameMap.set("BH", "lgtb");
 nameMap.set("LGTB", "lgtb");
 nameMap.set("NOOT", "pesky_penguins");
+nameMap.set("THUG", "thugbirdz");
 
 export function mapSymbolToCollectionName(symbol: string) {
   return nameMap.get(trimNullChars(symbol));

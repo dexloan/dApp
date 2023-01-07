@@ -44,7 +44,7 @@ const Collection: NextPage = () => {
       <CardList>
         {collectionsQuery.data?.map((collection) => (
           <Card
-            key={collection.publicKey.toBase58()}
+            key={collection.publicKey}
             uri={collection.metadata.data.uri}
             imageAlt={collection.metadata.data.name}
           >
@@ -62,7 +62,7 @@ const Collection: NextPage = () => {
                 isLoading={closeMutation.isLoading}
                 onClick={() =>
                   closeMutation.mutate({
-                    mint: collection.data.mint,
+                    mint: new anchor.web3.PublicKey(collection.data.mint),
                   })
                 }
               >
