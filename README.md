@@ -1,1 +1,1 @@
-Nextjs dApp for the Dexloan protocol
+Nextjs dApp
