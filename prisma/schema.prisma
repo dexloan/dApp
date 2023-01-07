@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,15 +8,86 @@ datasource db {
 }
 
 model Collection {
-  address String @id @unique
-  mint    String @unique
-  authority String
-  config  Json
+  address           String          @id @unique
+  mint              String          @unique
+  authority         String
+  loanEnabled       Boolean
+  loanBasisPoints   Int
+  optionEnabled     Boolean
+  optionBasisPoints Int
+  rentalEnabled     Boolean
+  rentalBasisPoints Boolean
+  floorPrice        BigInt
+  CallOption        CallOption[]
+  CallOptionBid     CallOptionBid[]
+  Loan              Loan[]
+  LoanOffer         LoanOffer[]
+  Rental            Rental[]
 }
 
-model TokenManager {
-  address  String @id @unique
-  accounts Json
+model Loan {
+  address            String     @id @unique
+  state              LoanState
+  borrower           String
+  lender             String?
+  amount             BigInt?
+  basisPoints        Int
+  creatorBasisPoints Int
+  outstanding        BigInt
+  threshold          Int?
+  installments       Int
+  currentInstallment Int
+  noticeIssued       BigInt?
+  duration           BigInt
+  startDate          BigInt?
+  mint               String
+  tokenMint          String?
+  collectionAddress  String
+  Collection         Collection @relation(fields: [collectionAddress], references: [address])
+}
+
+model LoanOffer {
+  address           String     @id @unique
+  id                Int
+  lender            String
+  amount            BigInt?
+  basisPoints       Int
+  duration          BigInt
+  ltv               Int?
+  threshold         Int?
+  collectionAddress String
+  Collection        Collection @relation(fields: [collectionAddress], references: [address])
+}
+
+model CallOption {
+  address            String          @id @unique
+  state              CallOptionState
+  amount             BigInt
+  creatorBasisPoints Int
+  seller             String
+  buyer              String?
+  expiry             BigInt
+  strikePrice        BigInt
+  mint               String
+  tokenMint          String?
+  collectionAddress  String
+  Collection         Collection      @relation(fields: [collectionAddress], references: [address])
+}
+
+model CallOptionBid {
+  address           String     @id @unique
+  id                Int
+  buyer             String
+  expiry            BigInt
+  strikePrice       BigInt
+  amount            BigInt
+  collectionAddress String
+  Collection        Collection @relation(fields: [collectionAddress], references: [address])
+}
+
+model FloorPrice {
+  address String @id @unique
+  amount  BigInt
 }
 
 enum LoanState {
@@ -29,64 +97,10 @@ enum LoanState {
   Defaulted
 }
 
-model Loan {
-  address  String     @id @unique
-  state    LoanState
-  borrower String
-  lender   String?
-  amount   BigInt?
-  basisPoints Int
-  creatorBasisPoints Int
-  outstanding BigInt
-  threshold  Int?
-  installments Int
-  currentInstallment Int
-  noticeIssued BigInt?
-  duration BigInt
-  startDate BigInt?
-  mint String
-  tokenMint String?
-}
-
-model LoanOffer {
-  address  String    @id @unique
-  id       Int
-  lender   String
-  amount   BigInt?
-  basisPoints Int
-  duration BigInt
-  collection String
-  ltv      Int?
-  threshold Int?
-}
-
 enum CallOptionState {
   Listed
   Active
   Exercised
-}
-
-model CallOption {
-  address  String    @id @unique
-  state    CallOptionState
-  amount   BigInt
-  creatorBasisPoints Int
-  seller   String
-  buyer    String?
-  expiry   BigInt
-  strikePrice BigInt 
-  mint  String
-  tokenMint String?
-}
-
-model CallOptionBid {
-  address  String    @id @unique
-  id       Int
-  buyer    String
-  expiry   BigInt
-  strikePrice  BigInt
-  amount   BigInt
-  collection  String
 }
 
 enum RentalState {
@@ -95,15 +109,17 @@ enum RentalState {
 }
 
 model Rental {
-  address  String    @id @unique
-  state    RentalState
-  amount   BigInt
-  creatorBasisPoints  Int
-  lender   String
-  borrower String?
-  expiry   BigInt
-  currentStart  BigInt?
-  currentExpiry BigInt?
-  escrowBalance BigInt
-  mint     String
+  address            String      @id @unique
+  state              RentalState
+  amount             BigInt
+  creatorBasisPoints Int
+  lender             String
+  borrower           String?
+  expiry             BigInt
+  currentStart       BigInt?
+  currentExpiry      BigInt?
+  escrowBalance      BigInt
+  mint               String
+  collectionAddress  String
+  Collection         Collection  @relation(fields: [collectionAddress], references: [address])
 }

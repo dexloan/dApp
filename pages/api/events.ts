@@ -5,9 +5,7 @@ import { snakeCase } from "snake-case";
 import { sha256 } from "js-sha256";
 import base58 from "bs58";
 
-import * as utils from "../../common/utils";
-import { LISTINGS_PROGRAM_ID } from "../../common/constants";
-import { IDL } from "../../common/idl/dexloan";
+import { IDL } from "../../common/idl";
 import { getProgram, getProvider } from "../../common/provider";
 import prisma from "../../common/lib/prisma";
 import { CollectionData, LoanData, LoanStateEnum } from "../../common/types";
@@ -55,24 +53,77 @@ export default async function handler(
 
       if (ixName && ixAccounts) {
         switch (ixName) {
-          case "askLoan": {
+          case "initCollection":
+          case "updateCollection": {
+            const collectionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "collection"
+            );
+            const collectionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[collectionAccountIndex]]
+            );
+            const data = (await program.account.collection.fetch(
+              collectionPda
+            )) as CollectionData;
+
+            const collection = {
+              mint: data.mint.toBase58(),
+              authority: data.authority.toBase58(),
+              // @ts-ignore
+              ...data.config,
+            };
+
+            await prisma.collection.upsert({
+              where: {
+                address: collectionPda.toBase58(),
+              },
+              update: {
+                ...collection,
+              },
+              create: {
+                address: collectionPda.toBase58(),
+                ...collection,
+              },
+            });
+            break;
+          }
+
+          case "closeCollection": {
+            const collectionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "collection"
+            );
+            const collectionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[collectionAccountIndex]]
+            );
+
+            // TODO check is deleted on-chain
+            await prisma.collection.delete({
+              where: {
+                address: collectionPda.toBase58(),
+              },
+            });
+          }
+
+          case "askLoan":
+          case "repayLoan":
+          case "repossess":
+          case "repossessWithRental": {
             const loanAccountIndex = ixAccounts.findIndex(
               (a) => a.name === "loan"
             );
-            const accountKey = new web3.PublicKey(
+            const collectionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "collection"
+            );
+            const loanPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[loanAccountIndex]]
             );
+            const collectionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[collectionAccountIndex]]
+            );
             const data = (await program.account.loan.fetch(
-              accountKey
+              loanPda
             )) as LoanData;
 
-            let state;
-
-            if (typeof data.state === "object" && data.state !== null) {
-              state = camelcase(Object.keys(data.state)[0], {
-                pascalCase: true,
-              }) as keyof typeof LoanStateEnum;
-            }
+            const state = getState<LoanStateEnum>(data.state);
 
             if (state === undefined) {
               return;
@@ -81,7 +132,7 @@ export default async function handler(
             await prisma.loan.create({
               data: {
                 state,
-                address: accountKey.toBase58(),
+                address: loanPda.toBase58(),
                 amount: data.amount?.toNumber(),
                 basisPoints: data.basisPoints,
                 creatorBasisPoints: data.creatorBasisPoints,
@@ -96,18 +147,37 @@ export default async function handler(
                 startDate: data.startDate?.toNumber(),
                 mint: data.mint.toBase58(),
                 tokenMint: data.tokenMint?.toBase58(),
+                Collection: {
+                  connect: {
+                    address: collectionPda.toBase58(),
+                  },
+                },
               },
             });
+            break;
+          }
+
+          case "closeLoan": {
+            const loanAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "loan"
+            );
+            const loanPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[loanAccountIndex]]
+            );
+
+            // TODO check is deleted on-chain
+            await prisma.loan.delete({
+              where: {
+                address: loanPda.toBase58(),
+              },
+            });
+            break;
           }
 
           case "offerLoan":
           case "takeLoanOffer":
           case "closeLoanOffer":
           case "giveLoan":
-          case "closeLoan":
-          case "repayLoan":
-          case "repossess":
-          case "repossessWithRental":
 
           case "bidCallOption":
           case "closeCallOptionBid":
@@ -118,16 +188,12 @@ export default async function handler(
           case "exerciseCallOptionWithRental":
           case "closeCallOption":
 
-          case "initRental":
-          case "takeRental":
-          case "extendRental":
-          case "recoverRental":
-          case "withdrawFromRentalEscrow":
-          case "closeRental":
-
-          case "initCollection":
-          case "updateCollection":
-          case "closeCollection":
+          // case "initRental":
+          // case "takeRental":
+          // case "extendRental":
+          // case "recoverRental":
+          // case "withdrawFromRentalEscrow":
+          // case "closeRental":
 
           default: {
             // Do nothing
@@ -136,116 +202,6 @@ export default async function handler(
       }
     }
   }
-
-  // const filteredAccounts = accountInfos
-  //   .map((account, index) => ({
-  //     info: account,
-  //     pubkey: accounts[index],
-  //   }))
-  //   .map((acc) => {
-  //     console.log(acc);
-  //     return acc;
-  //   })
-  //   .filter((account) => account.info?.owner.equals(LISTINGS_PROGRAM_ID));
-
-  // console.log("filteredAccounts: ", filteredAccounts);
-
-  // for (let account of filteredAccounts) {
-  //   if (account.info) {
-  //     const discriminator = account.info?.data.slice(0, 8);
-  //     const accountName = accountDiscriminators.find((account) =>
-  //       account.discriminator.compare(discriminator)
-  //     )?.name;
-  //     console.log("accountDiscriminators: ", accountDiscriminators);
-  //     console.log("discriminator: ", discriminator);
-  //     console.log("accountName: ", accountName);
-
-  //     program.methods.askLoan.name;
-
-  //     switch (accountName) {
-  //       case "collection": {
-  //         const data = program.coder.accounts.decode<CollectionData>(
-  //           accountName,
-  //           account.info.data
-  //         );
-
-  //         await prisma.collection.upsert({
-  //           where: {
-  //             address: account.pubkey.toBase58(),
-  //           },
-  //           create: {
-  //             address: account.pubkey.toBase58(),
-  //             authority: data.authority.toBase58(),
-  //             mint: data.mint.toBase58(),
-  //             config: JSON.stringify(data.config),
-  //           },
-  //           update: {
-  //             authority: data.authority.toBase58(),
-  //             config: JSON.stringify(data.config),
-  //           },
-  //         });
-  //       }
-
-  //       case "loan": {
-  //         const data = program.coder.accounts.decode<LoanData>(
-  //           accountName,
-  //           account.info.data
-  //         );
-
-  //         let state;
-
-  //         if (typeof data.state === "object" && data.state !== null) {
-  //           state = camelcase(Object.keys(data.state)[0], {
-  //             pascalCase: true,
-  //           }) as keyof typeof LoanStateEnum;
-  //         }
-
-  //         if (state === undefined) {
-  //           return;
-  //         }
-
-  //         const prettyData = {
-  //           state,
-  //           amount: data.amount?.toNumber(),
-  //           basisPoints: data.basisPoints,
-  //           creatorBasisPoints: data.creatorBasisPoints,
-  //           outstanding: data.outstanding.toNumber(),
-  //           threshold: data.threshold,
-  //           borrower: data.borrower.toBase58(),
-  //           lender: data.lender?.toBase58(),
-  //           installments: data.installments,
-  //           currentInstallment: data.currentInstallment,
-  //           noticeIssued: data.noticeIssued?.toNumber(),
-  //           duration: data.duration.toNumber(),
-  //           startDate: data.startDate?.toNumber(),
-  //           tokenMint: data.tokenMint?.toBase58(),
-  //         };
-
-  //         await prisma.loan.upsert({
-  //           where: {
-  //             address: account.pubkey.toBase58(),
-  //           },
-  //           create: {
-  //             address: account.pubkey.toBase58(),
-  //             mint: data.mint.toBase58(),
-  //             ...prettyData,
-  //           },
-  //           update: {
-  //             ...prettyData,
-  //           },
-  //         });
-  //       }
-
-  //       case "loanOffer":
-  //       case "callOption":
-  //       case "callOptionBid":
-  //       case "rental":
-  //       default: {
-  //         // Do nothing
-  //       }
-  //     }
-  //   }
-  // }
 
   res.status(200).end();
 }
@@ -265,4 +221,16 @@ function genIxIdentifier(ixName: string) {
   const name = snakeCase(ixName);
   const preimage = `${namespace}:${name}`;
   return base58.encode(sha256.digest(preimage).slice(0, 8));
+}
+
+function getState<T>(state: unknown) {
+  let formattedState;
+
+  if (typeof state === "object" && state !== null) {
+    formattedState = camelcase(Object.keys(state)[0], {
+      pascalCase: true,
+    }) as T;
+  }
+
+  return formattedState;
 }
