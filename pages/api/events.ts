@@ -9,6 +9,7 @@ import { IDL } from "../../common/idl";
 import { getProgram, getProvider } from "../../common/provider";
 import prisma from "../../common/lib/prisma";
 import { CollectionData, LoanData, LoanStateEnum } from "../../common/types";
+import { wait } from "../../common/utils";
 
 type AccountNames = typeof IDL.accounts[number]["name"];
 
@@ -30,7 +31,8 @@ const ixIds = IDL.instructions.map((ix) => {
 });
 
 const connection = new web3.Connection(
-  process.env.BACKEND_RPC_ENDPOINT as string
+  process.env.BACKEND_RPC_ENDPOINT as string,
+  "confirmed"
 );
 const provider = getProvider(connection);
 const program = getProgram(provider);
@@ -39,17 +41,25 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log(JSON.stringify(req.body));
   const events = req.body as any;
-
+  console.log("rpcEndpoint: ", connection.rpcEndpoint);
   for (const event of events) {
     const message = event.transaction.message;
 
     for (const ix of message.instructions) {
-      const ixName = ixIds.find((i) => ix.data.includes(i.id))?.name;
+      console.log("ixIds: ", ixIds);
+      console.log("ix:", ix);
+
+      const decoded = base58.decode(ix.data);
+      console.log("decoded: ", decoded);
+      const ixId = base58.encode(decoded.slice(0, 8));
+      console.log("ixId: ", ixId);
+      const ixName = ixIds.find((i) => i.id === ixId)?.name;
       const ixAccounts = IDL.instructions.find(
         (i) => i.name === ixName
       )?.accounts;
+      console.log("ixName: ", ixName);
+      console.log("ixAccounts: ", ixAccounts);
 
       if (ixName && ixAccounts) {
         switch (ixName) {
@@ -81,6 +91,7 @@ export default async function handler(
               },
               create: {
                 address: collectionPda.toBase58(),
+                floorPrice: 0,
                 ...collection,
               },
             });
@@ -119,9 +130,9 @@ export default async function handler(
             const collectionPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
-            const data = (await program.account.loan.fetch(
-              loanPda
-            )) as LoanData;
+            const data = await asyncRetry<LoanData>(async () => {
+              return (await program.account.loan.fetch(loanPda)) as LoanData;
+            });
 
             const state = getState<LoanStateEnum>(data.state);
 
@@ -233,4 +244,22 @@ function getState<T>(state: unknown) {
   }
 
   return formattedState;
+}
+
+async function asyncRetry<T>(cb: () => Promise<T>) {
+  const retry = async (num: number): Promise<T> => {
+    console.log("retry: ", num);
+    try {
+      const result = await cb();
+      return result;
+    } catch (err) {
+      if (num > 5) {
+        throw err;
+      }
+      await wait(500);
+      return retry(num + 1);
+    }
+  };
+
+  return retry(0);
 }

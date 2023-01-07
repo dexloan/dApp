@@ -7,6 +7,7 @@ import * as anchor from "@project-serum/anchor";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
+import { CallOptionState } from "@prisma/client";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
@@ -307,7 +308,7 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
         setCallOptionState(
           queryClient,
           callOptionAddress,
-          CallOptionStateEnum.Cancelled
+          CallOptionState.Cancelled
         );
 
         toast.success("Call option closed");
@@ -375,7 +376,7 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
                 ...item,
                 data: {
                   ...item.data,
-                  state: CallOptionStateEnum.Active,
+                  state: CallOptionState.Active,
                   buyer: anchorWallet.publicKey.toBase58(),
                 },
               };
@@ -451,7 +452,7 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
         setCallOptionState(
           queryClient,
           variables.mint,
-          CallOptionStateEnum.Exercised
+          CallOptionState.Exercised
         );
 
         toast.success("Option exercised");

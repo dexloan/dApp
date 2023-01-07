@@ -12,13 +12,13 @@ import {
   TagLabel,
   Text,
 } from "@chakra-ui/react";
+import { LoanState } from "@prisma/client";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import { LoanStateEnum } from "../../common/types";
 import { fetchLoan } from "../../common/query";
 import { Loan } from "../../common/model";
 import {
@@ -202,7 +202,7 @@ const LoanLayout = () => {
     if (loan === undefined) return null;
 
     switch (loan.state) {
-      case LoanStateEnum.Listed:
+      case LoanState.Listed:
         return (
           <Detail
             footer={
@@ -220,7 +220,7 @@ const LoanLayout = () => {
           </Detail>
         );
 
-      case LoanStateEnum.Active:
+      case LoanState.Active:
         return (
           <>
             <Box display="flex" pb="4">
@@ -264,17 +264,7 @@ const LoanLayout = () => {
           </>
         );
 
-      // @ts-expect-error
-      case LoanStateEnum.Cancelled:
-        return (
-          <>
-            <Detail>
-              <Text>Loan account closed.</Text>
-            </Detail>
-          </>
-        );
-
-      case LoanStateEnum.Defaulted:
+      case LoanState.Defaulted:
         return (
           <>
             <Detail
@@ -287,6 +277,15 @@ const LoanLayout = () => {
               <Text>
                 Listing has ended. The NFT was repossessed by the lender.
               </Text>
+            </Detail>
+          </>
+        );
+
+      case "Cancelled":
+        return (
+          <>
+            <Detail>
+              <Text>Loan account closed.</Text>
             </Detail>
           </>
         );

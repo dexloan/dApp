@@ -12,6 +12,7 @@ import {
   TagLabel,
   Text,
 } from "@chakra-ui/react";
+import { RentalState, LoanState, CallOptionState } from "@prisma/client";
 import type { NextPage } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
@@ -19,11 +20,6 @@ import { useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 
-import {
-  CallOptionStateEnum,
-  RentalStateEnum,
-  LoanStateEnum,
-} from "../../common/types";
 import { fetchRental } from "../../common/query";
 import { CallOption, Rental, Loan } from "../../common/model";
 import {
@@ -195,7 +191,7 @@ const RentalLayout = ({ rental }: RentalLayoutProps) => {
     if (rental === undefined) return null;
 
     switch (rental.state) {
-      case RentalStateEnum.Listed:
+      case RentalState.Listed:
         return (
           <>
             <Box display="flex" pb="4">
@@ -218,7 +214,7 @@ const RentalLayout = ({ rental }: RentalLayoutProps) => {
           </>
         );
 
-      case RentalStateEnum.Rentald:
+      case RentalState.Rented:
         return (
           <>
             <Box display="flex" pb="4">
@@ -268,7 +264,7 @@ const RentalLayout = ({ rental }: RentalLayoutProps) => {
           </>
         );
 
-      case RentalStateEnum.Cancelled:
+      case RentalState.Cancelled:
         return (
           <>
             <Detail>
@@ -364,7 +360,7 @@ const SecondaryButtons = ({ rental }: SecondaryButtonProps) => {
   }, [callOptionQuery.data]);
 
   if (rental.isLender(anchorWallet)) {
-    if (callOption && callOption.state !== CallOptionStateEnum.Cancelled) {
+    if (callOption && callOption.state !== CallOptionState.Cancelled) {
       return (
         <Box mt="2" mb="2" flex={1}>
           <NextLink href={`/option/${callOptionAddress?.toBase58()}`}>
@@ -376,8 +372,8 @@ const SecondaryButtons = ({ rental }: SecondaryButtonProps) => {
 
     if (
       loan &&
-      loan.state !== LoanStateEnum.Cancelled &&
-      loan.state !== LoanStateEnum.Repaid
+      loan.state !== LoanState.Cancelled &&
+      loan.state !== LoanState.Repaid
     )
       return (
         <Box mt="2" mb="2" flex={1}>

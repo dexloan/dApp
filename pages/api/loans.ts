@@ -5,5 +5,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  return prisma.loan.findMany();
+  const result = await prisma.loan.findMany();
+  console.log("result: ", result);
+  res.json(result);
 }

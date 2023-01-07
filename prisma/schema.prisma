@@ -11,13 +11,13 @@ model Collection {
   address           String          @id @unique
   mint              String          @unique
   authority         String
-  loanEnabled       Boolean
-  loanBasisPoints   Int
-  optionEnabled     Boolean
-  optionBasisPoints Int
-  rentalEnabled     Boolean
-  rentalBasisPoints Boolean
   floorPrice        BigInt
+  loanBasisPoints   Int
+  loanEnabled       Boolean
+  optionBasisPoints Int
+  optionEnabled     Boolean
+  rentalBasisPoints Int
+  rentalEnabled     Boolean
   CallOption        CallOption[]
   CallOptionBid     CallOptionBid[]
   Loan              Loan[]
@@ -36,13 +36,13 @@ model Loan {
   outstanding        BigInt
   threshold          Int?
   installments       Int
-  currentInstallment Int
   noticeIssued       BigInt?
   duration           BigInt
   startDate          BigInt?
   mint               String
   tokenMint          String?
   collectionAddress  String
+  currentInstallment Int
   Collection         Collection @relation(fields: [collectionAddress], references: [address])
 }
 
@@ -90,24 +90,6 @@ model FloorPrice {
   amount  BigInt
 }
 
-enum LoanState {
-  Unlisted
-  Listed
-  Active
-  Defaulted
-}
-
-enum CallOptionState {
-  Listed
-  Active
-  Exercised
-}
-
-enum RentalState {
-  Listed
-  Rented
-}
-
 model Rental {
   address            String      @id @unique
   state              RentalState
@@ -122,4 +104,26 @@ model Rental {
   mint               String
   collectionAddress  String
   Collection         Collection  @relation(fields: [collectionAddress], references: [address])
+}
+
+enum LoanState {
+  Unlisted
+  Listed
+  Active
+  Defaulted
+  Cancelled
+  Repaid
+}
+
+enum CallOptionState {
+  Listed
+  Active
+  Exercised
+  Cancelled
+}
+
+enum RentalState {
+  Listed
+  Rented
+  Cancelled
 }
