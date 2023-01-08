@@ -1,6 +1,7 @@
 import { BN, web3 } from "@project-serum/anchor";
 import { Key, Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import camelcase from "camelcase";
 
 import * as utils from "../utils";
 import dayjs from "../../common/lib/dayjs";
@@ -82,7 +83,9 @@ export class CallOption implements CallOptionArgs {
 
   get state(): CallOptionStateEnum | undefined {
     if (typeof this.data.state === "object" && this.data.state !== null) {
-      return Object.keys(this.data.state)[0] as CallOptionStateEnum;
+      return camelcase(Object.keys(this.data.state)[0], {
+        pascalCase: true,
+      }) as CallOptionStateEnum;
     }
   }
 

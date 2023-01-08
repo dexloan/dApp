@@ -13,6 +13,7 @@ import {
   TagLabel,
   Text,
 } from "@chakra-ui/react";
+import { CallOptionState } from "@prisma/client";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -20,7 +21,6 @@ import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList, IoCheckmark } from "react-icons/io5";
 
 import * as utils from "../../common/utils";
-import { CallOptionStateEnum } from "../../common/types";
 import { CallOption } from "../../common/model";
 import { fetchCallOption } from "../../common/query";
 import {
@@ -199,9 +199,9 @@ const CallOptionLayout = () => {
 
   function renderByState() {
     if (callOption === undefined) return null;
-
+    console.log("=========> ", callOption.state);
     switch (callOption.state) {
-      case CallOptionStateEnum.Listed:
+      case CallOptionState.Listed:
         return (
           <>
             <Box display="flex" pb="4">
@@ -237,7 +237,7 @@ const CallOptionLayout = () => {
           </>
         );
 
-      case CallOptionStateEnum.Active:
+      case CallOptionState.Active:
         return (
           <>
             <Box display="flex" pb="4">
@@ -275,7 +275,7 @@ const CallOptionLayout = () => {
           </>
         );
 
-      case CallOptionStateEnum.Exercised:
+      case CallOptionState.Exercised:
         return (
           <>
             <Box display="flex" pb="4">
@@ -301,7 +301,7 @@ const CallOptionLayout = () => {
           </>
         );
 
-      case CallOptionStateEnum.Cancelled:
+      case CallOptionState.Cancelled:
         return (
           <>
             <Detail>

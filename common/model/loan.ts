@@ -146,11 +146,11 @@ export class Loan implements LoanArgs {
     }
   }
 
-  get state(): keyof typeof LoanStateEnum | undefined {
+  get state(): LoanStateEnum | undefined {
     if (typeof this.data.state === "object" && this.data.state !== null) {
       return camelcase(Object.keys(this.data.state)[0], {
         pascalCase: true,
-      }) as keyof typeof LoanStateEnum;
+      }) as LoanStateEnum;
     }
   }
 

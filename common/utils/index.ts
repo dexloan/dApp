@@ -218,3 +218,15 @@ export async function wait(ms: number) {
 export function notNull<T>(value: T | null): value is NonNullable<T> {
   return value != null;
 }
+
+export function parseBitInts(result: any) {
+  return JSON.parse(
+    JSON.stringify(result, (key, value) =>
+      typeof value === "bigint" ? "0x" + value.toString(16) : value
+    )
+  );
+}
+
+export function toBigInt(value: anchor.BN): bigint {
+  return BigInt("0x" + value.toString("hex"));
+}

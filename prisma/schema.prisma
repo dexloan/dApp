@@ -11,6 +11,7 @@ model Collection {
   address           String          @id @unique
   mint              String          @unique
   authority         String
+  disabled          Boolean         @default(false)
   floorPrice        BigInt
   loanBasisPoints   Int
   loanEnabled       Boolean
@@ -26,7 +27,8 @@ model Collection {
 }
 
 model Loan {
-  address            String     @id @unique
+  id                 Int        @unique @default(autoincrement())
+  address            String
   state              LoanState
   borrower           String
   lender             String?
@@ -44,11 +46,14 @@ model Loan {
   collectionAddress  String
   currentInstallment Int
   Collection         Collection @relation(fields: [collectionAddress], references: [address])
+
+  @@id([id, address])
 }
 
 model LoanOffer {
-  address           String     @id @unique
-  id                Int
+  id                Int        @unique @default(autoincrement())
+  address           String
+  offerId           Int
   lender            String
   amount            BigInt?
   basisPoints       Int
@@ -57,10 +62,13 @@ model LoanOffer {
   threshold         Int?
   collectionAddress String
   Collection        Collection @relation(fields: [collectionAddress], references: [address])
+
+  @@id([id, address, offerId])
 }
 
 model CallOption {
-  address            String          @id @unique
+  id                 Int             @unique @default(autoincrement())
+  address            String
   state              CallOptionState
   amount             BigInt
   creatorBasisPoints Int
@@ -72,22 +80,22 @@ model CallOption {
   tokenMint          String?
   collectionAddress  String
   Collection         Collection      @relation(fields: [collectionAddress], references: [address])
+
+  @@id([id, address])
 }
 
 model CallOptionBid {
-  address           String     @id @unique
-  id                Int
+  id                Int        @unique @default(autoincrement())
+  address           String
+  bidId             Int
   buyer             String
   expiry            BigInt
   strikePrice       BigInt
   amount            BigInt
   collectionAddress String
   Collection        Collection @relation(fields: [collectionAddress], references: [address])
-}
 
-model FloorPrice {
-  address String @id @unique
-  amount  BigInt
+  @@id([id, address, bidId])
 }
 
 model Rental {
