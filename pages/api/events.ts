@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { web3 } from "@project-serum/anchor";
-import { LoanState } from "@prisma/client";
+import { LoanState, Loan, CallOption, CallOptionState } from "@prisma/client";
 import camelcase from "camelcase";
 import { snakeCase } from "snake-case";
 import { sha256 } from "js-sha256";
@@ -11,6 +11,8 @@ import * as utils from "../../common/utils";
 import { getProgram, getProvider } from "../../common/provider";
 import prisma from "../../common/lib/prisma";
 import {
+  CallOptionBidData,
+  CallOptionData,
   CollectionData,
   LoanData,
   LoanOfferData,
@@ -138,35 +140,8 @@ export default async function handler(
             const collectionPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
-            const data = await asyncRetry<LoanData>(async () => {
-              return (await program.account.loan.fetch(loanPda)) as LoanData;
-            });
 
-            await prisma.loan.create({
-              data: {
-                address: loanPda.toBase58(),
-                state: LoanState.Listed,
-                amount: data.amount?.toNumber(),
-                basisPoints: data.basisPoints,
-                creatorBasisPoints: data.creatorBasisPoints,
-                outstanding: data.outstanding.toNumber(),
-                threshold: data.threshold,
-                borrower: data.borrower.toBase58(),
-                lender: data.lender?.toBase58(),
-                installments: data.installments,
-                currentInstallment: data.currentInstallment,
-                noticeIssued: data.noticeIssued?.toNumber(),
-                duration: data.duration.toNumber(),
-                startDate: data.startDate?.toNumber(),
-                mint: data.mint.toBase58(),
-                tokenMint: data.tokenMint?.toBase58(),
-                Collection: {
-                  connect: {
-                    address: collectionPda.toBase58(),
-                  },
-                },
-              },
-            });
+            await createLoan(loanPda, collectionPda);
           }
 
           case "giveLoan": {
@@ -176,6 +151,10 @@ export default async function handler(
             const loanPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[loanAccountIndex]]
             );
+
+            await updateLoan(loanPda, LoanState.Listed);
+
+            break;
           }
 
           case "repossess":
@@ -187,31 +166,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[loanAccountIndex]]
             );
 
-            // Check account is deleted on-chain
-            const account = await connection.getAccountInfo(loanPda);
-
-            if (account === null) {
-              const current = await prisma.loan.findFirst({
-                where: {
-                  address: loanPda.toBase58(),
-                  state: LoanState.Active,
-                },
-              });
-
-              if (current) {
-                await prisma.loan.update({
-                  where: {
-                    id_address: {
-                      id: current.id,
-                      address: loanPda.toBase58(),
-                    },
-                  },
-                  data: {
-                    state: LoanState.Defaulted,
-                  },
-                });
-              }
-            }
+            await updateLoan(loanPda, LoanState.Active);
 
             break;
           }
@@ -223,20 +178,9 @@ export default async function handler(
             const loanPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[loanAccountIndex]]
             );
-            // Check account is deleted on-chain
-            const account = await connection.getAccountInfo(loanPda);
 
-            if (account === null) {
-              await prisma.loan.update({
-                where: {
-                  address: loanPda.toBase58(),
-                },
-                data: {
-                  outstanding: 0,
-                  state: LoanState.Repaid,
-                },
-              });
-            }
+            await updateLoan(loanPda, LoanState.Repaid);
+
             break;
           }
 
@@ -247,19 +191,9 @@ export default async function handler(
             const loanPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[loanAccountIndex]]
             );
-            // Check account is deleted on-chain
-            const account = await connection.getAccountInfo(loanPda);
 
-            if (account === null) {
-              await prisma.loan.update({
-                where: {
-                  address: loanPda.toBase58(),
-                },
-                data: {
-                  state: LoanState.Cancelled,
-                },
-              });
-            }
+            updateLoan(loanPda, [LoanState.Listed, LoanState.Defaulted]);
+
             break;
           }
 
@@ -276,37 +210,52 @@ export default async function handler(
             const collectionPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
-            const data = await asyncRetry<LoanOfferData>(async () => {
-              return (await program.account.loanOffer.fetch(
-                loanOfferPda
-              )) as LoanOfferData;
-            });
 
-            await prisma.loanOffer.create({
-              data: {
-                address: loanOfferPda.toBase58(),
-                offerId: data.id,
-                lender: data.lender.toBase58(),
-                amount: data.amount ? utils.toBigInt(data.amount) : null,
-                basisPoints: data.basisPoints,
-                duration: utils.toBigInt(data.duration),
-                ltv: data.ltv,
-                threshold: data.threshold,
-                Collection: {
-                  connect: {
-                    address: collectionPda.toBase58(),
-                  },
-                },
-              },
-            });
+            await createLoanOffer(loanOfferPda, collectionPda);
+
             break;
           }
 
-          case "takeLoanOffer":
-          // close
+          case "takeLoanOffer": {
+            const loanAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "loan"
+            );
+            const loanOfferAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "loanOffer"
+            );
+            const collectionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "collection"
+            );
+            const loanPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[loanAccountIndex]]
+            );
+            const loanOfferPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[loanOfferAccountIndex]]
+            );
+            const collectionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[collectionAccountIndex]]
+            );
 
-          case "closeLoanOffer":
-          // close
+            await Promise.all([
+              deleteLoanOffer(loanOfferPda),
+              createLoan(loanPda, collectionPda),
+            ]);
+
+            break;
+          }
+
+          case "closeLoanOffer": {
+            const loanOfferAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "loanOffer"
+            );
+            const loanOfferPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[loanOfferAccountIndex]]
+            );
+
+            await deleteLoanOffer(loanOfferPda);
+
+            break;
+          }
 
           case "bidCallOption":
           case "closeCallOptionBid":
@@ -364,20 +313,175 @@ function getState<T>(state: unknown) {
   return formattedState;
 }
 
-async function asyncRetry<T>(cb: () => Promise<T>) {
-  const retry = async (num: number): Promise<T> => {
-    console.log("retry: ", num);
-    try {
-      const result = await cb();
-      return result;
-    } catch (err) {
-      if (num > 5) {
-        throw err;
-      }
-      await wait(500);
-      return retry(num + 1);
-    }
-  };
+async function fetchLoan(loanPda: web3.PublicKey) {
+  return utils.asyncRetry<LoanData>(async () => {
+    return (await program.account.loan.fetch(loanPda)) as LoanData;
+  });
+}
 
-  return retry(0);
+async function fetchLoanOffer(loanOfferPda: web3.PublicKey) {
+  return utils.asyncRetry<LoanOfferData>(async () => {
+    return (await program.account.loanOffer.fetch(
+      loanOfferPda
+    )) as LoanOfferData;
+  });
+}
+
+async function fetchCallOption(callOptionPda: web3.PublicKey) {
+  return utils.asyncRetry<CallOptionData>(async () => {
+    return (await program.account.callOption.fetch(
+      callOptionPda
+    )) as CallOptionData;
+  });
+}
+
+async function fetchCallOptionBid(callOptionBidPda: web3.PublicKey) {
+  return utils.asyncRetry<CallOptionBidData>(async () => {
+    return (await program.account.loanOffer.fetch(
+      callOptionBidPda
+    )) as CallOptionBidData;
+  });
+}
+
+function mapLoanEntry(data: LoanData): Partial<Loan> {
+  return {
+    state: LoanState.Listed,
+    amount: data.amount ? utils.toBigInt(data.amount) : undefined,
+    basisPoints: data.basisPoints,
+    creatorBasisPoints: data.creatorBasisPoints,
+    outstanding: data.outstanding
+      ? utils.toBigInt(data.outstanding)
+      : undefined,
+    threshold: data.threshold,
+    borrower: data.borrower.toBase58(),
+    lender: data.lender?.toBase58(),
+    installments: data.installments,
+    currentInstallment: data.currentInstallment,
+    noticeIssued: data.noticeIssued
+      ? utils.toBigInt(data.noticeIssued)
+      : undefined,
+    duration: data.duration ? utils.toBigInt(data.duration) : undefined,
+    startDate: data.startDate ? utils.toBigInt(data.startDate) : undefined,
+    mint: data.mint.toBase58(),
+    tokenMint: data.tokenMint?.toBase58(),
+  };
+}
+
+function mapCallOptionEntry(data: CallOptionData): Partial<CallOption> {
+  return {
+    state: LoanState.Listed,
+    amount: data.amount?.toNumber(),
+    basisPoints: data.basisPoints,
+    creatorBasisPoints: data.creatorBasisPoints,
+    outstanding: data.outstanding.toNumber(),
+    threshold: data.threshold,
+    borrower: data.borrower.toBase58(),
+    lender: data.lender?.toBase58(),
+    installments: data.installments,
+    currentInstallment: data.currentInstallment,
+    noticeIssued: data.noticeIssued?.toNumber(),
+    duration: data.duration.toNumber(),
+    startDate: data.startDate?.toNumber(),
+    mint: data.mint.toBase58(),
+    tokenMint: data.tokenMint?.toBase58(),
+  };
+}
+
+async function createLoan(
+  loanPda: web3.PublicKey,
+  collectionPda: web3.PublicKey
+) {
+  const data = await fetchLoan(loanPda);
+
+  if (!data) {
+    throw new Error("loan not found");
+  }
+
+  return prisma.loan.create({
+    data: {
+      ...mapLoanEntry(data),
+      address: loanPda.toBase58(),
+      Collection: {
+        connect: {
+          address: collectionPda.toBase58(),
+        },
+      },
+    },
+  });
+}
+
+async function updateLoan(
+  loanPda: web3.PublicKey,
+  states: LoanState | LoanState[]
+) {
+  const where =
+    states instanceof Array
+      ? {
+          OR: states.map((state) => ({
+            address: loanPda.toBase58(),
+            state,
+          })),
+        }
+      : {
+          address: loanPda.toBase58(),
+          state: states,
+        };
+
+  const [current, data] = await Promise.all([
+    prisma.loan.findFirst({
+      where,
+    }),
+    fetchLoan(loanPda),
+  ]);
+
+  if (current === null) {
+    throw new Error("loan entry not found");
+  }
+
+  if (data === null) {
+    throw new Error("loan data not found");
+  }
+
+  await prisma.loan.update({
+    where: {
+      id_address: {
+        id: current.id,
+        address: loanPda.toBase58(),
+      },
+    },
+    data: mapLoanEntry(data),
+  });
+}
+
+async function createLoanOffer(
+  loanOfferPda: web3.PublicKey,
+  collectionPda: web3.PublicKey
+) {
+  const data = await fetchLoanOffer(loanOfferPda);
+
+  await prisma.loanOffer.create({
+    data: {
+      address: loanOfferPda.toBase58(),
+      offerId: data.id,
+      lender: data.lender.toBase58(),
+      amount: data.amount ? utils.toBigInt(data.amount) : null,
+      basisPoints: data.basisPoints,
+      duration: utils.toBigInt(data.duration),
+      ltv: data.ltv,
+      threshold: data.threshold,
+      Collection: {
+        connect: {
+          address: collectionPda.toBase58(),
+        },
+      },
+    },
+  });
+}
+
+async function deleteLoanOffer(loanOfferPda: web3.PublicKey) {
+  await prisma.loanOffer.delete({
+    where: {
+      address: loanOfferPda.toBase58(),
+    },
+  });
 }

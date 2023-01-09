@@ -51,9 +51,8 @@ model Loan {
 }
 
 model LoanOffer {
-  id                Int        @unique @default(autoincrement())
-  address           String
-  offerId           Int
+  address           String @id @unique
+  bidId             Int
   lender            String
   amount            BigInt?
   basisPoints       Int
@@ -62,8 +61,6 @@ model LoanOffer {
   threshold         Int?
   collectionAddress String
   Collection        Collection @relation(fields: [collectionAddress], references: [address])
-
-  @@id([id, address, offerId])
 }
 
 model CallOption {
@@ -85,8 +82,7 @@ model CallOption {
 }
 
 model CallOptionBid {
-  id                Int        @unique @default(autoincrement())
-  address           String
+  address           String @id @unique
   bidId             Int
   buyer             String
   expiry            BigInt
@@ -94,8 +90,6 @@ model CallOptionBid {
   amount            BigInt
   collectionAddress String
   Collection        Collection @relation(fields: [collectionAddress], references: [address])
-
-  @@id([id, address, bidId])
 }
 
 model Rental {

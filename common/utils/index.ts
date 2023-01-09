@@ -230,3 +230,21 @@ export function parseBitInts(result: any) {
 export function toBigInt(value: anchor.BN): bigint {
   return BigInt("0x" + value.toString("hex"));
 }
+
+export async function asyncRetry<T>(cb: () => Promise<T>) {
+  const retry = async (num: number): Promise<T> => {
+    console.log("retry: ", num);
+    try {
+      const result = await cb();
+      return result;
+    } catch (err) {
+      if (num > 5) {
+        throw err;
+      }
+      await wait(500);
+      return retry(num + 1);
+    }
+  };
+
+  return retry(0);
+}
