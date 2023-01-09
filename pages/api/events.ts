@@ -345,7 +345,7 @@ async function fetchCallOptionBid(callOptionBidPda: web3.PublicKey) {
 
 function mapLoanEntry(data: LoanData): Partial<Loan> {
   return {
-    state: LoanState.Listed,
+    state: getState<LoanState>(data.state),
     amount: data.amount ? utils.toBigInt(data.amount) : undefined,
     basisPoints: data.basisPoints,
     creatorBasisPoints: data.creatorBasisPoints,
@@ -369,19 +369,15 @@ function mapLoanEntry(data: LoanData): Partial<Loan> {
 
 function mapCallOptionEntry(data: CallOptionData): Partial<CallOption> {
   return {
-    state: LoanState.Listed,
-    amount: data.amount?.toNumber(),
-    basisPoints: data.basisPoints,
+    state: getState<CallOptionState>(data.state),
+    amount: data.amount ? utils.toBigInt(data.amount) : undefined,
     creatorBasisPoints: data.creatorBasisPoints,
-    outstanding: data.outstanding.toNumber(),
-    threshold: data.threshold,
-    borrower: data.borrower.toBase58(),
-    lender: data.lender?.toBase58(),
-    installments: data.installments,
-    currentInstallment: data.currentInstallment,
-    noticeIssued: data.noticeIssued?.toNumber(),
-    duration: data.duration.toNumber(),
-    startDate: data.startDate?.toNumber(),
+    seller: data.seller?.toBase58(),
+    buyer: data.buyer?.toBase58(),
+    expiry: data.expiry ? utils.toBigInt(data.expiry) : undefined,
+    strikePrice: data.strikePrice
+      ? utils.toBigInt(data.strikePrice)
+      : undefined,
     mint: data.mint.toBase58(),
     tokenMint: data.tokenMint?.toBase58(),
   };
