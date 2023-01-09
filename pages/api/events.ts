@@ -343,15 +343,19 @@ async function fetchCallOptionBid(callOptionBidPda: web3.PublicKey) {
   });
 }
 
-function mapLoanEntry(data: LoanData): Partial<Loan> {
+function mapLoanEntry(data: LoanData) {
+  const state = getState<LoanState>(data.state);
+
+  if (state === undefined) {
+    throw new Error("state not found");
+  }
+
   return {
-    state: getState<LoanState>(data.state),
+    state,
     amount: data.amount ? utils.toBigInt(data.amount) : undefined,
     basisPoints: data.basisPoints,
     creatorBasisPoints: data.creatorBasisPoints,
-    outstanding: data.outstanding
-      ? utils.toBigInt(data.outstanding)
-      : undefined,
+    outstanding: utils.toBigInt(data.outstanding),
     threshold: data.threshold,
     borrower: data.borrower.toBase58(),
     lender: data.lender?.toBase58(),
@@ -360,14 +364,14 @@ function mapLoanEntry(data: LoanData): Partial<Loan> {
     noticeIssued: data.noticeIssued
       ? utils.toBigInt(data.noticeIssued)
       : undefined,
-    duration: data.duration ? utils.toBigInt(data.duration) : undefined,
+    duration: utils.toBigInt(data.duration),
     startDate: data.startDate ? utils.toBigInt(data.startDate) : undefined,
     mint: data.mint.toBase58(),
     tokenMint: data.tokenMint?.toBase58(),
   };
 }
 
-function mapCallOptionEntry(data: CallOptionData): Partial<CallOption> {
+function mapCallOptionEntry(data: CallOptionData) {
   return {
     state: getState<CallOptionState>(data.state),
     amount: data.amount ? utils.toBigInt(data.amount) : undefined,
