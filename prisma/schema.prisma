@@ -51,8 +51,8 @@ model Loan {
 }
 
 model LoanOffer {
-  address           String @id @unique
-  bidId             Int
+  address           String     @id @unique
+  offerId           Int
   lender            String
   amount            BigInt?
   basisPoints       Int
@@ -82,7 +82,7 @@ model CallOption {
 }
 
 model CallOptionBid {
-  address           String @id @unique
+  address           String     @id @unique
   bidId             Int
   buyer             String
   expiry            BigInt

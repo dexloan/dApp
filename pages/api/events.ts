@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { web3 } from "@project-serum/anchor";
-import { LoanState, Loan, CallOption, CallOptionState } from "@prisma/client";
+import { LoanState, CallOptionState } from "@prisma/client";
 import camelcase from "camelcase";
 import { snakeCase } from "snake-case";
 import { sha256 } from "js-sha256";
@@ -16,9 +16,7 @@ import {
   CollectionData,
   LoanData,
   LoanOfferData,
-  LoanStateEnum,
 } from "../../common/types";
-import { wait } from "../../common/utils";
 
 type AccountNames = typeof IDL.accounts[number]["name"];
 
@@ -115,16 +113,11 @@ export default async function handler(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
 
-            // Check account is deleted on-chain
-            const account = await connection.getAccountInfo(collectionPda);
-            console.log("account: ", account);
-            if (account === null) {
-              await prisma.collection.delete({
-                where: {
-                  address: collectionPda.toBase58(),
-                },
-              });
-            }
+            await prisma.collection.delete({
+              where: {
+                address: collectionPda.toBase58(),
+              },
+            });
           }
 
           case "askLoan": {
@@ -142,6 +135,8 @@ export default async function handler(
             );
 
             await createLoan(loanPda, collectionPda);
+
+            break;
           }
 
           case "giveLoan": {
@@ -192,7 +187,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[loanAccountIndex]]
             );
 
-            updateLoan(loanPda, [LoanState.Listed, LoanState.Defaulted]);
+            await closeLoan(loanPda);
 
             break;
           }
@@ -257,21 +252,124 @@ export default async function handler(
             break;
           }
 
-          case "bidCallOption":
-          case "closeCallOptionBid":
-          case "sellCallOption":
-          case "askCallOption":
-          case "buyCallOption":
-          case "exerciseCallOption":
-          case "exerciseCallOptionWithRental":
-          case "closeCallOption":
+          case "closeCallOption": {
+            const callOptionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "loan"
+            );
+            const callOptionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionAccountIndex]]
+            );
 
-          // case "initRental":
-          // case "takeRental":
-          // case "extendRental":
-          // case "recoverRental":
-          // case "withdrawFromRentalEscrow":
-          // case "closeRental":
+            await closeCallOption(callOptionPda);
+
+            break;
+          }
+
+          case "askCallOption": {
+            const callOptionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "callOption"
+            );
+            const collectionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "collection"
+            );
+            const callOptionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionAccountIndex]]
+            );
+            const collectionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[collectionAccountIndex]]
+            );
+
+            await createCallOption(callOptionPda, collectionPda);
+
+            break;
+          }
+
+          case "buyCallOption": {
+            const callOptionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "callOption"
+            );
+            const callOptionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionAccountIndex]]
+            );
+
+            await updateCallOption(callOptionPda, CallOptionState.Listed);
+
+            break;
+          }
+
+          case "exerciseCallOption":
+          case "exerciseCallOptionWithRental": {
+            const callOptionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "callOption"
+            );
+            const callOptionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionAccountIndex]]
+            );
+
+            await updateCallOption(callOptionPda, CallOptionState.Active);
+
+            break;
+          }
+
+          case "bidCallOption": {
+            const callOptionBidAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "callOptionBid"
+            );
+            const collectionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "collection"
+            );
+            const callOptionBidPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionBidAccountIndex]]
+            );
+            const collectionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[collectionAccountIndex]]
+            );
+
+            await createCallOptionBid(callOptionBidPda, collectionPda);
+
+            break;
+          }
+
+          case "sellCallOption": {
+            const callOptionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "callOption"
+            );
+            const callOptionBidAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "callOptionBid"
+            );
+            const collectionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "collection"
+            );
+            const callOptionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionAccountIndex]]
+            );
+            const callOptionBidPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionBidAccountIndex]]
+            );
+            const collectionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[collectionAccountIndex]]
+            );
+
+            await Promise.all([
+              deleteCallOptionBid(callOptionBidPda),
+              createCallOption(callOptionPda, collectionPda),
+            ]);
+
+            break;
+          }
+
+          case "closeCallOptionBid": {
+            const callOptionBidAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "callOptionBid"
+            );
+            const callOptionBidPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionBidAccountIndex]]
+            );
+
+            await deleteCallOptionBid(callOptionBidPda);
+
+            break;
+          }
 
           default: {
             // Do nothing
@@ -372,16 +470,20 @@ function mapLoanEntry(data: LoanData) {
 }
 
 function mapCallOptionEntry(data: CallOptionData) {
+  const state = getState<CallOptionState>(data.state);
+
+  if (state === undefined) {
+    throw new Error("state not found");
+  }
+
   return {
-    state: getState<CallOptionState>(data.state),
-    amount: data.amount ? utils.toBigInt(data.amount) : undefined,
+    state,
+    amount: utils.toBigInt(data.amount),
     creatorBasisPoints: data.creatorBasisPoints,
     seller: data.seller?.toBase58(),
     buyer: data.buyer?.toBase58(),
-    expiry: data.expiry ? utils.toBigInt(data.expiry) : undefined,
-    strikePrice: data.strikePrice
-      ? utils.toBigInt(data.strikePrice)
-      : undefined,
+    expiry: utils.toBigInt(data.expiry),
+    strikePrice: utils.toBigInt(data.strikePrice),
     mint: data.mint.toBase58(),
     tokenMint: data.tokenMint?.toBase58(),
   };
@@ -410,26 +512,13 @@ async function createLoan(
   });
 }
 
-async function updateLoan(
-  loanPda: web3.PublicKey,
-  states: LoanState | LoanState[]
-) {
-  const where =
-    states instanceof Array
-      ? {
-          OR: states.map((state) => ({
-            address: loanPda.toBase58(),
-            state,
-          })),
-        }
-      : {
-          address: loanPda.toBase58(),
-          state: states,
-        };
-
+async function updateLoan(loanPda: web3.PublicKey, states: LoanState) {
   const [current, data] = await Promise.all([
     prisma.loan.findFirst({
-      where,
+      where: {
+        address: loanPda.toBase58(),
+        state: states,
+      },
     }),
     fetchLoan(loanPda),
   ]);
@@ -451,6 +540,26 @@ async function updateLoan(
     },
     data: mapLoanEntry(data),
   });
+}
+
+async function closeLoan(loanPda: web3.PublicKey) {
+  const current = await prisma.loan.findFirst({
+    where: {
+      address: loanPda.toBase58(),
+      state: LoanState.Listed,
+    },
+  });
+
+  if (current) {
+    await prisma.loan.delete({
+      where: {
+        id_address: {
+          id: current.id,
+          address: loanPda.toBase58(),
+        },
+      },
+    });
+  }
 }
 
 async function createLoanOffer(
@@ -482,6 +591,109 @@ async function deleteLoanOffer(loanOfferPda: web3.PublicKey) {
   await prisma.loanOffer.delete({
     where: {
       address: loanOfferPda.toBase58(),
+    },
+  });
+}
+
+async function createCallOption(
+  callOptionPda: web3.PublicKey,
+  collectionPda: web3.PublicKey
+) {
+  const data = await fetchCallOption(callOptionPda);
+
+  await prisma.callOption.create({
+    data: {
+      ...mapCallOptionEntry(data),
+      address: callOptionPda.toBase58(),
+      Collection: {
+        connect: {
+          address: collectionPda.toBase58(),
+        },
+      },
+    },
+  });
+}
+
+async function updateCallOption(
+  callOptionPda: web3.PublicKey,
+  states: CallOptionState
+) {
+  const [current, data] = await Promise.all([
+    prisma.callOption.findFirst({
+      where: {
+        address: callOptionPda.toBase58(),
+        state: states,
+      },
+    }),
+    fetchCallOption(callOptionPda),
+  ]);
+
+  if (current === null) {
+    throw new Error("loan entry not found");
+  }
+
+  if (data === null) {
+    throw new Error("loan data not found");
+  }
+
+  await prisma.callOption.update({
+    where: {
+      id_address: {
+        id: current.id,
+        address: callOptionPda.toBase58(),
+      },
+    },
+    data: mapCallOptionEntry(data),
+  });
+}
+
+async function closeCallOption(callOptionPda: web3.PublicKey) {
+  const current = await prisma.callOption.findFirst({
+    where: {
+      address: callOptionPda.toBase58(),
+      state: CallOptionState.Listed,
+    },
+  });
+
+  if (current) {
+    await prisma.callOption.delete({
+      where: {
+        id_address: {
+          id: current.id,
+          address: callOptionPda.toBase58(),
+        },
+      },
+    });
+  }
+}
+
+async function createCallOptionBid(
+  callOptionBidPda: web3.PublicKey,
+  collectionPda: web3.PublicKey
+) {
+  const data = await fetchCallOptionBid(callOptionBidPda);
+
+  await prisma.callOptionBid.create({
+    data: {
+      address: callOptionBidPda.toBase58(),
+      bidId: data.id,
+      buyer: data.buyer.toBase58(),
+      amount: utils.toBigInt(data.amount),
+      expiry: utils.toBigInt(data.expiry),
+      strikePrice: utils.toBigInt(data.strikePrice),
+      Collection: {
+        connect: {
+          address: collectionPda.toBase58(),
+        },
+      },
+    },
+  });
+}
+
+async function deleteCallOptionBid(callOptionBid: web3.PublicKey) {
+  await prisma.callOptionBid.delete({
+    where: {
+      address: callOptionBid.toBase58(),
     },
   });
 }
