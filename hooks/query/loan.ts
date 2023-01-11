@@ -5,6 +5,8 @@ import { useQuery } from "react-query";
 import bs58 from "bs58";
 
 import * as query from "../../common/query";
+import { LoanState } from "@prisma/client";
+import { useRouter } from "next/router";
 
 export const useLoanAddress = (
   mint?: anchor.web3.PublicKey,
@@ -37,23 +39,19 @@ export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
   );
 }
 
-export const getLoansQueryKey = (state: number) => ["loans", state];
+export const getLoansQueryKey = (state: LoanState) => ["loans", state];
 
-export function useLoansQuery(state: number) {
-  const { connection } = useConnection();
+export function useLoansQuery(state: LoanState) {
+  const router = useRouter();
 
   return useQuery(
     getLoansQueryKey(state),
-    () =>
-      query.fetchMultipleLoans(connection, [
-        {
-          memcmp: {
-            // filter listed
-            offset: 8,
-            bytes: bs58.encode([state]),
-          },
-        },
-      ]),
+    async () => {
+      const url = new URL(`${window.location.origin}/api/loan/asks`);
+      url.searchParams.append("state", state);
+      console.log(url.toString());
+      return fetch(url).then((res) => res.json());
+    },
     {
       refetchOnWindowFocus: false,
     }

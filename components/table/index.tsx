@@ -18,7 +18,7 @@ import React, { useState, useMemo } from "react";
 import { IoCaretDown, IoCaretUp } from "react-icons/io5";
 import Image from "next/image";
 
-import { useMetadataFileQuery } from "../../hooks/query";
+import { useMetadataFileQuery, useMetadataQuery } from "../../hooks/query";
 import { useCollectionName } from "../../hooks/render";
 
 interface ColumnHeaderProps {
@@ -65,6 +65,66 @@ export const ColumnHeader = ({
         </Box>
       </Box>
     </Th>
+  );
+};
+
+interface NFTCellProps {
+  subtitle?: string;
+  mint?: string;
+}
+
+export const NFTCellNew = ({ subtitle, mint }: NFTCellProps) => {
+  const [isVisible, setVisible] = useState(false);
+  const metadataQuery = useMetadataQuery(mint);
+  const metadataJsonQuery = useMetadataFileQuery(metadataQuery.data?.data.uri);
+  const collectionName = useCollectionName(metadataQuery.data);
+
+  return (
+    <Td>
+      <Box display="flex" alignItems="center">
+        <Box
+          as="span"
+          display="block"
+          position="relative"
+          width="12"
+          height="12"
+          borderRadius="sm"
+          overflow="hidden"
+        >
+          <Box
+            as="span"
+            position="absolute"
+            left="0"
+            top="0"
+            right="0"
+            bottom="0"
+          >
+            <Skeleton
+              height="100%"
+              width="100%"
+              isLoaded={metadataJsonQuery.data?.image && isVisible}
+            >
+              {metadataJsonQuery.data?.image && (
+                <Image
+                  quality={100}
+                  layout="fill"
+                  objectFit="cover"
+                  src={metadataJsonQuery.data.image}
+                  alt={metadataQuery.data?.data.name}
+                  onLoad={() => setVisible(true)}
+                />
+              )}
+            </Skeleton>
+          </Box>
+        </Box>
+        <Box ml="4">
+          <Text mb="1">{metadataQuery.data?.data.name}</Text>
+          <Text fontSize="xs" color="gray.500">
+            {subtitle ?? collectionName}
+          </Text>
+        </Box>
+      </Box>
+    </Td>
   );
 };
 
@@ -154,7 +214,7 @@ interface ListingsTableProps<SortCols, ItemType> {
   heading: React.ReactNode;
   placeholder: string;
   cols: Readonly<Col<SortCols>[]>;
-  items: ItemType[];
+  items?: ItemType[];
   isLoading?: boolean;
   renderCol: (col: Col<SortCols>, index: number) => React.ReactNode;
   renderRow: (item: ItemType) => React.ReactNode;
@@ -171,7 +231,7 @@ export const ListingsTable = <SortCols, ItemType>({
   renderRow,
 }: ListingsTableProps<SortCols, ItemType>) => {
   const renderedCols = useMemo(() => cols.map(renderCol), [cols, renderCol]);
-  const renderedRows = useMemo(() => items.map(renderRow), [items, renderRow]);
+  const renderedRows = useMemo(() => items?.map(renderRow), [items, renderRow]);
 
   return (
     <>
@@ -207,7 +267,7 @@ export const ListingsTable = <SortCols, ItemType>({
             <Spinner size="sm" />
           </Box>
         )}
-        {!isLoading && !items.length && (
+        {!isLoading && !items?.length && (
           <EmptyMessage>{placeholder}</EmptyMessage>
         )}
       </>

@@ -1,5 +1,11 @@
 import * as splToken from "@solana/spl-token";
-import type { LoanState, CallOptionState, RentalState } from "@prisma/client";
+import type {
+  Collection,
+  Loan,
+  LoanState,
+  CallOptionState,
+  RentalState,
+} from "@prisma/client";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { DexloanListings, IDL } from "./idl";
@@ -7,6 +13,10 @@ import { DexloanListings, IDL } from "./idl";
 export type LoanStateEnum = LoanState;
 export type CallOptionStateEnum = CallOptionState;
 export type RentalStateEnum = RentalState;
+
+export interface LoanWithCollection extends Loan {
+  Collection: Collection;
+}
 
 export interface NftResult {
   tokenAccount: splToken.Account;

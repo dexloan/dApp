@@ -34,6 +34,6 @@ export function useLTV(amount?: anchor.BN | null, floorPrice?: number) {
 }
 
 export function useCollectionName(metadata?: Metadata) {
-  const query = useMetadataQuery(metadata?.collection?.key);
+  const query = useMetadataQuery(metadata?.collection?.key.toBase58());
   return query.data?.data.name ?? null;
 }

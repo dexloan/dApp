@@ -1,18 +1,14 @@
-import * as anchor from "@project-serum/anchor";
-import { useState, useCallback, useMemo } from "react";
 import { Box, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
+import { Loan } from "@prisma/client";
+import { useState, useCallback, useMemo } from "react";
 
 import * as utils from "../../../common/utils";
-import {
-  Loan,
-  LoanOffer,
-  LoanOfferPretty,
-  LoanPretty,
-} from "../../../common/model";
+import { LoanOffer, LoanOfferPretty, LoanPretty } from "../../../common/model";
 import { useFloorPricesQuery } from "../../../hooks/query";
 import { useFloorPrice, useLTV } from "../../../hooks/render";
-import { NFTCell } from "../../table";
+import { NFTCellNew } from "../../table";
 import { FloorPrice } from "../../floorPrice";
+import { LoanWithCollection } from "../../../common/types";
 
 export type LoanSortCols =
   | "asset"
@@ -164,20 +160,14 @@ function sortByDuration(direction: number) {
 }
 
 interface LoanRowProps {
-  loan: Loan | LoanOffer;
+  loan: LoanWithCollection;
   subtitle?: string;
   onClick: () => void;
 }
 
 export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
-  const floorPrice = useFloorPrice(loan.metadata.data.symbol);
-  const floorPriceSol = useMemo(() => {
-    if (floorPrice) {
-      return floorPrice / anchor.web3.LAMPORTS_PER_SOL;
-    }
-  }, [floorPrice]);
-
-  const ltv = useLTV(loan?.data.amount, floorPrice);
+  //const ltv = useLTV(loan?.data.amount, floorPrice);
+  const floorPrice = loan.Collection.floorPrice;
 
   return (
     <Tr
@@ -185,23 +175,41 @@ export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
       _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
       onClick={onClick}
     >
-      <NFTCell subtitle={subtitle} metadata={loan.metadata} />
+      <NFTCellNew subtitle={subtitle} mint={loan.mint} />
       <Td>{loan.duration}</Td>
       <Td isNumeric>
-        <Text mb="1">{loan.apy}</Text>
+        <Text mb="1">{loan.basisPoints + loan.creatorBasisPoints}</Text>
         <Tooltip label="Lender and creator interest rates.">
           <Text fontSize="xs" color="gray.500">
-            ({loan.lenderApy}, {loan.creatorApy})
+            ({loan.basisPoints}, {loan.creatorBasisPoints})
           </Text>
         </Tooltip>
       </Td>
-      <Td isNumeric>{ltv}</Td>
+      <Td isNumeric>{getLTV(floorPrice, loan.amount)}</Td>
       <Td isNumeric>
         <Box>
-          <Text mb="1">{loan.amount}</Text>
-          <FloorPrice>{floorPriceSol}</FloorPrice>
+          <Text mb="1">
+            {loan.amount ? BigInt(loan.amount).toString() : null}
+          </Text>
+          <FloorPrice>{BigInt(floorPrice).toString()}</FloorPrice>
         </Box>
       </Td>
     </Tr>
   );
 };
+
+function hexToNumber(hex: string) {
+  return Number(BigInt(hex).toString());
+}
+
+function getLTV(floorPrice: string, amount?: string) {
+  if (amount) {
+    try {
+      return (
+        ((hexToNumber(amount) / hexToNumber(floorPrice)) * 100).toFixed(2) + "%"
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}

@@ -17,15 +17,10 @@ import {
 } from "../../common/query";
 import { NftResult } from "../../common/types";
 
-export const getMetadataCacheKey = (mint?: anchor.web3.PublicKey) => [
-  "metadata",
-  mint instanceof anchor.web3.PublicKey ? mint.toBase58() : undefined,
-];
+export const getMetadataCacheKey = (mint?: String) => ["metadata", mint];
 
-export function useMetadataQuery(mint?: anchor.web3.PublicKey) {
+export function useMetadataQuery(mint?: string) {
   const { connection } = useConnection();
-  const queryClient = useQueryClient();
-  const anchorWallet = useAnchorWallet();
 
   return useQuery(
     getMetadataCacheKey(mint),
@@ -34,24 +29,10 @@ export function useMetadataQuery(mint?: anchor.web3.PublicKey) {
         throw new Error("Mint not defined");
       }
 
-      if (anchorWallet?.publicKey) {
-        const walletNFTs = queryClient.getQueryData<NftResult[]>(
-          getNftByOwnerCacheKey(anchorWallet?.publicKey)
-        );
-
-        if (walletNFTs) {
-          const nft = walletNFTs.find((data) =>
-            data.metadata.mint.equals(mint)
-          );
-
-          if (nft) return nft.metadata;
-        }
-      }
-
-      return fetchMetadata(connection, mint);
+      return fetchMetadata(connection, new anchor.web3.PublicKey(mint));
     },
     {
-      enabled: Boolean(mint instanceof anchor.web3.PublicKey),
+      enabled: mint !== undefined,
       staleTime: Infinity,
       refetchOnMount: false,
       refetchOnReconnect: false,

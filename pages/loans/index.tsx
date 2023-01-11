@@ -13,7 +13,6 @@ import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { useState, useMemo } from "react";
 import { IoAdd } from "react-icons/io5";
 
-import { SerializedLoanState } from "../../common/constants";
 import {
   useLoansQuery,
   useLoansTakenQuery,
@@ -23,6 +22,7 @@ import {
 } from "../../hooks/query";
 import { LoanListings, LoanOffers } from "../../components/tables/loans";
 import { AskLoanModal } from "../../components/form";
+import { LoanState } from "@prisma/client";
 
 const Loans: NextPage = () => {
   const wallet = useWallet();
@@ -62,7 +62,7 @@ const Offers = () => {
 const Listings = () => {
   const wallet = useWallet();
   const [loanModal, setLoanModal] = useState(false);
-  const loansQuery = useLoansQuery(SerializedLoanState.Listed);
+  const loansQuery = useLoansQuery(LoanState.Listed);
 
   return (
     <>
@@ -103,7 +103,7 @@ const LoansGiven = () => {
     <LoanListings
       heading="Loans Given"
       placeholderMessage="No active loans"
-      loans={loansQuery.data}
+      // loans={loansQuery.data}
     />
   );
 };
@@ -111,7 +111,7 @@ const LoansGiven = () => {
 const LoansTaken = () => {
   const loansQuery = useLoansTakenQuery();
   const filteredLoans = useMemo(
-    () => loansQuery.data?.filter((loan) => loan.data.state !== "listed"),
+    () => loansQuery.data?.filter((loan) => loan.data.state !== "Listed"),
     [loansQuery.data]
   );
 
@@ -119,7 +119,7 @@ const LoansTaken = () => {
     <LoanListings
       heading="Loans Taken"
       placeholderMessage="No active loans"
-      loans={filteredLoans}
+      // loans={filteredLoans}
     />
   );
 };
@@ -127,7 +127,7 @@ const LoansTaken = () => {
 const LoanAsks = () => {
   const loansQuery = useLoansTakenQuery();
   const filteredLoans = useMemo(
-    () => loansQuery.data?.filter((loan) => loan.data.state === "listed"),
+    () => loansQuery.data?.filter((loan) => loan.data.state === "Listed"),
     [loansQuery.data]
   );
 
@@ -135,7 +135,7 @@ const LoanAsks = () => {
     <LoanListings
       heading="Your Asks"
       placeholderMessage="You have no listed asks"
-      loans={filteredLoans}
+      // loans={filteredLoans}
     />
   );
 };

@@ -6,7 +6,7 @@ import { EllipsisProgress } from "../progress";
 export const FloorPrice = ({
   children = null,
 }: {
-  children?: number | null;
+  children?: string | null;
 }) => {
   return (
     <Flex alignItems="center" justifyContent="flex-end">

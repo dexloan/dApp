@@ -1,7 +1,9 @@
 import { Th } from "@chakra-ui/react";
+import { Loan } from "@prisma/client";
 import { useRouter } from "next/router";
+import { Collection } from "../../../common/model";
+import { LoanWithCollection } from "../../../common/types";
 
-import { Loan, LoanPretty } from "../../../common/model";
 import { Col, ColumnHeader, ListingsTable } from "../../table";
 import {
   LoanRow,
@@ -22,7 +24,7 @@ interface LoanListingsProps {
   heading: string;
   placeholderMessage: string;
   action?: React.ReactNode;
-  loans?: LoanPretty[];
+  loans?: LoanWithCollection[];
 }
 
 export const LoanListings = ({
@@ -33,15 +35,14 @@ export const LoanListings = ({
 }: LoanListingsProps) => {
   const router = useRouter();
   const [sortState, onSort] = useLoanSortState();
-  const sortedLoans = useSortedLoans(loans, sortState);
 
   return (
-    <ListingsTable<LoanSortCols, LoanPretty>
+    <ListingsTable<LoanSortCols, LoanWithCollection>
       heading={heading}
       placeholder={placeholderMessage}
       action={action}
       cols={LOAN_COLS}
-      items={sortedLoans}
+      items={loans}
       renderCol={(col) => {
         if (col.name === "asset") {
           return <Th key={col.name}>{col.label}</Th>;
@@ -60,9 +61,9 @@ export const LoanListings = ({
       }}
       renderRow={(item) => (
         <LoanRow
-          key={item.publicKey}
-          loan={Loan.fromJSON(item)}
-          onClick={() => router.push(`/loans/${item.publicKey}`)}
+          key={item.address}
+          loan={item}
+          onClick={() => router.push(`/loans/${item.address}`)}
         />
       )}
     />
