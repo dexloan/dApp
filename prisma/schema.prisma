@@ -10,6 +10,7 @@ datasource db {
 model Collection {
   address           String          @id @unique
   mint              String          @unique
+  name              String
   authority         String
   disabled          Boolean         @default(false)
   floorPrice        BigInt

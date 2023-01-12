@@ -105,7 +105,7 @@ export function Navbar() {
 
   return (
     <Box display="flex" borderBottomWidth="1px" borderColor="gray.800">
-      <Container maxW="container.lg">
+      <Container maxW="container.xl">
         <Box
           as="nav"
           display="flex"
@@ -117,18 +117,18 @@ export function Navbar() {
           <Box display="flex" flexDir="row" alignItems="center">
             <Box position="relative">
               <NextLink href="/">
-                <a style={{ display: "inline-block", height: 30 }}>
+                <a style={{ display: "inline-block", height: 25 }}>
                   <Image
                     src="/onda-logo.svg"
-                    width={150}
-                    height={30}
+                    width={100}
+                    height={25}
                     alt="onda logo"
                   />
                 </a>
               </NextLink>
             </Box>
 
-            <Box ml="1">
+            <Box ml="6">
               <Box as="ul" display="flex" listStyleType="none">
                 <NavItem href="/loans">Loans</NavItem>
                 <NavItem href="/options">Call Options</NavItem>

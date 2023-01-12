@@ -1,14 +1,14 @@
+import * as anchor from "@project-serum/anchor";
 import { Box, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
 import { Loan } from "@prisma/client";
 import { useState, useCallback, useMemo } from "react";
 
 import * as utils from "../../../common/utils";
-import { LoanOffer, LoanOfferPretty, LoanPretty } from "../../../common/model";
+import { LoanOfferPretty, LoanPretty } from "../../../common/model";
 import { useFloorPricesQuery } from "../../../hooks/query";
-import { useFloorPrice, useLTV } from "../../../hooks/render";
 import { NFTCellNew } from "../../table";
 import { FloorPrice } from "../../floorPrice";
-import { LoanWithCollection } from "../../../common/types";
+import { LoanJson } from "../../../common/types";
 
 export type LoanSortCols =
   | "asset"
@@ -160,13 +160,12 @@ function sortByDuration(direction: number) {
 }
 
 interface LoanRowProps {
-  loan: LoanWithCollection;
+  loan: LoanJson;
   subtitle?: string;
   onClick: () => void;
 }
 
 export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
-  //const ltv = useLTV(loan?.data.amount, floorPrice);
   const floorPrice = loan.Collection.floorPrice;
 
   return (
@@ -178,10 +177,15 @@ export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
       <NFTCellNew subtitle={subtitle} mint={loan.mint} />
       <Td>{loan.duration}</Td>
       <Td isNumeric>
-        <Text mb="1">{loan.basisPoints + loan.creatorBasisPoints}</Text>
+        <Text mb="1">
+          {utils.basisPointsToPercent(
+            loan.basisPoints + loan.creatorBasisPoints
+          )}
+        </Text>
         <Tooltip label="Lender and creator interest rates.">
           <Text fontSize="xs" color="gray.500">
-            ({loan.basisPoints}, {loan.creatorBasisPoints})
+            ({utils.basisPointsToPercent(loan.basisPoints)},{" "}
+            {utils.basisPointsToPercent(loan.creatorBasisPoints)})
           </Text>
         </Tooltip>
       </Td>
@@ -189,24 +193,23 @@ export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
       <Td isNumeric>
         <Box>
           <Text mb="1">
-            {loan.amount ? BigInt(loan.amount).toString() : null}
+            {loan.amount ? utils.formatHexAmount(loan.amount) : null}
           </Text>
-          <FloorPrice>{BigInt(floorPrice).toString()}</FloorPrice>
+          <FloorPrice>{utils.formatHexAmount(floorPrice)}</FloorPrice>
         </Box>
       </Td>
     </Tr>
   );
 };
 
-function hexToNumber(hex: string) {
-  return Number(BigInt(hex).toString());
-}
-
-function getLTV(floorPrice: string, amount?: string) {
+function getLTV(floorPrice: string, amount: string | null) {
   if (amount) {
     try {
       return (
-        ((hexToNumber(amount) / hexToNumber(floorPrice)) * 100).toFixed(2) + "%"
+        (
+          (utils.hexToNumber(amount) / utils.hexToNumber(floorPrice)) *
+          100
+        ).toFixed(2) + "%"
       );
     } catch (err) {
       console.error(err);

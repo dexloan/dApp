@@ -12,12 +12,17 @@ import {
 } from "@chakra-ui/react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useCollectionsQuery } from "../hooks/query";
+import {
+  useCollectionsQuery,
+  useMetadataFileQuery,
+  useMetadataQuery,
+} from "../hooks/query";
 import {
   useInitCollectionMutation,
   useCloseCollectionMutation,
 } from "../hooks/mutation";
 import { Card, CardList } from "../components/card";
+import { Collection } from "@prisma/client";
 
 const Collection: NextPage = () => {
   const collectionsQuery = useCollectionsQuery();
@@ -43,33 +48,16 @@ const Collection: NextPage = () => {
       </Heading>
       <CardList>
         {collectionsQuery.data?.map((collection) => (
-          <Card
-            key={collection.publicKey}
-            uri={collection.metadata.data.uri}
-            imageAlt={collection.metadata.data.name}
-          >
-            <Box p="4">
-              <Box
-                mt="1"
-                fontWeight="semibold"
-                as="h4"
-                lineHeight="tight"
-                isTruncated
-              >
-                {collection.metadata.data.name}
-              </Box>
-              <Button
-                isLoading={closeMutation.isLoading}
-                onClick={() =>
-                  closeMutation.mutate({
-                    mint: new anchor.web3.PublicKey(collection.data.mint),
-                  })
-                }
-              >
-                Close
-              </Button>
-            </Box>
-          </Card>
+          <CollectionCard
+            key={collection.address}
+            collection={collection}
+            isLoading={closeMutation.isLoading}
+            onClose={() => {
+              closeMutation.mutate({
+                mint: new anchor.web3.PublicKey(collection.mint),
+              });
+            }}
+          />
         ))}
       </CardList>
       <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
@@ -115,6 +103,43 @@ const Collection: NextPage = () => {
         </form>
       </Box>
     </Container>
+  );
+};
+
+interface CollectionCardProps {
+  collection: Collection;
+  isLoading: boolean;
+  onClose: () => void;
+}
+
+const CollectionCard = ({
+  collection,
+  isLoading,
+  onClose,
+}: CollectionCardProps) => {
+  const metadataQuery = useMetadataQuery(collection.mint);
+
+  return (
+    <Card
+      key={collection.address}
+      uri={metadataQuery.data?.data.uri as string}
+      imageAlt={metadataQuery.data?.data.name as string}
+    >
+      <Box p="4">
+        <Box
+          mt="1"
+          fontWeight="semibold"
+          as="h4"
+          lineHeight="tight"
+          isTruncated
+        >
+          {collection.address}
+        </Box>
+        <Button isLoading={isLoading} onClick={onClose}>
+          Close
+        </Button>
+      </Box>
+    </Card>
   );
 };
 

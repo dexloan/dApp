@@ -17,18 +17,8 @@ import {
   LoanData,
   LoanOfferData,
 } from "../../common/types";
-
-type AccountNames = typeof IDL.accounts[number]["name"];
-
-const accountDiscriminators = IDL.accounts.map<{
-  name: AccountNames;
-  discriminator: Buffer;
-}>((account) => {
-  return {
-    name: account.name,
-    discriminator: accountDiscriminator(account.name),
-  };
-});
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { findMetadataAddress } from "../../common/query";
 
 const ixIds = IDL.instructions.map((ix) => {
   return {
@@ -78,11 +68,19 @@ export default async function handler(
             const collectionPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
+
             const data = (await program.account.collection.fetch(
               collectionPda
             )) as CollectionData;
 
+            const [metadataPda] = await findMetadataAddress(data.mint);
+            const metadata = await Metadata.fromAccountAddress(
+              connection,
+              metadataPda
+            );
+
             const collection = {
+              name: metadata.data.name,
               mint: data.mint.toBase58(),
               authority: data.authority.toBase58(),
               // @ts-ignore

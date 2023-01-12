@@ -1,3 +1,4 @@
+import { Collection } from "@prisma/client";
 import { web3 } from "@project-serum/anchor";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
@@ -6,12 +7,11 @@ import { useQuery } from "react-query";
 import * as query from "../../common/query";
 
 export const useCollectionsQuery = () => {
-  const { connection } = useConnection();
-
-  return useQuery(
+  return useQuery<void, unknown, Collection[]>(
     ["collections"],
     () => {
-      return query.fetchMultipleCollections(connection);
+      const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/collections`);
+      return fetch(url).then((res) => res.json());
     },
     {
       enabled: typeof window !== "undefined",

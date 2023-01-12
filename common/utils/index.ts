@@ -143,6 +143,43 @@ export function totalAmount(
   return totalSol.toNumber().toFixed(2).replace(/0$/, "") + "◎";
 }
 
+export function basisPointsToPercent(basisPoints: number) {
+  return (basisPoints / 100).toFixed(2) + "%";
+}
+
+export function hexToNumber(hex: string) {
+  return Number(BigInt(hex).toString());
+}
+
+const hexAmountCache = new Map<string, string>();
+
+export function formatHexAmount(amount?: string): string {
+  if (!amount) return "";
+
+  if (hexAmountCache.has(amount)) {
+    return hexAmountCache.get(amount) as string;
+  }
+
+  const number = hexToNumber(amount);
+
+  if (number === 0 || isNaN(number)) {
+    return "0◎";
+  }
+
+  const sol = number / anchor.web3.LAMPORTS_PER_SOL;
+  const rounded = Math.round((sol + Number.EPSILON) * 1000) / 1000;
+
+  let formatted = "~0.001◎";
+
+  if (rounded > 0.001) {
+    formatted = rounded.toFixed(3).replace(/0{1,2}$/, "") + "◎";
+  }
+
+  hexAmountCache.set(amount, formatted);
+
+  return formatted;
+}
+
 const amountCache = new Map<number, string>();
 
 export function formatAmount(amount?: anchor.BN): string {

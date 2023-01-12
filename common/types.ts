@@ -14,8 +14,21 @@ export type LoanStateEnum = LoanState;
 export type CallOptionStateEnum = CallOptionState;
 export type RentalStateEnum = RentalState;
 
-export interface LoanWithCollection extends Loan {
-  Collection: Collection;
+export interface CollectionJson extends Omit<Collection, "floorPrice"> {
+  floorPrice: string;
+}
+
+export interface LoanJson
+  extends Omit<
+    Loan,
+    "amount" | "outstanding" | "noticeIssued" | "duration" | "startDate"
+  > {
+  amount: string | null;
+  outstanding: string;
+  noticeIssued: string | null;
+  duration: string;
+  startDate: string | null;
+  Collection: CollectionJson;
 }
 
 export interface NftResult {

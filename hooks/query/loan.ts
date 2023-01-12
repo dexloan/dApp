@@ -39,17 +39,26 @@ export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
   );
 }
 
-export const getLoansQueryKey = (state: LoanState) => ["loans", state];
+interface LoanFilters {
+  state?: LoanState;
+  collection?: string;
+}
 
-export function useLoansQuery(state: LoanState) {
-  const router = useRouter();
+export const getLoansQueryKey = (filters: LoanFilters) => ["loans", filters];
 
+export function useLoansQuery({ state, collection }: LoanFilters = {}) {
   return useQuery(
-    getLoansQueryKey(state),
+    getLoansQueryKey({ state, collection }),
     async () => {
-      const url = new URL(`${window.location.origin}/api/loan/asks`);
-      url.searchParams.append("state", state);
-      console.log(url.toString());
+      const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/asks`);
+
+      if (state) {
+        url.searchParams.append("state", state);
+      }
+      if (collection) {
+        url.searchParams.append("collectionAddress", collection);
+      }
+
       return fetch(url).then((res) => res.json());
     },
     {
@@ -61,11 +70,12 @@ export function useLoansQuery(state: LoanState) {
 export const getLoanOffersCacheKey = () => ["loan_offers"];
 
 export function useLoanOffersQuery() {
-  const { connection } = useConnection();
-
   return useQuery(
     getLoanOffersCacheKey(),
-    () => query.fetchMultipleLoanOffers(connection, []),
+    () => {
+      const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loan/offers`);
+      return fetch(url).then((res) => res.json());
+    },
     {
       refetchOnWindowFocus: false,
     }

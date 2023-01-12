@@ -19,32 +19,32 @@ import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import { fetchLoan } from "../../common/query";
-import { Loan } from "../../common/model";
+import { fetchLoan } from "../../../common/query";
+import { Loan } from "../../../common/model";
 import {
   getLoanCacheKey,
   getMetadataFileCacheKey,
   useLoanQuery,
   useMetadataFileQuery,
-} from "../../hooks/query";
-import { useFloorPrice } from "../../hooks/render";
+} from "../../../hooks/query";
+import { useFloorPrice } from "../../../hooks/render";
 import {
   useCloseLoanMutation,
   useGiveLoanMutation,
   useRepayLoanMutation,
   useRepossessMutation,
-} from "../../hooks/mutation";
+} from "../../../hooks/mutation";
 import {
   CancelDialog,
   CloseAccountDialog,
   LoanDialog,
   RepayDialog,
   RepossessDialog,
-} from "../../components/dialog";
-import { NftLayout } from "../../components/layout";
-import { EllipsisProgress } from "../../components/progress";
-import { DocumentHead } from "../../components/document";
-import { Detail } from "../../components/detail";
+} from "../../../components/dialog";
+import { NftLayout } from "../../../components/layout";
+import { EllipsisProgress } from "../../../components/progress";
+import { DocumentHead } from "../../../components/document";
+import { Detail } from "../../../components/detail";
 
 interface LoanProps {
   dehydratedState: DehydratedState | undefined;

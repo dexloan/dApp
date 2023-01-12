@@ -23,11 +23,13 @@ const LOAN_COLS: Readonly<Col<LoanSortCols>[]> = [
 interface LoanListingsProps {
   heading: string;
   placeholderMessage: string;
+  isLoading?: boolean;
   action?: React.ReactNode;
   loans?: LoanWithCollection[];
 }
 
 export const LoanListings = ({
+  isLoading,
   heading,
   placeholderMessage,
   action = null,
@@ -38,6 +40,7 @@ export const LoanListings = ({
 
   return (
     <ListingsTable<LoanSortCols, LoanWithCollection>
+      isLoading={isLoading}
       heading={heading}
       placeholder={placeholderMessage}
       action={action}
