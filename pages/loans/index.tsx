@@ -14,8 +14,11 @@ import { LoanState } from "@prisma/client";
 const Loans: NextPage = () => {
   const wallet = useWallet();
   const [loanModal, setLoanModal] = useState(false);
-  const [collections, setCollections] = useState<string[]>();
-  const loansQuery = useLoansQuery({ state: LoanState.Listed });
+  const [collections, setCollections] = useState<string[]>([]);
+  const loansQuery = useLoansQuery({
+    state: LoanState.Listed,
+    collections,
+  });
 
   return (
     <Container maxW="container.xl">
@@ -25,9 +28,9 @@ const Loans: NextPage = () => {
       <Flex gap="16">
         <Box flex={0} flexBasis="60" maxWidth="60">
           <Text size="sm" fontWeight="semibold" mb="6">
-            Collection
+            Collections
           </Text>
-          <CollectionFilter onChange={(value) => setCollections(value)} />
+          <CollectionFilter onChange={(value) => setCollections(value ?? [])} />
         </Box>
         <Box flex={1}>
           <LoanListings

@@ -15,7 +15,7 @@ import {
   useRentalsQuery,
   useLoansQuery,
 } from "../hooks/query";
-import { CallOptionStateEnum, LoanStateEnum } from "../common/types";
+import { CallOptionStateEnum, LoanState } from "../common/types";
 
 const Home: NextPage = () => {
   const loansQuery = useLoansQuery();

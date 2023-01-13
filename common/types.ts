@@ -10,7 +10,7 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { DexloanListings, IDL } from "./idl";
 
-export type LoanStateEnum = LoanState;
+export type LoanState = LoanState;
 export type CallOptionStateEnum = CallOptionState;
 export type RentalStateEnum = RentalState;
 

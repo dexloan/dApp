@@ -4,7 +4,7 @@ import { AnchorWallet } from "@solana/wallet-adapter-react";
 import camelcase from "camelcase";
 
 import * as utils from "../utils";
-import { LoanData, LoanOfferData, LoanStateEnum } from "../types";
+import { LoanData, LoanOfferData, LoanState } from "../types";
 import { Collection } from "./collection";
 
 export type LoanArgs = {
@@ -146,11 +146,11 @@ export class Loan implements LoanArgs {
     }
   }
 
-  get state(): LoanStateEnum | undefined {
+  get state(): LoanState | undefined {
     if (typeof this.data.state === "object" && this.data.state !== null) {
       return camelcase(Object.keys(this.data.state)[0], {
         pascalCase: true,
-      }) as LoanStateEnum;
+      }) as LoanState;
     }
   }
 

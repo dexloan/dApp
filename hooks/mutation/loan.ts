@@ -4,12 +4,13 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
+import { LoanState } from "@prisma/client";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { NftResult, LoanStateEnum } from "../../common/types";
+import { NftResult } from "../../common/types";
 import { LoanOfferPretty, LoanPretty, LoanOffer } from "../../common/model";
 import {
   getLoansTakenCacheKey,
@@ -254,7 +255,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
     {
       async onSuccess(_, variables) {
         queryClient.setQueryData<LoanPretty[] | undefined>(
-          getLoansQueryKey(SerializedLoanState.Listed),
+          getLoansQueryKey(),
           (data) => {
             if (data) {
               return data?.filter(
@@ -281,7 +282,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
                 ...item,
                 data: {
                   ...item.data,
-                  state: LoanStateEnum.Active,
+                  state: LoanState.Active,
                   startDate: new anchor.BN(Date.now() / 1000).toNumber(),
                 },
               };
@@ -346,7 +347,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
         );
 
         queryClient.setQueryData<LoanPretty[] | undefined>(
-          getLoansQueryKey(SerializedLoanState.Listed),
+          getLoansQueryKey(),
           (data) => {
             if (data) {
               return data?.filter(
@@ -361,7 +362,7 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
           variables.borrower
         );
 
-        setLoanState(queryClient, loanAddress, LoanStateEnum.Cancelled);
+        setLoanState(queryClient, loanAddress, LoanState.Cancelled);
 
         toast.success("Loan closed");
 
@@ -441,7 +442,7 @@ export const useRepossessMutation = (onSuccess: () => void) => {
           variables.borrower
         );
 
-        setLoanState(queryClient, loanAddress, LoanStateEnum.Defaulted);
+        setLoanState(queryClient, loanAddress, LoanState.Defaulted);
 
         onSuccess();
       },
@@ -506,7 +507,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
           variables.borrower
         );
 
-        setLoanState(queryClient, loanAddress, LoanStateEnum.Repaid);
+        setLoanState(queryClient, loanAddress, LoanState.Repaid);
 
         onSuccess();
       },
@@ -517,7 +518,7 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
 function setLoanState(
   queryClient: QueryClient,
   loan: anchor.web3.PublicKey,
-  state: LoanStateEnum
+  state: LoanState
 ) {
   queryClient.setQueryData<LoanPretty | undefined>(
     getLoanCacheKey(loan),

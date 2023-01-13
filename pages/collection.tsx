@@ -10,24 +10,30 @@ import {
   FormHelperText,
   Input,
 } from "@chakra-ui/react";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import {
-  useCollectionsQuery,
-  useMetadataFileQuery,
-  useMetadataQuery,
-} from "../hooks/query";
+import { useMetadataQuery } from "../hooks/query";
 import {
   useInitCollectionMutation,
   useCloseCollectionMutation,
 } from "../hooks/mutation";
 import { Card, CardList } from "../components/card";
-import { Collection } from "@prisma/client";
+import { fetchMultipleCollections } from "../common/query";
 
 const Collection: NextPage = () => {
-  const collectionsQuery = useCollectionsQuery();
+  // const collectionsQuery = useCollectionsQuery();
+  const { connection } = useConnection();
+  const [collections, setCollections] = useState<any[]>([]);
   const initMutation = useInitCollectionMutation();
   const closeMutation = useCloseCollectionMutation();
+
+  useEffect(() => {
+    fetchMultipleCollections(connection).then((collections) => {
+      setCollections(collections);
+    });
+  }, [connection]);
 
   const {
     control,
@@ -47,20 +53,20 @@ const Collection: NextPage = () => {
         Collections
       </Heading>
       <CardList>
-        {collectionsQuery.data?.map((collection) => (
+        {collections.map((collection) => (
           <CollectionCard
-            key={collection.address}
-            collection={collection}
+            key={collection.publicKey}
+            collection={collection.data}
             isLoading={closeMutation.isLoading}
             onClose={() => {
               closeMutation.mutate({
-                mint: new anchor.web3.PublicKey(collection.mint),
+                mint: new anchor.web3.PublicKey(collection.data.mint),
               });
             }}
           />
         ))}
       </CardList>
-      <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
+      <Box pb="4" pt="6" pl="6" pr="6" borderRadius="md">
         <form
           onSubmit={handleSubmit((data) => {
             initMutation.mutate({ mint: new anchor.web3.PublicKey(data.mint) });
@@ -91,12 +97,7 @@ const Collection: NextPage = () => {
                 )}
               />
             </Box>
-            <Button
-              colorScheme="green"
-              type="submit"
-              w="100%"
-              isLoading={initMutation.isLoading}
-            >
+            <Button type="submit" w="100%" isLoading={initMutation.isLoading}>
               Confirm
             </Button>
           </FormControl>
@@ -107,7 +108,7 @@ const Collection: NextPage = () => {
 };
 
 interface CollectionCardProps {
-  collection: Collection;
+  collection: any;
   isLoading: boolean;
   onClose: () => void;
 }

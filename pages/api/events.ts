@@ -80,9 +80,12 @@ export default async function handler(
             );
 
             const collection = {
-              name: metadata.data.name,
+              name: utils.trimNullChars(metadata.data.name),
+              symbol: utils.trimNullChars(metadata.data.symbol),
+              uri: utils.trimNullChars(metadata.data.uri),
               mint: data.mint.toBase58(),
               authority: data.authority.toBase58(),
+              disabled: false,
               // @ts-ignore
               ...data.config,
             };
@@ -111,11 +114,17 @@ export default async function handler(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
 
-            await prisma.collection.delete({
+            console.log("where address: ", collectionPda.toBase58());
+            await prisma.collection.update({
               where: {
                 address: collectionPda.toBase58(),
               },
+              data: {
+                disabled: true,
+              },
             });
+
+            break;
           }
 
           case "askLoan": {
@@ -378,16 +387,6 @@ export default async function handler(
   }
 
   res.status(200).end();
-}
-
-function accountDiscriminator(name: string): Buffer {
-  return Buffer.from(
-    sha256.digest(
-      `account:${camelcase(name, {
-        pascalCase: true,
-      })}`
-    )
-  ).slice(0, 8);
 }
 
 function genIxIdentifier(ixName: string) {

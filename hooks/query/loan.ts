@@ -41,22 +41,24 @@ export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
 
 interface LoanFilters {
   state?: LoanState;
-  collection?: string;
+  collections?: string[];
 }
 
-export const getLoansQueryKey = (filters: LoanFilters) => ["loans", filters];
+export const getLoansQueryKey = (filters?: LoanFilters) => ["loans", filters];
 
-export function useLoansQuery({ state, collection }: LoanFilters = {}) {
+export function useLoansQuery({ state, collections }: LoanFilters = {}) {
   return useQuery(
-    getLoansQueryKey({ state, collection }),
+    getLoansQueryKey({ state, collections }),
     async () => {
       const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/asks`);
 
       if (state) {
         url.searchParams.append("state", state);
       }
-      if (collection) {
-        url.searchParams.append("collectionAddress", collection);
+      if (collections) {
+        collections.forEach((address) =>
+          url.searchParams.append("collectionAddress", address)
+        );
       }
 
       return fetch(url).then((res) => res.json());

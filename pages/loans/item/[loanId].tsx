@@ -255,7 +255,7 @@ const LoanLayout = () => {
         );
 
       // @ts-expect-error
-      case LoanStateEnum.Repaid:
+      case LoanState.Repaid:
         return (
           <>
             <Detail>
