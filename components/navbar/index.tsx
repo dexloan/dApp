@@ -158,7 +158,7 @@ interface NavItemProps {
 
 function NavItem({ href, children }: NavItemProps) {
   const { asPath } = useRouter();
-  const isActive = asPath === href;
+  const isActive = asPath.includes(href);
 
   return (
     <Box as="li" ml="1">

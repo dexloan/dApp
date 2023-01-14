@@ -111,7 +111,7 @@ export function useLoanOffersQuery({
   return useQuery<void, unknown, LoanOfferJson[]>(
     getLoanOffersCacheKey({ collections }),
     () => {
-      const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loan/offers`);
+      const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/offers`);
       if (orderBy) {
         const prismaCol = mapLoanColToPrismaCol(orderBy);
         if (prismaCol) {

@@ -5,14 +5,13 @@ import { IoAdd } from "react-icons/io5";
 import { useState } from "react";
 
 import { LoanOfferJson } from "../../../common/types";
-import { LoanOffer, LoanOfferPretty } from "../../../common/model";
-import { Col, ColumnHeader, ListingsTable } from "../../table";
+import { Col, ColumnHeader, LTVHeader, ListingsTable } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
 import { LoanRow, LoanSortCols, useLoanSortState } from "./common";
 
 const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
   { name: "collection", label: "Collection" },
-  { name: "duration", label: "Duration" },
+  { name: "duration", label: "Duration", isNumeric: true },
   { name: "apy", label: "APY", isNumeric: true },
   { name: "ltv", label: "LTV", isNumeric: true },
   { name: "amount", label: "Amount", isNumeric: true },
@@ -50,6 +49,10 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
         renderCol={(col) => {
           if (col.name === "collection") {
             return <Th key={col.name}>{col.label}</Th>;
+          }
+
+          if (col.name === "ltv") {
+            return <LTVHeader />;
           }
 
           return (

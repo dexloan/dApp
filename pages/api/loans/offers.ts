@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import * as utils from "../../../common/utils";
 import prisma from "../../../common/lib/prisma";
+import { Collection } from "@prisma/client";
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,19 +14,37 @@ export default async function handler(
     sortOrder = "desc",
   } = req.query;
 
-  const result = await prisma.loanOffer.findMany({
-    where: {
-      collectionAddress: {
-        in: collectionAddress,
+  const [offers, collections] = await Promise.all([
+    prisma.loanOffer.groupBy({
+      by: ["collectionAddress", "amount", "basisPoints", "duration"],
+      _count: true,
+      where: {
+        collectionAddress: {
+          in: collectionAddress,
+        },
       },
-    },
-    include: {
-      Collection: true,
-    },
-    orderBy: {
-      [orderBy as string]: sortOrder,
-    },
+      orderBy: {
+        [orderBy as "amount"]: sortOrder as "asc" | "desc",
+      },
+    }),
+    prisma.collection.findMany({
+      where: {
+        address: {
+          in: collectionAddress,
+        },
+      },
+    }),
+  ]);
+  const collectionMap = collections.reduce((acc, collection) => {
+    acc[collection.address] = collection;
+    return acc;
+  }, {} as Record<string, Collection>);
+  const result = offers.map(({ collectionAddress, ...offer }) => {
+    return {
+      ...offer,
+      Collection: collectionMap[collectionAddress],
+    };
   });
-
+  console.log(result);
   res.json(utils.parseBitInts(result));
 }

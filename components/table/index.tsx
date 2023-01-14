@@ -7,6 +7,7 @@ import {
   TableContainer,
   Thead,
   Tbody,
+  Tooltip,
   Tr,
   Th,
   Td,
@@ -15,7 +16,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import React, { useState, useMemo } from "react";
-import { IoCaretDown, IoCaretUp } from "react-icons/io5";
+import { IoCaretDown, IoCaretUp, IoInformationCircle } from "react-icons/io5";
 import Image from "next/image";
 
 import { SortDirection } from "../../common/types";
@@ -65,6 +66,21 @@ export const ColumnHeader = ({
           />
         </Box>
       </Box>
+    </Th>
+  );
+};
+
+export const LTVHeader = () => {
+  return (
+    <Th isNumeric>
+      <Tooltip label="Amount relative to current floor price">
+        <Box display="flex" alignItems="center" justifyContent="flex-end">
+          LTV
+          <Box as="span" ml="2">
+            <IoInformationCircle size={12} />
+          </Box>
+        </Box>
+      </Tooltip>
     </Th>
   );
 };
