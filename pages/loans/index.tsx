@@ -5,7 +5,7 @@ import { useState } from "react";
 import { IoAdd } from "react-icons/io5";
 
 import { useLoansQuery } from "../../hooks/query";
-import { LoanListings } from "../../components/tables/loans";
+import { LoanListings, useLoanSortState } from "../../components/tables/loans";
 import { LoanLinks } from "../../components/buttons/loan";
 import { CollectionFilter } from "../../components/input/collection";
 import { AskLoanModal } from "../../components/form";
@@ -15,9 +15,12 @@ const Loans: NextPage = () => {
   const wallet = useWallet();
   const [loanModal, setLoanModal] = useState(false);
   const [collections, setCollections] = useState<string[]>([]);
+  const [sortState, sortBy] = useLoanSortState();
   const loansQuery = useLoansQuery({
-    state: LoanState.Listed,
     collections,
+    state: LoanState.Listed,
+    orderBy: sortState[0],
+    sortOrder: sortState[1],
   });
 
   return (
@@ -48,6 +51,8 @@ const Loans: NextPage = () => {
             placeholderMessage="No asks currently"
             loans={loansQuery.data}
             isLoading={loansQuery.isLoading}
+            sortState={sortState}
+            onSort={sortBy}
           />
         </Box>
       </Flex>

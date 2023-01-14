@@ -7,6 +7,7 @@ import bs58 from "bs58";
 import * as query from "../../common/query";
 import { LoanState } from "@prisma/client";
 import { useRouter } from "next/router";
+import { LoanSortCols } from "../../components/tables";
 
 export const useLoanAddress = (
   mint?: anchor.web3.PublicKey,
@@ -42,25 +43,52 @@ export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
 interface LoanFilters {
   state?: LoanState;
   collections?: string[];
+  orderBy?: LoanSortCols;
+  sortOrder?: "asc" | "desc";
 }
 
 export const getLoansQueryKey = (filters?: LoanFilters) => ["loans", filters];
 
-export function useLoansQuery({ state, collections }: LoanFilters = {}) {
+const mapLoanColToPrismaCol = (col: LoanSortCols) => {
+  return {
+    asset: "collectionAddress",
+    collection: "collectionAddress",
+    ltv: undefined,
+    amount: "amount",
+    apy: "basisPoints",
+    duration: "duration",
+  }[col];
+};
+
+export function useLoansQuery({
+  state,
+  collections,
+  orderBy,
+  sortOrder,
+}: LoanFilters = {}) {
   return useQuery(
-    getLoansQueryKey({ state, collections }),
+    getLoansQueryKey({ state, collections, orderBy, sortOrder }),
     async () => {
       const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/asks`);
 
       if (state) {
         url.searchParams.append("state", state);
       }
+      if (orderBy) {
+        const prismaCol = mapLoanColToPrismaCol(orderBy);
+        if (prismaCol) {
+          url.searchParams.append("orderBy", prismaCol);
+        }
+      }
+      if (sortOrder) {
+        url.searchParams.append("sortOrder", sortOrder);
+      }
       if (collections) {
         collections.forEach((address) =>
           url.searchParams.append("collectionAddress", address)
         );
       }
-
+      console.log("url", url.toString());
       return fetch(url).then((res) => res.json());
     },
     {

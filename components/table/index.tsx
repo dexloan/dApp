@@ -18,12 +18,13 @@ import React, { useState, useMemo } from "react";
 import { IoCaretDown, IoCaretUp } from "react-icons/io5";
 import Image from "next/image";
 
+import { SortDirection } from "../../common/types";
 import { useMetadataFileQuery, useMetadataQuery } from "../../hooks/query";
 import { useCollectionName } from "../../hooks/render";
 
 interface ColumnHeaderProps {
   children: string;
-  direction?: number;
+  direction?: SortDirection;
   isNumeric?: boolean;
   onClick: () => void;
 }
@@ -35,7 +36,7 @@ export const ColumnHeader = ({
   onClick,
 }: ColumnHeaderProps) => {
   return (
-    <Th w={{ md: "160px" }}>
+    <Th /* w={{ md: "160px" }} */>
       <Box
         display="flex"
         alignItems="center"
@@ -54,13 +55,13 @@ export const ColumnHeader = ({
             as={IoCaretUp}
             position="relative"
             top="2px"
-            color={direction === 1 ? "orange.300" : undefined}
+            color={direction === "desc" ? "orange.300" : undefined}
           />
           <Icon
             as={IoCaretDown}
             position="relative"
             bottom="2px"
-            color={direction === -1 ? "orange.300" : undefined}
+            color={direction === "asc" ? "orange.300" : undefined}
           />
         </Box>
       </Box>
@@ -88,6 +89,8 @@ export const NFTCellNew = ({ subtitle, mint }: NFTCellProps) => {
           position="relative"
           width="12"
           height="12"
+          minWidth="12"
+          minHeight="12"
           borderRadius="sm"
           overflow="hidden"
         >
