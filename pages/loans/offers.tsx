@@ -1,46 +1,19 @@
 import type { NextPage } from "next";
-import NextLink from "next/link";
-import {
-  Button,
-  ButtonGroup,
-  Container,
-  Icon,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Box,
-} from "@chakra-ui/react";
-import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
-import { useState, useMemo } from "react";
-import { IoAdd } from "react-icons/io5";
+import { useState } from "react";
 
-import {
-  useLoansQuery,
-  useLoansTakenQuery,
-  useLoansGivenQuery,
-  useLoanOffersQuery,
-  useLoanOffersByLenderQuery,
-} from "../../hooks/query";
-import { LoanListings, LoanOffers } from "../../components/tables/loans";
-import { LoanLinks } from "../../components/buttons/loan";
-import { AskLoanModal } from "../../components/form";
-import { LoanState } from "@prisma/client";
+import { useLoanOffersQuery } from "../../hooks/query";
+import { LoanOffers } from "../../components/tables/loans";
+import { LoanLayout } from "../../components/layout/loan";
 
-const Offers = () => {
+const Offers: NextPage = () => {
+  const [collections, setCollections] = useState<string[]>([]);
+  const offersQuery = useLoanOffersQuery({ collections });
+
   return (
-    <Container maxW="container.lg">
-      <Box display="flex" justifyContent="flex-end" my="12">
-        <LoanLinks />
-      </Box>
-    </Container>
+    <LoanLayout setCollections={setCollections}>
+      <LoanOffers heading="Offers" offers={offersQuery.data} />
+    </LoanLayout>
   );
 };
-
-// const Offers = () => {
-//   const offersQuery = useLoanOffersQuery();
-//   return <LoanOffers heading="Offers" offers={offersQuery.data} />;
-// };
 
 export default Offers;

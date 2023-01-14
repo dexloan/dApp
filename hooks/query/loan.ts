@@ -1,12 +1,11 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { LoanState } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
-import bs58 from "bs58";
 
 import * as query from "../../common/query";
-import { LoanState } from "@prisma/client";
-import { useRouter } from "next/router";
+import { LoanJson, LoanOfferJson } from "../../common/types";
 import { LoanSortCols } from "../../components/tables";
 
 export const useLoanAddress = (
@@ -66,7 +65,7 @@ export function useLoansQuery({
   orderBy,
   sortOrder,
 }: LoanFilters = {}) {
-  return useQuery(
+  return useQuery<void, unknown, LoanJson[]>(
     getLoansQueryKey({ state, collections, orderBy, sortOrder }),
     async () => {
       const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/asks`);
@@ -97,13 +96,36 @@ export function useLoansQuery({
   );
 }
 
-export const getLoanOffersCacheKey = () => ["loan_offers"];
+type LoanOfferFilters = Omit<LoanFilters, "state">;
 
-export function useLoanOffersQuery() {
-  return useQuery(
-    getLoanOffersCacheKey(),
+export const getLoanOffersCacheKey = (filters: LoanOfferFilters) => [
+  "loan_offers",
+  filters,
+];
+
+export function useLoanOffersQuery({
+  collections,
+  orderBy,
+  sortOrder,
+}: LoanOfferFilters = {}) {
+  return useQuery<void, unknown, LoanOfferJson[]>(
+    getLoanOffersCacheKey({ collections }),
     () => {
       const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loan/offers`);
+      if (orderBy) {
+        const prismaCol = mapLoanColToPrismaCol(orderBy);
+        if (prismaCol) {
+          url.searchParams.append("orderBy", prismaCol);
+        }
+      }
+      if (sortOrder) {
+        url.searchParams.append("sortOrder", sortOrder);
+      }
+      if (collections) {
+        collections.forEach((address) =>
+          url.searchParams.append("collectionAddress", address)
+        );
+      }
       return fetch(url).then((res) => res.json());
     },
     {

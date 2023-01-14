@@ -5,6 +5,7 @@ import type {
   LoanState,
   CallOptionState,
   RentalState,
+  LoanOffer,
 } from "@prisma/client";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
@@ -30,6 +31,12 @@ export interface LoanJson
   noticeIssued: string | null;
   duration: string;
   startDate: string | null;
+  Collection: CollectionJson;
+}
+
+export interface LoanOfferJson extends Omit<LoanOffer, "amount" | "duration"> {
+  amount: string | null;
+  duration: string;
   Collection: CollectionJson;
 }
 

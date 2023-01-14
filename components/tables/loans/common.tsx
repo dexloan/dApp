@@ -2,10 +2,10 @@ import { Box, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
 import { useState, useCallback } from "react";
 
 import * as utils from "../../../common/utils";
+import { LoanJson, LoanOfferJson } from "../../../common/types";
 import { SortDirection } from "../../../common/types";
 import { NFTCellNew } from "../../table";
 import { FloorPrice } from "../../floorPrice";
-import { LoanJson } from "../../../common/types";
 
 export type LoanSortCols =
   | "asset"
@@ -35,13 +35,18 @@ function sortReducer(col: LoanSortCols) {
 }
 
 interface LoanRowProps {
-  loan: LoanJson;
+  item: LoanJson | LoanOfferJson;
   subtitle?: string;
   onClick: () => void;
 }
 
-export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
-  const floorPrice = loan.Collection.floorPrice;
+export const LoanRow = ({ item, subtitle, onClick }: LoanRowProps) => {
+  const floorPrice = item.Collection.floorPrice;
+  const creatorBasisPoints =
+    "creatorBasisPoints" in item
+      ? item.creatorBasisPoints
+      : item.Collection.loanBasisPoints;
+  const mint = "mint" in item ? item.mint : item.Collection.mint;
 
   return (
     <Tr
@@ -49,26 +54,24 @@ export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
       _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
       onClick={onClick}
     >
-      <NFTCellNew subtitle={subtitle} mint={loan.mint} />
-      <Td isNumeric>{utils.formatHexDuration(loan.duration)}</Td>
+      <NFTCellNew subtitle={subtitle} mint={mint} />
+      <Td isNumeric>{utils.formatHexDuration(item.duration)}</Td>
       <Td isNumeric>
         <Text mb="1">
-          {utils.basisPointsToPercent(
-            loan.basisPoints + loan.creatorBasisPoints
-          )}
+          {utils.basisPointsToPercent(item.basisPoints + creatorBasisPoints)}
         </Text>
         <Tooltip label="Lender and creator interest rates.">
           <Text fontSize="xs" color="gray.500">
-            ({utils.basisPointsToPercent(loan.basisPoints)},{" "}
-            {utils.basisPointsToPercent(loan.creatorBasisPoints)})
+            ({utils.basisPointsToPercent(item.basisPoints)},{" "}
+            {utils.basisPointsToPercent(creatorBasisPoints)})
           </Text>
         </Tooltip>
       </Td>
-      <Td isNumeric>{getLTV(floorPrice, loan.amount)}</Td>
+      <Td isNumeric>{getLTV(floorPrice, item.amount)}</Td>
       <Td isNumeric>
         <Box>
           <Text mb="1">
-            {loan.amount ? utils.formatHexAmount(loan.amount) : null}
+            {item.amount ? utils.formatHexAmount(item.amount) : null}
           </Text>
           <FloorPrice>{utils.formatHexAmount(floorPrice)}</FloorPrice>
         </Box>

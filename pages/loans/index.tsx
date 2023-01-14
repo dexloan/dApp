@@ -1,15 +1,14 @@
 import type { NextPage } from "next";
-import { Button, Box, Container, Flex, Icon, Text } from "@chakra-ui/react";
+import { LoanState } from "@prisma/client";
+import { Button, Icon } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react";
 import { IoAdd } from "react-icons/io5";
 
 import { useLoansQuery } from "../../hooks/query";
 import { LoanListings, useLoanSortState } from "../../components/tables/loans";
-import { LoanLinks } from "../../components/buttons/loan";
-import { CollectionFilter } from "../../components/input/collection";
 import { AskLoanModal } from "../../components/form";
-import { LoanState } from "@prisma/client";
+import { LoanLayout } from "../../components/layout/loan";
 
 const Loans: NextPage = () => {
   const wallet = useWallet();
@@ -24,43 +23,32 @@ const Loans: NextPage = () => {
   });
 
   return (
-    <Container maxW="container.xl">
-      <Box display="flex" justifyContent="flex-end" my="12">
-        <LoanLinks />
-      </Box>
-      <Flex gap="16">
-        <Box flex={0} flexBasis="60" maxWidth="60">
-          <Text size="sm" fontWeight="semibold" mb="6">
-            Collections
-          </Text>
-          <CollectionFilter onChange={(value) => setCollections(value ?? [])} />
-        </Box>
-        <Box flex={1}>
-          <LoanListings
-            action={
-              <Button
-                size="sm"
-                leftIcon={<Icon as={IoAdd} />}
-                isDisabled={!wallet.publicKey}
-                onClick={() => setLoanModal(true)}
-              >
-                Create Ask
-              </Button>
-            }
-            heading="Asks"
-            placeholderMessage="No asks currently"
-            loans={loansQuery.data}
-            isLoading={loansQuery.isLoading}
-            sortState={sortState}
-            onSort={sortBy}
-          />
-        </Box>
-      </Flex>
+    <>
+      <LoanLayout setCollections={setCollections}>
+        <LoanListings
+          action={
+            <Button
+              size="sm"
+              leftIcon={<Icon as={IoAdd} />}
+              isDisabled={!wallet.publicKey}
+              onClick={() => setLoanModal(true)}
+            >
+              Create Ask
+            </Button>
+          }
+          heading="Asks"
+          placeholderMessage="No asks currently"
+          loans={loansQuery.data}
+          isLoading={loansQuery.isLoading}
+          sortState={sortState}
+          onSort={sortBy}
+        />
+      </LoanLayout>
       <AskLoanModal
         open={loanModal}
         onRequestClose={() => setLoanModal(false)}
       />
-    </Container>
+    </>
   );
 };
 

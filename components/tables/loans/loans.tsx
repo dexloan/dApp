@@ -81,7 +81,7 @@ export const LoanListings = ({
       renderRow={(item) => (
         <LoanRow
           key={item.address}
-          loan={item}
+          item={item}
           onClick={() => router.push(`/loans/item/${item.address}`)}
         />
       )}
