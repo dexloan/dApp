@@ -1,4 +1,5 @@
 import * as anchor from "@project-serum/anchor";
+import * as splToken from "@solana/spl-token";
 import {
   Box,
   Button,
@@ -12,13 +13,14 @@ import {
   SimpleGrid,
   Spinner,
 } from "@chakra-ui/react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch, Control } from "react-hook-form";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
+
+import * as utils from "../../common/utils";
 import { NftResult } from "../../common/types";
-import { Collection } from "../../common/model";
 import { useCollectionByMintQuery } from "../../hooks/query";
-import { useFloorPrice } from "../../hooks/render";
 import {
   AskLoanMutationVariables,
   useAskLoanMutation,
@@ -111,16 +113,27 @@ const AskLoanForm = ({
     defaultValues,
   });
 
-  const floorPrice = useFloorPrice(selected?.metadata.data.symbol);
   const collectionQuery = useCollectionByMintQuery(
-    selected?.metadata.collection?.key
+    selected?.metadata.collection?.key.toBase58()
   );
-  const collection = useMemo(() => {
-    if (collectionQuery.data) {
-      return Collection.fromJSON(collectionQuery.data);
+  const floorPrice = useMemo(() => {
+    if (collectionQuery.data?.floorPrice) {
+      return utils.hexToNumber(collectionQuery.data.floorPrice);
     }
   }, [collectionQuery.data]);
-  console.log(collection);
+
+  const { connection } = useConnection();
+  useEffect(() => {
+    connection.getAccountInfo(selected.tokenAccount.mint).then((account) => {
+      if (account) {
+        const mint = splToken.MintLayout.decode(account.data);
+        console.log("freezeAuthority: ", mint.freezeAuthority.toBase58());
+        console.log("freezeAuthorityOption: ", mint.freezeAuthorityOption);
+        console.log("mintAuthority: ", mint.mintAuthority.toBase58());
+      }
+    });
+  }, [selected, connection]);
+
   const onSubmit = handleSubmit((data) => {
     if (floorPrice) {
       const options = {
@@ -142,7 +155,7 @@ const AskLoanForm = ({
   return (
     <>
       <ModalBody>
-        {floorPrice === undefined ? (
+        {!collectionQuery.data ? (
           <Box
             display="flex"
             flex={1}
@@ -156,13 +169,13 @@ const AskLoanForm = ({
             <CollectionDetails
               metadata={selected.metadata}
               forecast={
-                floorPrice && (
+                floorPrice ? (
                   <AskListingForecast
                     control={control}
-                    creatorBasisPoints={collection?.config.loanBasisPoints}
+                    creatorBasisPoints={collectionQuery.data.loanBasisPoints}
                     floorPrice={floorPrice}
                   />
-                )
+                ) : null
               }
             />
             <Box pb="4" pt="6" pl="6" pr="6">

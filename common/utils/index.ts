@@ -17,6 +17,11 @@ export function toDays(seconds: number): number {
   return Math.round(seconds / 60 / 60 / 24);
 }
 
+export function formatHexDuration(duration: string): string {
+  const days = toDays(hexToNumber(duration));
+  return `${days} ${days === 1 ? "day" : "days"}`;
+}
+
 export function formatDuration(duration: anchor.BN): string {
   const days = toDays(duration.toNumber());
   return `${days} ${days === 1 ? "day" : "days"}`;

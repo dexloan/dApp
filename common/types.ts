@@ -10,7 +10,7 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 import { DexloanListings, IDL } from "./idl";
 
-export type LoanState = LoanState;
+export type { LoanState };
 export type CallOptionStateEnum = CallOptionState;
 export type RentalStateEnum = RentalState;
 
@@ -33,12 +33,12 @@ export interface LoanJson
 
 export interface NftResult {
   tokenAccount: splToken.Account;
+  tokenManager: TokenManagerData | null;
   metadata: Metadata;
 }
 
 export interface CollectionItem {
-  symbol: string;
-  name: string;
+  mint: string;
   items: NftResult[];
 }
 

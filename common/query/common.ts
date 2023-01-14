@@ -96,9 +96,22 @@ export async function fetchNft(
     fetchMetadata(connection, mint),
   ]);
 
+  let tokenManager = null;
+
+  try {
+    tokenManager = await fetchTokenManager(
+      connection,
+      mint,
+      tokenAccount.owner
+    );
+  } catch (err) {
+    console.log(err);
+  }
+
   return {
     metadata,
     tokenAccount,
+    tokenManager,
   };
 }
 
@@ -130,8 +143,6 @@ export async function fetchNfts(
     connection,
     tokenAccounts.map((a) => a.mint)
   );
-  console.log("tokenAccounts: ", tokenAccounts);
-  console.log("metadataAccounts:", metadataAccounts);
 
   const combinedAccounts = await Promise.all(
     metadataAccounts.map(async (metadata) => {
@@ -139,6 +150,8 @@ export async function fetchNfts(
       const tokenAccount = tokenAccounts.find((account) =>
         account.mint.equals(metadata.mint)
       );
+
+      let tokenManager = null;
 
       if (
         metadata &&
@@ -149,7 +162,7 @@ export async function fetchNfts(
         if (tokenAccount.amount === BigInt("0") || tokenAccount.isFrozen) {
           // Check if token manager exists
           try {
-            const tokenManager = await fetchTokenManager(
+            tokenManager = await fetchTokenManager(
               connection,
               tokenAccount.mint,
               owner
@@ -164,13 +177,13 @@ export async function fetchNfts(
         return {
           metadata,
           tokenAccount,
+          tokenManager,
         };
       }
       return null;
     })
   ).then((accounts) => accounts.filter(utils.notNull));
-  console.log(combinedAccounts);
-  console.log(combinedAccounts);
+
   return combinedAccounts;
 }
 

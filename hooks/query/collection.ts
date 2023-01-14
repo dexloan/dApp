@@ -1,9 +1,9 @@
 import { Collection } from "@prisma/client";
 import { web3 } from "@project-serum/anchor";
-import { useConnection } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 
+import { CollectionJson } from "../../common/types";
 import * as query from "../../common/query";
 
 export const useCollectionsQuery = () => {
@@ -20,13 +20,16 @@ export const useCollectionsQuery = () => {
 };
 
 export const useCollectionQuery = (collectionPda?: web3.PublicKey) => {
-  const { connection } = useConnection();
-
-  return useQuery(
+  return useQuery<void, unknown, CollectionJson>(
     ["collection", collectionPda?.toBase58()],
     async () => {
       if (collectionPda) {
-        return query.fetchCollection(connection, collectionPda);
+        const url = new URL(
+          `${
+            process.env.NEXT_PUBLIC_HOST
+          }/api/collections/mint/${collectionPda.toBase58()}`
+        );
+        return fetch(url).then((res) => res.json());
       }
     },
     {
@@ -35,9 +38,21 @@ export const useCollectionQuery = (collectionPda?: web3.PublicKey) => {
   );
 };
 
-export const useCollectionByMintQuery = (mint?: web3.PublicKey) => {
-  const collectionPda = useCollectionPda(mint);
-  return useCollectionQuery(collectionPda);
+export const useCollectionByMintQuery = (mint?: string) => {
+  return useQuery<void, unknown, CollectionJson>(
+    ["collection", mint],
+    async () => {
+      if (mint) {
+        const url = new URL(
+          `${process.env.NEXT_PUBLIC_HOST}/api/collections/mint/${mint}`
+        );
+        return fetch(url).then((res) => res.json());
+      }
+    },
+    {
+      enabled: typeof window !== "undefined" && Boolean(mint),
+    }
+  );
 };
 
 export const useCollectionPda = (mint?: web3.PublicKey) => {

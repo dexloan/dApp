@@ -34,6 +34,7 @@ import {
   useTokenManagerQuery,
   useMetadataFileQuery,
   useMetadataQuery,
+  useCollectionByMintQuery,
 } from "../../hooks/query";
 import { useFloorPrice } from "../../hooks/render";
 import { Card, CardList } from "../card";
@@ -294,7 +295,8 @@ export const SelectNftForm = ({
   onSelect,
 }: SelectNftFormProps) => {
   const wallet = useAnchorWallet();
-  const collectionQuery = useMetadataQuery(collectionMint);
+  // TODO pass full CollectionJson object to avoid querying here?
+  const metadataQuery = useMetadataQuery(collectionMint?.toBase58());
   const nftQuery = useNftByOwnerQuery(wallet);
 
   const collections = useMemo(() => {
@@ -308,40 +310,55 @@ export const SelectNftForm = ({
         }
         return true;
       })
+      .filter((nft) => {
+        if (nft.tokenManager) {
+          // @ts-expect-error
+          const loan = nft.tokenManager.accounts.loan as boolean;
+          // @ts-expect-error
+          const callOption = nft.tokenManager.accounts.callOption as boolean;
+          // @ts-expect-error
+          const rental = nft.tokenManager.accounts.rental;
+
+          if (
+            (listingType === "loan" || listingType === "callOption") &&
+            (loan || callOption)
+          ) {
+            return false;
+          }
+          if (listingType === "rental" && rental) {
+            return false;
+          }
+        }
+        return true;
+      })
       .reduce((cols, nft) => {
         if (nft) {
-          const symbol = nft.metadata.data.symbol;
+          const mint = nft.metadata.collection?.key.toBase58();
 
-          if (cols[symbol]) {
-            cols[symbol].items.push(nft);
-          }
+          if (mint) {
+            if (cols[mint]) {
+              cols[mint].items.push(nft);
+            }
 
-          if (!cols[symbol]) {
-            cols[symbol] = {
-              symbol,
-              // TODO use collection metadata name
-              name: utils.mapSymbolToCollectionTitle(symbol) as string,
-              items: [nft],
-            };
+            if (!cols[mint]) {
+              cols[mint] = {
+                mint,
+                items: [nft],
+              };
+            }
           }
         }
         return cols;
       }, {} as CollectionMap);
 
-    return Object.values(collectionMap ?? {})
-      .sort((a, b) => {
-        if (a.name < b.name) return -1;
-        if (a.name > b.name) return 1;
+    return Object.values(collectionMap ?? {}).map((col) => {
+      col.items.sort((a, b) => {
+        if (a.metadata.data.name < b.metadata.data.name) return -1;
+        if (a.metadata.data.name > b.metadata.data.name) return 1;
         return 0;
-      })
-      .map((col) => {
-        col.items.sort((a, b) => {
-          if (a.metadata.data.name < b.metadata.data.name) return -1;
-          if (a.metadata.data.name > b.metadata.data.name) return 1;
-          return 0;
-        });
-        return col;
       });
+      return col;
+    });
   }, [collectionMint, nftQuery.data]);
 
   return (
@@ -357,12 +374,13 @@ export const SelectNftForm = ({
           <Spinner size="sm" thickness="4px" />
         </Box>
       ) : collections?.length ? (
-        collections.map((collection) => {
+        collections.map(({ items, mint }) => {
           return (
             <Collection
-              key={collection.symbol}
+              key={mint}
               listingType={listingType}
-              collection={collection}
+              mint={mint}
+              items={items}
               onSelectItem={onSelect}
             />
           );
@@ -372,8 +390,7 @@ export const SelectNftForm = ({
           <Text fontSize="sm">
             {collectionMint ? (
               <Text>
-                No NFTs in the {collectionQuery.data?.data.name} collection
-                found.
+                No NFTs in the {metadataQuery.data?.data.name} collection found.
               </Text>
             ) : (
               <Text>
@@ -393,17 +410,24 @@ export interface SelectNftModalProps extends ModalProps {
 }
 
 interface CollectionProps {
-  collection: CollectionItem;
+  mint: string;
+  items: NftResult[];
   listingType: ListingType;
   onSelectItem: (item: NftResult) => void;
 }
 
 const Collection = ({
-  collection,
+  mint,
+  items,
   listingType,
   onSelectItem,
 }: CollectionProps) => {
-  const floorPrice = useFloorPrice(collection.symbol);
+  const collectionQuery = useCollectionByMintQuery(mint);
+  const floorPrice = useMemo(() => {
+    if (collectionQuery.data) {
+      return utils.formatHexAmount(collectionQuery.data.floorPrice);
+    }
+  }, [collectionQuery.data]);
 
   const renderItem = useCallback(
     (item: NftResult) => {
@@ -418,21 +442,13 @@ const Collection = ({
     [listingType, onSelectItem]
   );
 
-  const formattedFloorPrice = useMemo(() => {
-    if (floorPrice) {
-      return utils.formatAmount(new anchor.BN(floorPrice));
-    }
-  }, [floorPrice]);
-
   return (
     <>
       <SectionHeader
-        title={collection.name}
-        subtitle={
-          <>Floor Price {formattedFloorPrice ?? <EllipsisProgress />}</>
-        }
+        title={collectionQuery.data?.name}
+        subtitle={<>Floor Price {floorPrice ?? <EllipsisProgress />}</>}
       />
-      <CardList>{collection.items.map(renderItem)}</CardList>
+      <CardList>{items.map(renderItem)}</CardList>
     </>
   );
 };
@@ -446,7 +462,7 @@ interface NftItemProps {
 const NftItem = ({ item, listingType, onSelectItem }: NftItemProps) => {
   const wallet = useWallet();
   const metadataQuery = useMetadataQuery(
-    item.metadata.collection?.key as anchor.web3.PublicKey
+    item.metadata.collection?.key.toBase58()
   );
 
   const tokenManagerQuery = useTokenManagerQuery(

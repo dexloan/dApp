@@ -175,7 +175,7 @@ export const LoanRow = ({ loan, subtitle, onClick }: LoanRowProps) => {
       onClick={onClick}
     >
       <NFTCellNew subtitle={subtitle} mint={loan.mint} />
-      <Td>{loan.duration}</Td>
+      <Td>{utils.formatHexDuration(loan.duration)}</Td>
       <Td isNumeric>
         <Text mb="1">
           {utils.basisPointsToPercent(
