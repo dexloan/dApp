@@ -4,7 +4,7 @@ import { Button, Icon, Th } from "@chakra-ui/react";
 import { IoAdd } from "react-icons/io5";
 import { useState } from "react";
 
-import { LoanOfferJson } from "../../../common/types";
+import { GroupedLoanOfferJson, LoanOfferJson } from "../../../common/types";
 import { Col, ColumnHeader, LTVHeader, ListingsTable } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
 import { LoanRow, LoanSortCols, useLoanSortState } from "./common";
@@ -19,19 +19,19 @@ const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
 
 interface LoanOffersProps {
   heading: string;
-  offers?: LoanOfferJson[];
+  offers?: GroupedLoanOfferJson[];
 }
 
 export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
   const wallet = useWallet();
   const modal = useWalletModal();
   const [offerModal, setOfferModal] = useState<boolean>(false);
-  const [offer, setOffer] = useState<LoanOfferJson | null>(null);
+  const [offer, setOffer] = useState<GroupedLoanOfferJson | null>(null);
   const [sortState, onSort] = useLoanSortState();
 
   return (
     <>
-      <ListingsTable<LoanSortCols, LoanOfferJson>
+      <ListingsTable<LoanSortCols, GroupedLoanOfferJson>
         heading={heading}
         placeholder="No offers currently"
         action={
@@ -69,9 +69,9 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
         renderRow={(item) => {
           return (
             <LoanRow
-              key={item.address}
+              key={`${item.Collection.address}_${item.amount}_${item.duration}_${item.basisPoints}`}
               item={item}
-              subtitle={`1 Offer${0 > 1 ? "s" : ""}`}
+              subtitle={`${item._count} Offer${item._count > 1 ? "s" : ""}`}
               onClick={() => {
                 if (!wallet.publicKey) {
                   modal.setVisible(true);
@@ -82,10 +82,10 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
           );
         }}
       />
-      {/* <OfferLoanModal
+      <OfferLoanModal
         open={offerModal}
         onRequestClose={() => setOfferModal(false)}
-      /> */}
+      />
       {/* <TakeLoanModal
         offer={offer}
         open={Boolean(offer)}

@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { NftResult } from "../../common/types";
+import { LoanOfferJson, NftResult } from "../../common/types";
 import { LoanOfferPretty, LoanPretty, LoanOffer } from "../../common/model";
 import {
   getLoansTakenCacheKey,
@@ -18,7 +18,7 @@ import {
   getLoansQueryKey,
   getLoansGivenCacheKey,
   getNftByOwnerCacheKey,
-  getLoanOffersCacheKey,
+  fetchLoanOffers,
 } from "../query";
 import { SerializedLoanState } from "../../common/constants";
 
@@ -96,11 +96,26 @@ export interface OfferLoanMutationVariables {
   collection: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {
+    count: number;
     amount: number;
     basisPoints: number;
     duration: number;
   };
-  ids: number[];
+}
+
+function pickOfferIds(offers: LoanOfferJson[], count: number) {
+  const ids = [];
+  const existingIds = offers.map((offer) => offer.offerId);
+
+  let id = 0;
+  while (ids.length < count && id <= 255) {
+    if (!existingIds.includes(id)) {
+      ids.push(id);
+    }
+    id++;
+  }
+
+  return ids;
 }
 
 export const useOfferLoanMutation = (onSuccess: () => void) => {
@@ -109,15 +124,21 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
   const anchorWallet = useAnchorWallet();
 
   return useMutation(
-    (variables: OfferLoanMutationVariables) => {
+    async (variables: OfferLoanMutationVariables) => {
       if (anchorWallet) {
+        const currentOffers = await fetchLoanOffers({
+          lender: anchorWallet.publicKey.toBase58(),
+          collections: [variables.collection.toBase58()],
+        });
+        const ids = pickOfferIds(currentOffers, variables.options.count);
+        console.log(currentOffers, ids);
         return actions.offerLoan(
           connection,
           anchorWallet,
           variables.collection,
           variables.collectionMint,
           variables.options,
-          variables.ids
+          ids
         );
       }
       throw new Error("Not ready");
@@ -129,13 +150,9 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      async onSuccess(_, variables) {
-        if (anchorWallet) {
-          queryClient.invalidateQueries(getLoanOffersCacheKey());
-        }
-
-        toast.success("Listing created");
-
+      async onSuccess() {
+        setTimeout(() => queryClient.invalidateQueries(["loan_offers"]), 3000);
+        toast.success("Loan offer created");
         onSuccess();
       },
     }
@@ -165,25 +182,9 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      async onSuccess(_, variables) {
-        queryClient.setQueryData<LoanOfferPretty[] | undefined>(
-          getLoanOffersCacheKey(),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) =>
-                  item.publicKey !== variables.offer.publicKey.toBase58()
-              );
-            }
-          }
-        );
-
-        queryClient.invalidateQueries(
-          getLoansTakenCacheKey(anchorWallet?.publicKey)
-        );
-
+      async onSuccess() {
+        queryClient.invalidateQueries(["loan_offers"]);
         toast.success("Loan taken");
-
         onSuccess();
       },
       onError(err) {
@@ -209,20 +210,9 @@ export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      async onSuccess(_, variables) {
-        queryClient.setQueryData<LoanOfferPretty[] | undefined>(
-          getLoanOffersCacheKey(),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.publicKey !== variables.publicKey.toBase58()
-              );
-            }
-          }
-        );
-
+      async onSuccess() {
+        queryClient.invalidateQueries(["loan_offers"]);
         toast.success("Offer closed");
-
         onSuccess();
       },
       onError(err) {

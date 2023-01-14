@@ -1,4 +1,3 @@
-import { Collection } from "@prisma/client";
 import { web3 } from "@project-serum/anchor";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
@@ -7,7 +6,7 @@ import { CollectionJson } from "../../common/types";
 import * as query from "../../common/query";
 
 export const useCollectionsQuery = () => {
-  return useQuery<void, unknown, Collection[]>(
+  return useQuery<void, unknown, CollectionJson[]>(
     ["collections"],
     () => {
       const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/collections`);

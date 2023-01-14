@@ -2,7 +2,7 @@ import { Box, Tr, Td, Text, Tooltip } from "@chakra-ui/react";
 import { useState, useCallback } from "react";
 
 import * as utils from "../../../common/utils";
-import { LoanJson, LoanOfferJson } from "../../../common/types";
+import { LoanJson, GroupedLoanOfferJson } from "../../../common/types";
 import { SortDirection } from "../../../common/types";
 import { NFTCellNew } from "../../table";
 import { FloorPrice } from "../../floorPrice";
@@ -35,7 +35,7 @@ function sortReducer(col: LoanSortCols) {
 }
 
 interface LoanRowProps {
-  item: LoanJson | LoanOfferJson;
+  item: LoanJson | GroupedLoanOfferJson;
   subtitle?: string;
   onClick: () => void;
 }

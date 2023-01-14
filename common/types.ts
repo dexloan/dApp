@@ -40,6 +40,14 @@ export interface LoanOfferJson extends Omit<LoanOffer, "amount" | "duration"> {
   Collection: CollectionJson;
 }
 
+export interface GroupedLoanOfferJson {
+  _count: number;
+  amount: string | null;
+  basisPoints: number;
+  duration: string;
+  Collection: CollectionJson;
+}
+
 export interface NftResult {
   tokenAccount: splToken.Account;
   tokenManager: TokenManagerData | null;

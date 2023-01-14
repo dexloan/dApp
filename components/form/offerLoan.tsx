@@ -24,7 +24,7 @@ import {
   useLoanOffersByLenderQuery,
 } from "../../hooks/query";
 import { useOfferLoanMutation } from "../../hooks/mutation/loan";
-import { Collection, LoanOfferPretty } from "../../common/model";
+import { LoanOfferPretty } from "../../common/model";
 import {
   LoanFormFields,
   ModalProps,
@@ -32,6 +32,7 @@ import {
   LoanForecast,
   CollectionDetails,
 } from "./common";
+import { CollectionJson } from "../../common/types";
 
 interface OfferFormFields extends LoanFormFields {
   collection: string;
@@ -49,56 +50,34 @@ const defaultValues = {
 export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
   const {
     control,
-    handleSubmit,
     formState: { isValid },
+    handleSubmit,
   } = useForm<OfferFormFields>({
     mode: "onChange",
     defaultValues,
   });
 
-  const wallet = useWallet();
-
-  const floorPricesQuery = useFloorPricesQuery();
-  const loanOffersQuery = useLoanOffersByLenderQuery(wallet.publicKey);
   const collectionsQuery = useCollectionsQuery();
-  const collections = useMemo(
-    () => (collectionsQuery.data || []).map(Collection.fromJSON),
-    [collectionsQuery.data]
-  );
-
   const mutation = useOfferLoanMutation(() => onRequestClose());
 
-  const onSubmit = handleSubmit((data) => {
-    if (floorPricesQuery.data) {
-      const collection = collections.find(
-        (c) => data.collection === c.publicKey.toBase58()
+  const onSubmit = handleSubmit(async (data) => {
+    if (collectionsQuery.data) {
+      const collection = collectionsQuery.data.find(
+        (c) => data.collection === c.address
       );
 
-      if (collection?.metadata?.data.symbol) {
-        const floorPrice = utils.getFloorPrice(
-          floorPricesQuery.data,
-          collection.metadata.data.symbol
-        );
-
-        if (!floorPrice) {
-          throw new Error("floor price not found");
-        }
-
+      if (collection) {
         const options = {
-          amount: (data.ltv / 100) * floorPrice,
+          count: data.offers,
+          amount: (data.ltv / 100) * utils.hexToNumber(collection.floorPrice),
           basisPoints: data.apy * 100,
           duration: data.duration * 24 * 60 * 60,
         };
 
-        const ids = loanOffersQuery.data?.length
-          ? pickIds(loanOffersQuery.data, data.offers)
-          : [0];
-
         mutation.mutate({
-          ids,
           options,
-          collectionMint: collection.metadata.mint,
-          collection: collection.publicKey,
+          collectionMint: new anchor.web3.PublicKey(collection.mint),
+          collection: new anchor.web3.PublicKey(collection.address),
         });
       }
     }
@@ -121,34 +100,31 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
           Offer Loan
         </ModalHeader>
         <ModalBody>
-          {floorPricesQuery.data === undefined ? (
+          {collectionsQuery.data === undefined ? (
             <Spinner colorScheme="onda" size="sm" thickness="4px" />
           ) : (
             <>
-              {floorPricesQuery.data && (
-                <Controller
-                  name="collection"
-                  control={control}
-                  render={({ field: { value, onChange } }) => {
-                    const selectedCollection = collections.find(
-                      (c) => c.publicKey.toBase58() == value
-                    );
+              <Controller
+                name="collection"
+                control={control}
+                render={({ field: { value, onChange } }) => {
+                  const selectedCollection = collectionsQuery.data.find(
+                    (c) => c.address == value
+                  );
 
-                    return (
-                      <CollectionDetails
-                        metadata={selectedCollection?.metadata}
-                        forecast={
-                          <OfferListingForecast
-                            control={control}
-                            collection={selectedCollection}
-                            floorPrices={floorPricesQuery.data}
-                          />
-                        }
-                      />
-                    );
-                  }}
-                />
-              )}
+                  return (
+                    <CollectionDetails
+                      collection={selectedCollection}
+                      forecast={
+                        <OfferListingForecast
+                          control={control}
+                          collection={selectedCollection}
+                        />
+                      }
+                    />
+                  );
+                }}
+              />
               <Box pb="4" pt="6" pl="6" pr="6">
                 <form onSubmit={onSubmit}>
                   <FormControl isInvalid={!isValid}>
@@ -171,12 +147,12 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
                               value={value}
                               onChange={onChange}
                             >
-                              {collections.map((collection) => (
+                              {collectionsQuery.data?.map((collection) => (
                                 <option
-                                  key={collection.publicKey.toBase58()}
-                                  value={collection.publicKey.toBase58()}
+                                  key={collection.address}
+                                  value={collection.address}
                                 >
-                                  {collection.metadata.data.name}
+                                  {collection.name}
                                 </option>
                               ))}
                             </Select>
@@ -240,7 +216,7 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
           <Button
             isFullWidth
             variant="primary"
-            disabled={floorPricesQuery.isLoading || loanOffersQuery.isLoading}
+            disabled={collectionsQuery.isLoading}
             isLoading={mutation.isLoading}
             onClick={onSubmit}
           >
@@ -269,14 +245,12 @@ function pickIds(offers: LoanOfferPretty[], count: number) {
 
 interface OfferListingForecastProps {
   control: Control<OfferFormFields, any>;
-  collection?: Collection;
-  floorPrices: Record<string, number>;
+  collection?: CollectionJson;
 }
 
 const OfferListingForecast = ({
   control,
   collection,
-  floorPrices,
 }: OfferListingForecastProps) => {
   const { ltv, apy, duration, offers } = useWatch({ control });
 
@@ -286,9 +260,10 @@ const OfferListingForecast = ({
     [duration]
   );
 
-  const collectionSymbol = collection?.metadata.data.symbol;
-  const creatorBasisPoints = collection?.config.loanBasisPoints;
-  const floorPrice = utils.getFloorPrice(floorPrices, collectionSymbol);
+  const creatorBasisPoints = collection?.loanBasisPoints;
+  const floorPrice = collection?.floorPrice
+    ? utils.hexToNumber(collection?.floorPrice)
+    : undefined;
 
   const amount = useMemo(
     () =>

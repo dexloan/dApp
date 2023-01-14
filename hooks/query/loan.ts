@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 
 import * as query from "../../common/query";
-import { LoanJson, LoanOfferJson } from "../../common/types";
+import {
+  LoanJson,
+  LoanOfferJson,
+  GroupedLoanOfferJson,
+} from "../../common/types";
 import { LoanSortCols } from "../../components/tables";
 
 export const useLoanAddress = (
@@ -96,69 +100,79 @@ export function useLoansQuery({
   );
 }
 
-type LoanOfferFilters = Omit<LoanFilters, "state">;
+interface LoanOfferFilters extends Omit<LoanFilters, "state"> {
+  lender?: string;
+}
 
-export const getLoanOffersCacheKey = (filters: LoanOfferFilters) => [
+export const getGroupedLoanOffersCacheKey = (filters?: LoanOfferFilters) => [
   "loan_offers",
+  "grouped",
   filters,
 ];
 
-export function useLoanOffersQuery({
+export function fetchGroupedLoanOffers({
   collections,
   orderBy,
   sortOrder,
-}: LoanOfferFilters = {}) {
-  return useQuery<void, unknown, LoanOfferJson[]>(
-    getLoanOffersCacheKey({ collections }),
-    () => {
-      const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/offers`);
-      if (orderBy) {
-        const prismaCol = mapLoanColToPrismaCol(orderBy);
-        if (prismaCol) {
-          url.searchParams.append("orderBy", prismaCol);
-        }
-      }
-      if (sortOrder) {
-        url.searchParams.append("sortOrder", sortOrder);
-      }
-      if (collections) {
-        collections.forEach((address) =>
-          url.searchParams.append("collectionAddress", address)
-        );
-      }
-      return fetch(url).then((res) => res.json());
-    },
+}: LoanOfferFilters = {}): Promise<GroupedLoanOfferJson[]> {
+  const url = new URL(
+    `${process.env.NEXT_PUBLIC_HOST}/api/loans/offers/grouped`
+  );
+  if (orderBy) {
+    const prismaCol = mapLoanColToPrismaCol(orderBy);
+    if (prismaCol) {
+      url.searchParams.append("orderBy", prismaCol);
+    }
+  }
+  if (sortOrder) {
+    url.searchParams.append("sortOrder", sortOrder);
+  }
+  if (collections) {
+    collections.forEach((address) =>
+      url.searchParams.append("collectionAddress", address)
+    );
+  }
+  return fetch(url).then((res) => res.json());
+}
+
+export function useGroupedLoanOffersQuery(filters: LoanOfferFilters = {}) {
+  return useQuery(
+    getGroupedLoanOffersCacheKey(filters),
+    () => fetchGroupedLoanOffers(filters),
     {
       refetchOnWindowFocus: false,
     }
   );
 }
 
-export const getLoanOffersByLenderCacheKey = (
-  lender?: anchor.web3.PublicKey | null
-) => ["loan_offers", lender?.toBase58()];
+export const getLoanOffersByLenderCacheKey = (filters?: LoanOfferFilters) => [
+  "loan_offers",
+  filters,
+];
 
-export function useLoanOffersByLenderQuery(
-  lender?: anchor.web3.PublicKey | null
-) {
-  const { connection } = useConnection();
+export function fetchLoanOffers({
+  lender,
+  collections = [],
+}: LoanOfferFilters = {}): Promise<LoanOfferJson[]> {
+  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/offers`);
+  if (lender) {
+    url.searchParams.append("lender", lender);
+  }
+  if (collections) {
+    collections.forEach((address) =>
+      url.searchParams.append("collectionAddress", address)
+    );
+  }
 
+  return fetch(url).then((res) => res.json());
+}
+
+export function useLoanOffersByLenderQuery(filters: LoanOfferFilters = {}) {
   return useQuery(
-    getLoanOffersByLenderCacheKey(lender),
-    () => {
-      if (lender) {
-        return query.fetchMultipleLoanOffers(connection, [
-          {
-            memcmp: {
-              offset: 8 + 1,
-              bytes: lender.toBase58(),
-            },
-          },
-        ]);
-      }
-    },
+    getLoanOffersByLenderCacheKey(filters),
+    () => fetchLoanOffers(filters),
     {
-      enabled: Boolean(lender),
+      enabled: Boolean(filters.lender),
       refetchOnWindowFocus: false,
     }
   );

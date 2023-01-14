@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import * as utils from "../../../common/utils";
-import prisma from "../../../common/lib/prisma";
+import * as utils from "../../../../common/utils";
+import prisma from "../../../../common/lib/prisma";
 import { Collection } from "@prisma/client";
 
 export default async function handler(
@@ -45,6 +45,6 @@ export default async function handler(
       Collection: collectionMap[collectionAddress],
     };
   });
-  console.log(result);
+
   res.json(utils.parseBitInts(result));
 }

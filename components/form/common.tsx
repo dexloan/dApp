@@ -25,9 +25,9 @@ import * as utils from "../../common/utils";
 import dayjs from "../../common/lib/dayjs";
 import {
   NftResult,
-  CollectionItem,
   CollectionMap,
   TokenManagerAccountState,
+  CollectionJson,
 } from "../../common/types";
 import {
   useNftByOwnerQuery,
@@ -36,7 +36,6 @@ import {
   useMetadataQuery,
   useCollectionByMintQuery,
 } from "../../hooks/query";
-import { useFloorPrice } from "../../hooks/render";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
 import { EllipsisProgress } from "../progress";
@@ -359,7 +358,7 @@ export const SelectNftForm = ({
       });
       return col;
     });
-  }, [collectionMint, nftQuery.data]);
+  }, [collectionMint, listingType, nftQuery.data]);
 
   return (
     <ModalBody>
@@ -524,16 +523,16 @@ const SectionHeader = ({
 );
 
 interface CollectionDetailsProps {
-  metadata?: NftResult["metadata"];
+  collection?: CollectionJson;
   forecast: React.ReactNode;
 }
 
 export const CollectionDetails = ({
-  metadata,
+  collection,
   forecast,
 }: CollectionDetailsProps) => {
   const [isVisible, setVisible] = useState(false);
-  const metadataQuery = useMetadataFileQuery(metadata?.data.uri);
+  const metadataQuery = useMetadataFileQuery(collection?.uri);
 
   return (
     <Box pb="4" pt="2" px="6">
@@ -558,7 +557,7 @@ export const CollectionDetails = ({
                     layout="fill"
                     objectFit="cover"
                     src={metadataQuery.data?.image}
-                    alt={metadata?.data.name}
+                    alt={collection?.name}
                     onLoad={() => setVisible(true)}
                   />
                 )}
@@ -569,8 +568,8 @@ export const CollectionDetails = ({
         <Flex flex={3} flexGrow={1}>
           <Box w="100%">
             <Box pb="4">
-              <Heading size="md">{metadata?.data.name}</Heading>
-              <VerifiedCollection size="xs" metadata={metadata} />
+              <Heading size="md">{collection?.name}</Heading>
+              <VerifiedCollection size="xs" name={collection?.name} />
             </Box>
             {forecast}
           </Box>
