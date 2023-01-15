@@ -29,7 +29,7 @@ const ixIds = IDL.instructions.map((ix) => {
 
 const connection = new web3.Connection(
   process.env.BACKEND_RPC_ENDPOINT as string,
-  "confirmed"
+  "processed"
 );
 const provider = getProvider(connection);
 const program = getProgram(provider);
@@ -259,18 +259,7 @@ export default async function handler(
             break;
           }
 
-          case "closeCallOption": {
-            const callOptionAccountIndex = ixAccounts.findIndex(
-              (a) => a.name === "loan"
-            );
-            const callOptionPda = new web3.PublicKey(
-              message.accountKeys[ix.accounts[callOptionAccountIndex]]
-            );
-
-            await closeCallOption(callOptionPda);
-
-            break;
-          }
+          /* Call Options */
 
           case "askCallOption": {
             const callOptionAccountIndex = ixAccounts.findIndex(
@@ -300,6 +289,19 @@ export default async function handler(
             );
 
             await updateCallOption(callOptionPda, CallOptionState.Listed);
+
+            break;
+          }
+
+          case "closeCallOption": {
+            const callOptionAccountIndex = ixAccounts.findIndex(
+              (a) => a.name === "loan"
+            );
+            const callOptionPda = new web3.PublicKey(
+              message.accountKeys[ix.accounts[callOptionAccountIndex]]
+            );
+
+            await closeCallOption(callOptionPda);
 
             break;
           }
@@ -432,7 +434,7 @@ async function fetchCallOption(callOptionPda: web3.PublicKey) {
 
 async function fetchCallOptionBid(callOptionBidPda: web3.PublicKey) {
   return utils.asyncRetry<CallOptionBidData>(async () => {
-    return (await program.account.loanOffer.fetch(
+    return (await program.account.callOptionBid.fetch(
       callOptionBidPda
     )) as CallOptionBidData;
   });
@@ -668,6 +670,7 @@ async function createCallOptionBid(
   callOptionBidPda: web3.PublicKey,
   collectionPda: web3.PublicKey
 ) {
+  console.log("fetching call option bid", callOptionBidPda.toBase58());
   const data = await fetchCallOptionBid(callOptionBidPda);
 
   await prisma.callOptionBid.create({
@@ -687,10 +690,11 @@ async function createCallOptionBid(
   });
 }
 
-async function deleteCallOptionBid(callOptionBid: web3.PublicKey) {
+async function deleteCallOptionBid(callOptionBidPda: web3.PublicKey) {
+  console.log("deleting call option bid", callOptionBidPda.toBase58());
   await prisma.callOptionBid.delete({
     where: {
-      address: callOptionBid.toBase58(),
+      address: callOptionBidPda.toBase58(),
     },
   });
 }

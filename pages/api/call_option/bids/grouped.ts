@@ -15,8 +15,8 @@ export default async function handler(
   } = req.query;
 
   const [offers, collections] = await Promise.all([
-    prisma.loanOffer.groupBy({
-      by: ["collectionAddress", "amount", "basisPoints", "duration"],
+    prisma.callOptionBid.groupBy({
+      by: ["collectionAddress", "amount", "strikePrice", "expiry"],
       _count: true,
       where: {
         collectionAddress: {
@@ -24,6 +24,7 @@ export default async function handler(
         },
       },
       orderBy: {
+        // TODO: Fix this type error
         [orderBy as "amount"]: sortOrder as "asc" | "desc",
       },
     }),

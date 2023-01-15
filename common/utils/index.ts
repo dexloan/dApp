@@ -276,10 +276,11 @@ export async function asyncRetry<T>(cb: () => Promise<T>) {
       const result = await cb();
       return result;
     } catch (err) {
+      console.log("retry error: ", err);
       if (num > 5) {
         throw err;
       }
-      await wait(500);
+      await wait(1000);
       return retry(num + 1);
     }
   };

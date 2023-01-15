@@ -3,9 +3,11 @@ import type {
   Collection,
   Loan,
   LoanState,
-  CallOptionState,
-  RentalState,
   LoanOffer,
+  CallOption,
+  CallOptionState,
+  CallOptionBid,
+  RentalState,
 } from "@prisma/client";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
@@ -45,6 +47,30 @@ export interface GroupedLoanOfferJson {
   amount: string | null;
   basisPoints: number;
   duration: string;
+  Collection: CollectionJson;
+}
+
+export interface CallOptionJson
+  extends Omit<CallOption, "amount" | "strikePrice" | "expiry"> {
+  amount: string;
+  strikePrice: string;
+  expiry: string;
+  Collection: CollectionJson;
+}
+
+export interface CallOptionBidJson
+  extends Omit<CallOptionBid, "amount" | "strikePrice" | "expiry"> {
+  amount: string;
+  strikePrice: string;
+  expiry: string;
+  Collection: CollectionJson;
+}
+
+export interface GroupedCallOptionBidJson {
+  _count: number;
+  amount: string;
+  strikePrice: string;
+  expiry: string;
   Collection: CollectionJson;
 }
 

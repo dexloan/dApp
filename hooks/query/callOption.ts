@@ -1,50 +1,140 @@
 import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { CallOptionState } from "@prisma/client";
 import { useState, useEffect } from "react";
 import { useQuery } from "react-query";
-import bs58 from "bs58";
 
 import * as query from "../../common/query";
+import {
+  CallOptionJson,
+  CallOptionBidJson,
+  GroupedCallOptionBidJson,
+} from "../../common/types";
+import { CallOptionSortCols } from "../../components/tables";
 
-export const getCallOptionBidsCacheKey = () => ["call_option_bids"];
+export interface CallOptionFilters {
+  state?: CallOptionState;
+  amount?: string;
+  expiry?: string;
+  strikePrice?: string;
+  buyer?: string;
+  seller?: string;
+  collections?: string[];
+  orderBy?: CallOptionSortCols;
+  sortOrder?: "asc" | "desc";
+}
 
-export function useCallOptionBidsQuery() {
-  const { connection } = useConnection();
+export interface CallOptionBidFilters
+  extends Omit<CallOptionFilters, "state" | "seller"> {}
 
+function mapCallOptionColToPrismaCol(col: CallOptionSortCols) {
+  return {
+    asset: "collectionAddress",
+    collection: "collectionAddress",
+    cost: "amount",
+    expiry: "expiry",
+    strikePrice: "strikePrice",
+  }[col];
+}
+
+function appendQueryParams(url: URL, params: CallOptionFilters) {
+  if (params.state) {
+    url.searchParams.append("state", params.state);
+  }
+
+  if (params.amount) {
+    url.searchParams.append("amount", params.amount);
+  }
+
+  if (params.expiry) {
+    url.searchParams.append("expiry", params.expiry);
+  }
+
+  if (params.strikePrice) {
+    url.searchParams.append("basisPoints", params.strikePrice);
+  }
+
+  if (params.buyer) {
+    url.searchParams.append("buyer", params.buyer);
+  }
+
+  if (params.seller) {
+    url.searchParams.append("seller", params.seller);
+  }
+
+  if (params.collections instanceof Array) {
+    params.collections.forEach((address) =>
+      url.searchParams.append("collectionAddress", address)
+    );
+  }
+
+  if (params.orderBy) {
+    const prismaCol = mapCallOptionColToPrismaCol(params.orderBy);
+
+    if (prismaCol) {
+      url.searchParams.append("orderBy", prismaCol);
+    }
+  }
+
+  if (params.sortOrder) {
+    url.searchParams.append("sortOrder", params.sortOrder);
+  }
+}
+
+export function fetchCallOptions(
+  filters: CallOptionFilters
+): Promise<CallOptionJson[]> {
+  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/call_option/asks`);
+
+  appendQueryParams(url, filters);
+
+  return fetch(url).then((res) => res.json());
+}
+
+export function useCallOptionsQuery(filters: CallOptionFilters = {}) {
+  return useQuery(["call_options", filters], () => fetchCallOptions(filters), {
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function fetchCallOptionBids(
+  filters: CallOptionBidFilters
+): Promise<CallOptionBidJson[]> {
+  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/call_option/bids`);
+
+  appendQueryParams(url, filters);
+
+  return fetch(url).then((res) => res.json());
+}
+
+export function useCallOptionBidsQuery(filters: CallOptionBidFilters = {}) {
   return useQuery(
-    getCallOptionBidsCacheKey(),
-    () => query.fetchMultipleCallOptionBids(connection, []),
+    ["call_option_bids", filters],
+    () => fetchCallOptionBids(filters),
     {
       refetchOnWindowFocus: false,
     }
   );
 }
 
-export const useCallOptionBidsByBuyerCacheKey = (
-  buyer?: anchor.web3.PublicKey | null
-) => ["call_option_bids", buyer?.toBase58()];
+export function fetchGroupedCallOptionBids(
+  filters: CallOptionBidFilters
+): Promise<GroupedCallOptionBidJson[]> {
+  const url = new URL(
+    `${process.env.NEXT_PUBLIC_HOST}/api/call_option/offers/grouped`
+  );
+  appendQueryParams(url, filters);
 
-export function useCallOptionBidsByBuyerQuery(
-  buyer?: anchor.web3.PublicKey | null
+  return fetch(url).then((res) => res.json());
+}
+
+export function useGroupedCallOptionBidsQuery(
+  filters: CallOptionBidFilters = {}
 ) {
-  const { connection } = useConnection();
-
   return useQuery(
-    useCallOptionBidsByBuyerCacheKey(buyer),
-    () => {
-      if (buyer) {
-        return query.fetchMultipleCallOptionBids(connection, [
-          {
-            memcmp: {
-              offset: 8 + 1,
-              bytes: buyer.toBase58(),
-            },
-          },
-        ]);
-      }
-    },
+    ["call_option_bids", "grouped", filters],
+    () => fetchGroupedCallOptionBids(filters),
     {
-      enabled: Boolean(buyer),
       refetchOnWindowFocus: false,
     }
   );
@@ -81,89 +171,5 @@ export function useCallOptionQuery(
         return query.fetchCallOption(connection, callOptionAddress);
     },
     { enabled: Boolean(callOptionAddress) }
-  );
-}
-
-export const getCallOptionsCacheKey = (state: number) => ["callOptions", state];
-
-export function useCallOptionsQuery(state: number) {
-  const { connection } = useConnection();
-
-  return useQuery(
-    getCallOptionsCacheKey(state),
-    () => {
-      return query.fetchMultipleCallOptions(connection, [
-        {
-          memcmp: {
-            // filter listed
-            offset: 8,
-            bytes: bs58.encode([state]),
-          },
-        },
-      ]);
-    },
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
-}
-
-export const getSellerCallOptionsQueryKey = (
-  walletAddress: anchor.web3.PublicKey | undefined
-) => ["sellerCallOptions", walletAddress?.toBase58()];
-
-export function useSellerCallOptionsQuery() {
-  const anchorWallet = useAnchorWallet();
-  const { connection } = useConnection();
-
-  return useQuery(
-    getSellerCallOptionsQueryKey(anchorWallet?.publicKey),
-    () => {
-      if (anchorWallet) {
-        return query.fetchMultipleCallOptions(connection, [
-          {
-            memcmp: {
-              // filter seller
-              offset: 8 + 1 + 8,
-              bytes: anchorWallet.publicKey.toBase58(),
-            },
-          },
-        ]);
-      }
-    },
-    {
-      enabled: Boolean(anchorWallet?.publicKey),
-      refetchOnWindowFocus: false,
-    }
-  );
-}
-
-export const getBuyerCallOptionsQueryKey = (
-  walletAddress: anchor.web3.PublicKey | undefined
-) => ["buyerCallOptions", walletAddress?.toBase58()];
-
-export function useBuyerCallOptionsQuery() {
-  const anchorWallet = useAnchorWallet();
-  const { connection } = useConnection();
-
-  return useQuery(
-    getBuyerCallOptionsQueryKey(anchorWallet?.publicKey),
-    () => {
-      if (anchorWallet) {
-        return query.fetchMultipleCallOptions(connection, [
-          {
-            memcmp: {
-              // filter lender
-              offset: 8 + 1 + 8 + 32 + 1,
-              bytes: anchorWallet?.publicKey.toBase58(),
-            },
-          },
-        ]);
-      }
-    },
-    {
-      enabled: Boolean(anchorWallet?.publicKey),
-      refetchOnWindowFocus: false,
-    }
   );
 }
