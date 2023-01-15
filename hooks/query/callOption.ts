@@ -121,7 +121,7 @@ export function fetchGroupedCallOptionBids(
   filters: CallOptionBidFilters
 ): Promise<GroupedCallOptionBidJson[]> {
   const url = new URL(
-    `${process.env.NEXT_PUBLIC_HOST}/api/call_option/offers/grouped`
+    `${process.env.NEXT_PUBLIC_HOST}/api/call_option/bids/grouped`
   );
   appendQueryParams(url, filters);
 

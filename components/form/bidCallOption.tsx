@@ -57,13 +57,6 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
 
   const wallet = useWallet();
 
-  const bidsQuery = useCallOptionBidsByBuyerQuery(wallet.publicKey);
-  const collectionsQuery = useCollectionsQuery();
-  const collections = useMemo(
-    () => (collectionsQuery.data || []).map(Collection.fromJSON),
-    [collectionsQuery.data]
-  );
-
   const mutation = useBidCallOptionMutation(() => onRequestClose());
 
   const onSubmit = handleSubmit((data) => {

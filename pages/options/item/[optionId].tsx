@@ -20,30 +20,30 @@ import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList, IoCheckmark } from "react-icons/io5";
 
-import * as utils from "../../common/utils";
-import { CallOption } from "../../common/model";
-import { fetchCallOption } from "../../common/query";
+import * as utils from "../../../common/utils";
+import { CallOption } from "../../../common/model";
+import { fetchCallOption } from "../../../common/query";
 import {
   getCallOptionCacheKey,
   getMetadataFileCacheKey,
   useCallOptionQuery,
   useMetadataFileQuery,
-} from "../../hooks/query";
-import { useFloorPrice } from "../../hooks/render";
+} from "../../../hooks/query";
+import { useFloorPrice } from "../../../hooks/render";
 import {
   useBuyCallOptionMutation,
   useCloseCallOptionMutation,
   useExerciseCallOptionMutation,
-} from "../../hooks/mutation";
+} from "../../../hooks/mutation";
 import {
   BuyCallOptionDialog,
   ExerciseDialog,
   CloseCallOptionDialog,
-} from "../../components/dialog";
-import { Detail } from "../../components/detail";
-import { EllipsisProgress } from "../../components/progress";
-import { NftLayout } from "../../components/layout";
-import { DocumentHead } from "../../components/document";
+} from "../../../components/dialog";
+import { Detail } from "../../../components/detail";
+import { EllipsisProgress } from "../../../components/progress";
+import { NftLayout } from "../../../components/layout";
+import { DocumentHead } from "../../../components/document";
 
 interface CallOptionProps {
   dehydratedState: DehydratedState | undefined;

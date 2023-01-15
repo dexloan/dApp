@@ -11,9 +11,9 @@ import {
   OptionRow,
   CallOptionSortCols,
   useCallOptionSortState,
-  useSortedCallOptionBids,
 } from "./common";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { GroupedCallOptionBidJson } from "../../../common/types";
 
 const BID_COLS: Readonly<Col<CallOptionSortCols>[]> = [
   { name: "collection", label: "Collection" },
@@ -24,7 +24,7 @@ const BID_COLS: Readonly<Col<CallOptionSortCols>[]> = [
 
 interface CallOptionBidsProps {
   heading: string;
-  bids?: CallOptionBidPretty[];
+  bids?: GroupedCallOptionBidJson[];
   isLoading: boolean;
 }
 
@@ -36,14 +36,12 @@ export const CallOptionBids = ({
   const wallet = useWallet();
   const modal = useWalletModal();
   const [bidModal, setBidModal] = useState<boolean>(false);
-  const [bid, setBid] = useState<CallOptionBid | null>(null);
-
+  const [bid, setBid] = useState<GroupedCallOptionBidJson | null>(null);
   const [sortState, onSort] = useCallOptionSortState();
-  const sortedOptions = useSortedCallOptionBids(bids, sortState);
 
   return (
     <>
-      <ListingsTable<CallOptionSortCols, CallOptionBid>
+      <ListingsTable<CallOptionSortCols, GroupedCallOptionBidJson>
         heading={heading}
         placeholder="Currently no bids"
         action={
@@ -57,7 +55,7 @@ export const CallOptionBids = ({
           </Button>
         }
         cols={BID_COLS}
-        items={sortedOptions}
+        items={bids}
         isLoading={isLoading}
         renderCol={(col) => {
           if (col.name === "collection") {
@@ -68,7 +66,7 @@ export const CallOptionBids = ({
             <ColumnHeader
               key={col.name}
               isNumeric={col.isNumeric}
-              direction={sortState[0] === col.name ? sortState[1] : 0}
+              direction={sortState[0] === col.name ? sortState[1] : undefined}
               onClick={() => onSort(col.name)}
             >
               {col.label}
@@ -77,7 +75,8 @@ export const CallOptionBids = ({
         }}
         renderRow={(item) => (
           <OptionRow
-            key={item.address}
+            key={`${item.Collection.address}_${item.amount}_${item.strikePrice}_${item.expiry}`}
+            subtitle={`${item._count} Bid${item._count > 1 ? "s" : ""}`}
             option={item}
             onClick={() => {
               if (!wallet.publicKey) {
@@ -88,7 +87,7 @@ export const CallOptionBids = ({
           />
         )}
       />
-      <BidCallOptionModal
+      {/* <BidCallOptionModal
         open={bidModal}
         onRequestClose={() => setBidModal(false)}
       />
@@ -96,7 +95,7 @@ export const CallOptionBids = ({
         bid={bid}
         open={Boolean(bid)}
         onRequestClose={() => setBid(null)}
-      />
+      /> */}
     </>
   );
 };

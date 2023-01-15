@@ -1,13 +1,12 @@
 import { Th } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
-import { CallOption, CallOptionPretty } from "../../../common/model";
+import { CallOptionJson } from "../../../common/types";
 import { ColumnHeader, ListingsTable, Col } from "../../table";
 import {
   OptionRow,
   CallOptionSortCols,
   useCallOptionSortState,
-  useSortedCallOptions,
 } from "./common";
 
 export const CALL_OPTION_COLS: Readonly<Col<CallOptionSortCols>[]> = [
@@ -21,7 +20,7 @@ interface CallOptionListingsProps {
   heading: string;
   placeholderMessage: string;
   action?: React.ReactNode;
-  callOptions?: CallOptionPretty[];
+  callOptions?: CallOptionJson[];
   isLoading: boolean;
 }
 
@@ -34,15 +33,14 @@ export const CallOptionListings = ({
 }: CallOptionListingsProps) => {
   const router = useRouter();
   const [sortState, onSort] = useCallOptionSortState();
-  const sortedOptions = useSortedCallOptions(callOptions, sortState);
 
   return (
-    <ListingsTable<CallOptionSortCols, CallOption>
+    <ListingsTable<CallOptionSortCols, CallOptionJson>
       heading={heading}
       placeholder={placeholderMessage}
       action={action}
       cols={CALL_OPTION_COLS}
-      items={sortedOptions}
+      items={callOptions}
       isLoading={isLoading}
       renderCol={(col) => {
         if (col.name === "asset") {
@@ -53,7 +51,7 @@ export const CallOptionListings = ({
           <ColumnHeader
             key={col.name}
             isNumeric={col.isNumeric}
-            direction={sortState[0] === col.name ? sortState[1] : 0}
+            direction={sortState[0] === col.name ? sortState[1] : undefined}
             onClick={() => onSort(col.name)}
           >
             {col.label}
