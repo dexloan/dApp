@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import * as utils from "../../../common/utils";
 import { LoanState } from "@prisma/client";
+
+import * as utils from "../../../common/utils";
 import prisma from "../../../common/lib/prisma";
 
 export default async function handler(
@@ -9,6 +10,8 @@ export default async function handler(
 ) {
   const {
     state,
+    lender,
+    borrower,
     collectionAddress,
     orderBy = "amount",
     sortOrder = "desc",
@@ -17,6 +20,8 @@ export default async function handler(
   const result = await prisma.loan.findMany({
     where: {
       state: typeof state === "string" ? (state as LoanState) : undefined,
+      lender: typeof lender === "string" ? lender : undefined,
+      borrower: typeof borrower === "string" ? borrower : undefined,
       collectionAddress: {
         in: collectionAddress,
       },

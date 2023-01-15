@@ -4,12 +4,12 @@ import { Button, Icon, Th } from "@chakra-ui/react";
 import { IoAdd } from "react-icons/io5";
 import { useState } from "react";
 
-import { GroupedLoanOfferJson, LoanOfferJson } from "../../../common/types";
+import { GroupedLoanOfferJson } from "../../../common/types";
 import { Col, ColumnHeader, LTVHeader, ListingsTable } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
 import { LoanRow, LoanSortCols, useLoanSortState } from "./common";
 
-const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
+export const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
   { name: "collection", label: "Collection" },
   { name: "duration", label: "Duration", isNumeric: true },
   { name: "apy", label: "APY", isNumeric: true },
@@ -19,10 +19,11 @@ const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
 
 interface LoanOffersProps {
   heading: string;
+  isLoading: boolean;
   offers?: GroupedLoanOfferJson[];
 }
 
-export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
+export const LoanOffers = ({ heading, offers, isLoading }: LoanOffersProps) => {
   const wallet = useWallet();
   const modal = useWalletModal();
   const [offerModal, setOfferModal] = useState<boolean>(false);
@@ -46,6 +47,7 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
         }
         cols={OFFER_COLS}
         items={offers}
+        isLoading={isLoading}
         renderCol={(col) => {
           if (col.name === "collection") {
             return <Th key={col.name}>{col.label}</Th>;

@@ -11,7 +11,11 @@ const Offers: NextPage = () => {
 
   return (
     <LoanLayout setCollections={setCollections}>
-      <LoanOffers heading="Offers" offers={offersQuery.data} />
+      <LoanOffers
+        heading="Offers"
+        offers={offersQuery.data}
+        isLoading={offersQuery.isLoading}
+      />
     </LoanLayout>
   );
 };

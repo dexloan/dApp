@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import { LoanOfferJson, NftResult } from "../../common/types";
-import { LoanOfferPretty, LoanPretty, LoanOffer } from "../../common/model";
+import { LoanPretty, LoanOffer } from "../../common/model";
 import {
   getLoansTakenCacheKey,
   getLoanCacheKey,
@@ -20,7 +20,6 @@ import {
   getNftByOwnerCacheKey,
   fetchLoanOffers,
 } from "../query";
-import { SerializedLoanState } from "../../common/constants";
 
 export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -202,7 +201,7 @@ export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, LoanOffer>(
+  return useMutation<void, Error, LoanOfferJson>(
     async (variables) => {
       if (anchorWallet) {
         return actions.closeOffer(connection, anchorWallet, variables);

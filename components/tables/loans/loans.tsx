@@ -1,12 +1,11 @@
-import { Box, Th, Tooltip } from "@chakra-ui/react";
+import { Th } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { IoInformationCircle } from "react-icons/io5";
 
 import { LoanJson } from "../../../common/types";
-import { Col, ColumnHeader, ListingsTable } from "../../table";
+import { Col, ColumnHeader, ListingsTable, LTVHeader } from "../../table";
 import { LoanRow, LoanSortCols, LoanSortState } from "./common";
 
-const LOAN_COLS: Readonly<Col<LoanSortCols>[]> = [
+export const LOAN_COLS: Readonly<Col<LoanSortCols>[]> = [
   { name: "asset", label: "Asset" },
   { name: "duration", label: "Duration", isNumeric: true },
   { name: "apy", label: "APY", isNumeric: true },
@@ -49,22 +48,7 @@ export const LoanListings = ({
         }
 
         if (col.name === "ltv") {
-          return (
-            <Th isNumeric key={col.name}>
-              <Tooltip label="Amount relative to current floor price">
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="flex-end"
-                >
-                  {col.label}
-                  <Box as="span" ml="2">
-                    <IoInformationCircle size={12} />
-                  </Box>
-                </Box>
-              </Tooltip>
-            </Th>
-          );
+          return <LTVHeader key={col.name} />;
         }
 
         return (

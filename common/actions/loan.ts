@@ -112,23 +112,23 @@ export async function offerLoan(
 export async function closeOffer(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
-  offer: LoanOffer
+  offer: LoanOfferJson
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const escrowPaymentAccount = await query.findLoanOfferVaultAddress(
-    offer.publicKey
-  );
+  const loanOffer = new anchor.web3.PublicKey(offer.address);
+  const collection = new anchor.web3.PublicKey(offer.collectionAddress);
+  const escrowPaymentAccount = await query.findLoanOfferVaultAddress(loanOffer);
 
   const transaction = await program.methods
-    .closeLoanOffer(offer.data.id)
+    .closeLoanOffer(offer.offerId)
     .accounts({
+      loanOffer,
+      collection,
+      escrowPaymentAccount,
       signer: SIGNER,
       lender: wallet.publicKey,
-      loanOffer: offer.publicKey,
-      escrowPaymentAccount,
-      collection: offer.data.collection,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId,
     })

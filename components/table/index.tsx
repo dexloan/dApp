@@ -86,7 +86,7 @@ export const LTVHeader = () => {
 };
 
 interface NFTCellProps {
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   mint?: string;
 }
 
@@ -148,7 +148,7 @@ export const NFTCellNew = ({ subtitle, mint }: NFTCellProps) => {
 };
 
 interface NFTCellProps {
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   metadata?: Metadata;
 }
 
@@ -215,7 +215,7 @@ export const EmptyMessage = ({
 }: EmptyMessageProps) => {
   return (
     <Box w="100%" p="6" mb="6" display="flex" justifyContent="center">
-      <Text fontSize="xs" maxW="22ch">
+      <Text fontSize="xs" textAlign="center" maxW="22ch">
         {children}
       </Text>
     </Box>

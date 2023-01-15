@@ -118,37 +118,39 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
   ));
 
   return (
-    <ModalBody>
-      <CollectionDetails
-        collection={groupedOffer.Collection}
-        forecast={
-          <LoanForecast
-            amountLabel="Borrowing"
-            amount={groupedOffer.amount}
-            duration={groupedOffer.duration}
-            basisPoints={groupedOffer.basisPoints}
-            creatorBasisPoints={groupedOffer.Collection.loanBasisPoints}
-          />
-        }
-      />
-      <Box p="6">
-        <TableContainer
-          maxW="100%"
-          borderTop="1px"
-          borderColor="gray.800"
-          width="100%"
-        >
-          <Table size="sm" sx={{ tableLayout: "fixed" }}>
-            <Thead>
-              <Tr>
-                <Th>Lender</Th>
-              </Tr>
-            </Thead>
-            <Tbody>{renderedRows}</Tbody>
-          </Table>
-        </TableContainer>
-      </Box>
-    </ModalBody>
+    <>
+      <ModalBody>
+        <CollectionDetails
+          collection={groupedOffer.Collection}
+          forecast={
+            <LoanForecast
+              amountLabel="Borrowing"
+              amount={groupedOffer.amount}
+              duration={groupedOffer.duration}
+              basisPoints={groupedOffer.basisPoints}
+              creatorBasisPoints={groupedOffer.Collection.loanBasisPoints}
+            />
+          }
+        />
+        <Box p="6">
+          <TableContainer
+            maxW="100%"
+            borderTop="1px"
+            borderColor="gray.800"
+            width="100%"
+          >
+            <Table size="sm" sx={{ tableLayout: "fixed" }}>
+              <Thead>
+                <Tr>
+                  <Th>Lender</Th>
+                </Tr>
+              </Thead>
+              <Tbody>{renderedRows}</Tbody>
+            </Table>
+          </TableContainer>
+        </Box>
+      </ModalBody>
+    </>
   );
 };
 
@@ -170,7 +172,7 @@ const TakeLoanOffer = ({ offer, onRequestClose }: TakeLoanOfferProps) => {
     }
   }
 
-  const body = selected ? (
+  return selected ? (
     <>
       <ModalBody>
         <CollectionDetails
@@ -211,51 +213,12 @@ const TakeLoanOffer = ({ offer, onRequestClose }: TakeLoanOfferProps) => {
       </ModalFooter>
     </>
   ) : (
-    <SelectNftForm
-      listingType="loan"
-      collection={offer.Collection}
-      onSelect={setSelected}
-    />
-  );
-
-  return (
-    <Modal
-      isCentered
-      size={selected ? "2xl" : "4xl"}
-      isOpen={open}
-      onClose={() => {
-        if (!mutation.isLoading) {
-          onRequestClose();
-        }
-      }}
-      onCloseComplete={() => setSelected(null)}
-    >
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader fontSize="xl" fontWeight="black">
-          Take Loan
-        </ModalHeader>
-        {body}
-      </ModalContent>
-    </Modal>
-  );
-};
-
-const CloseOffer = ({ open, offer, onRequestClose }: TakeLoanModalProps) => {
-  const mutation = useCloseLoanOfferMutation(onRequestClose);
-
-  return (
-    <MutationDialog
-      header="Close Offer"
-      content="Do you wish to cancel this offer?"
-      open={open}
-      loading={mutation.isLoading}
-      onConfirm={() => {
-        if (offer) {
-          mutation.mutate(offer);
-        }
-      }}
-      onRequestClose={onRequestClose}
-    />
+    <ModalBody>
+      <SelectNftForm
+        listingType="loan"
+        collection={offer.Collection}
+        onSelect={setSelected}
+      />
+    </ModalBody>
   );
 };
