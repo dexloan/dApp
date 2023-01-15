@@ -8,6 +8,9 @@ export default async function handler(
 ) {
   const {
     lender,
+    amount,
+    duration,
+    basisPoints,
     collectionAddress,
     orderBy = "amount",
     sortOrder = "desc",
@@ -16,6 +19,10 @@ export default async function handler(
   const result = await prisma.loanOffer.findMany({
     where: {
       lender: typeof lender === "string" ? lender : undefined,
+      amount: typeof amount === "string" ? BigInt(amount) : undefined,
+      duration: typeof duration === "string" ? BigInt(duration) : undefined,
+      basisPoints:
+        typeof basisPoints === "string" ? Number(basisPoints) : undefined,
       collectionAddress: {
         in: collectionAddress,
       },

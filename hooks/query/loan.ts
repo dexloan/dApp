@@ -102,6 +102,9 @@ export function useLoansQuery({
 
 interface LoanOfferFilters extends Omit<LoanFilters, "state"> {
   lender?: string;
+  amount?: string;
+  duration?: string;
+  basisPoints?: number;
 }
 
 export const getGroupedLoanOffersCacheKey = (filters?: LoanOfferFilters) => [
@@ -145,34 +148,50 @@ export function useGroupedLoanOffersQuery(filters: LoanOfferFilters = {}) {
   );
 }
 
-export const getLoanOffersByLenderCacheKey = (filters?: LoanOfferFilters) => [
+export const getLoanOffersCacheKey = (filters?: LoanOfferFilters) => [
   "loan_offers",
   filters,
 ];
 
 export function fetchLoanOffers({
   lender,
+  amount,
+  duration,
+  basisPoints,
   collections = [],
 }: LoanOfferFilters = {}): Promise<LoanOfferJson[]> {
   const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/offers`);
+
   if (lender) {
     url.searchParams.append("lender", lender);
   }
+
   if (collections) {
     collections.forEach((address) =>
       url.searchParams.append("collectionAddress", address)
     );
   }
 
+  if (amount) {
+    url.searchParams.append("amount", amount.toString());
+  }
+
+  if (duration) {
+    url.searchParams.append("duration", duration.toString());
+  }
+
+  if (basisPoints) {
+    url.searchParams.append("basisPoints", basisPoints.toString());
+  }
+
   return fetch(url).then((res) => res.json());
 }
 
-export function useLoanOffersByLenderQuery(filters: LoanOfferFilters = {}) {
+export function useLoanOffersQuery(filters: LoanOfferFilters = {}) {
   return useQuery(
-    getLoanOffersByLenderCacheKey(filters),
+    getLoanOffersCacheKey(filters),
     () => fetchLoanOffers(filters),
     {
-      enabled: Boolean(filters.lender),
       refetchOnWindowFocus: false,
     }
   );

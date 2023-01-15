@@ -5,7 +5,7 @@ import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-toke
 
 import * as query from "../query";
 import { SIGNER } from "../constants";
-import { RentalData } from "../types";
+import { RentalData, LoanOfferJson } from "../types";
 import { LoanOffer } from "../model";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
@@ -141,17 +141,15 @@ export async function takeLoan(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  offer: LoanOffer
+  offer: LoanOfferJson
 ): Promise<void> {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
+  const loanOffer = new anchor.web3.PublicKey(offer.address);
+  const lender = new anchor.web3.PublicKey(offer.lender);
+  const collection = new anchor.web3.PublicKey(offer.collectionAddress);
   const loan = await query.findLoanAddress(mint, wallet.publicKey);
-  const loanOffer = await query.findLoanOfferAddress(
-    offer.metadata.mint,
-    offer.data.lender,
-    offer.data.id
-  );
   const loanOfferVault = await query.findLoanOfferVaultAddress(loanOffer);
   const tokenManager = await query.findTokenManagerAddress(
     mint,
@@ -163,17 +161,17 @@ export async function takeLoan(
   const [edition] = await query.findEditionAddress(mint);
 
   const transaction = await program.methods
-    .takeLoanOffer(offer.data.id)
+    .takeLoanOffer(offer.offerId)
     .accounts({
+      lender,
       loan,
       loanOffer,
       tokenManager,
+      collection,
       mint,
       metadata,
       edition,
       borrower: wallet.publicKey,
-      lender: offer.data.lender,
-      collection: offer.data.collection,
       depositTokenAccount: tokenAccount,
       escrowPaymentAccount: loanOfferVault,
       systemProgram: anchor.web3.SystemProgram.programId,

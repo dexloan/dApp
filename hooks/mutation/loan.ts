@@ -161,7 +161,7 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
 
 interface TakeLoanVariables {
   mint: anchor.web3.PublicKey;
-  offer: LoanOffer;
+  offer: LoanOfferJson;
 }
 
 export const useTakeLoanMutation = (onSuccess: () => void) => {

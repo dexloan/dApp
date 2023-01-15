@@ -86,11 +86,11 @@ export const LoanOffers = ({ heading, offers }: LoanOffersProps) => {
         open={offerModal}
         onRequestClose={() => setOfferModal(false)}
       />
-      {/* <TakeLoanModal
-        offer={offer}
+      <TakeLoanModal
+        groupedOffer={offer}
         open={Boolean(offer)}
         onRequestClose={() => setOffer(null)}
-      /> */}
+      />
     </>
   );
 };

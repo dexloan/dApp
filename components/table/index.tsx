@@ -229,7 +229,7 @@ export interface Col<SortColsTuple> {
 }
 
 interface ListingsTableProps<SortCols, ItemType> {
-  action: React.ReactNode;
+  action?: React.ReactNode;
   heading: React.ReactNode;
   placeholder: string;
   cols: Readonly<Col<SortCols>[]>;
@@ -240,7 +240,7 @@ interface ListingsTableProps<SortCols, ItemType> {
 }
 
 export const ListingsTable = <SortCols, ItemType>({
-  action,
+  action = null,
   heading,
   placeholder,
   cols,

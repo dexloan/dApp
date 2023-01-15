@@ -18,11 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 import * as utils from "../../common/utils";
-import {
-  useCollectionsQuery,
-  useFloorPricesQuery,
-  useLoanOffersByLenderQuery,
-} from "../../hooks/query";
+import { useCollectionsQuery } from "../../hooks/query";
 import { useOfferLoanMutation } from "../../hooks/mutation/loan";
 import { LoanOfferPretty } from "../../common/model";
 import {

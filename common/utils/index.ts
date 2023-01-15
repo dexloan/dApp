@@ -3,6 +3,7 @@ import * as anchor from "@project-serum/anchor";
 import dayjs from "../../common/lib/dayjs";
 
 const SECONDS_PER_YEAR = 31_536_000;
+const LATE_REPAYMENT_FEE_BASIS_POINTS = 500;
 const LAMPORTS_PER_SOL = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
 
 export function isSystemProgram(pubkey: anchor.web3.PublicKey) {
@@ -59,45 +60,51 @@ export function formatBlockTime(blockTime: number) {
   return dayjs.unix(blockTime).format("MMM D, YYYY");
 }
 
-export function calculateProRataInterestRate(
-  basisPoints: number,
-  duration: anchor.BN
+export function calculateFeeFromBasisPoints(
+  amount: bigint,
+  basisPoints: number
 ) {
-  return (basisPoints / 10_000 / SECONDS_PER_YEAR) * duration.toNumber();
+  return (BigInt(basisPoints) * amount) / BigInt(10_000);
 }
 
-const LATE_REPAYMENT_FEE_BASIS_POINTS = new anchor.BN(500);
-const BASIS_POINTS_DIVISOR = new anchor.BN(10_000);
+export function calculateLoanRepaymentFee(
+  amount: bigint,
+  basisPoints: number,
+  duration: bigint,
+  isOverdue: boolean = false
+): bigint {
+  const annualInterest = calculateFeeFromBasisPoints(amount, basisPoints);
+  let interestDue = (annualInterest * duration) / BigInt(SECONDS_PER_YEAR);
 
-export function calculateLateRepaymentFee(amount: anchor.BN) {
-  return amount.mul(LATE_REPAYMENT_FEE_BASIS_POINTS).div(BASIS_POINTS_DIVISOR);
+  if (isOverdue) {
+    interestDue =
+      interestDue +
+      calculateFeeFromBasisPoints(amount, LATE_REPAYMENT_FEE_BASIS_POINTS);
+  }
+
+  return interestDue;
 }
 
 export function calculateInterestDue(
-  amount: anchor.BN,
-  startDate: anchor.BN,
+  amount: bigint,
+  startDate: bigint,
   basisPoints: number,
   expired: boolean
-): anchor.BN {
-  const now = new anchor.BN(Date.now() / 1000);
-  const elapsed = now.sub(startDate);
-  const interestRate = calculateProRataInterestRate(basisPoints, elapsed);
-  const interestDue = new anchor.BN(amount.toNumber() * interestRate);
+): bigint {
+  const now = Math.round(Date.now() / 1000);
+  const elapsed = BigInt(now) / startDate;
 
-  return expired
-    ? interestDue.add(calculateLateRepaymentFee(amount))
-    : interestDue;
+  return calculateLoanRepaymentFee(amount, basisPoints, elapsed, expired);
 }
 
 export function formatTotalDue(
-  amount: anchor.BN,
-  startDate: anchor.BN,
+  amount: bigint,
+  startDate: bigint,
   basisPoints: number,
   expired: boolean
 ): string {
-  const total = amount.add(
-    calculateInterestDue(amount, startDate, basisPoints, expired)
-  );
+  const total =
+    amount + calculateInterestDue(amount, startDate, basisPoints, expired);
 
   return formatAmount(total);
 }
@@ -185,20 +192,20 @@ export function formatHexAmount(amount?: string): string {
   return formatted;
 }
 
-const amountCache = new Map<number, string>();
+const amountCache = new Map<string, string>();
 
-export function formatAmount(amount?: anchor.BN): string {
+export function formatAmount(amount?: bigint): string {
   if (!amount) return "";
 
-  if (amountCache.has(amount.toNumber())) {
-    return amountCache.get(amount.toNumber()) as string;
+  if (amountCache.has(amount.toString())) {
+    return amountCache.get(amount.toString()) as string;
   }
 
-  if (amount.isZero()) {
+  if (amount === BigInt(0)) {
     return "0◎";
   }
 
-  const sol = amount.toNumber() / anchor.web3.LAMPORTS_PER_SOL;
+  const sol = Number(amount) / anchor.web3.LAMPORTS_PER_SOL;
   const rounded = Math.round((sol + Number.EPSILON) * 1000) / 1000;
 
   let formatted = "~0.001◎";
@@ -207,7 +214,7 @@ export function formatAmount(amount?: anchor.BN): string {
     formatted = rounded.toFixed(3).replace(/0{1,2}$/, "") + "◎";
   }
 
-  amountCache.set(amount.toNumber(), formatted);
+  amountCache.set(amount.toString(), formatted);
 
   return formatted;
 }
@@ -236,17 +243,6 @@ export function getFloorPrice(
   if (floorPrices && symbol) {
     return floorPrices[trimNullChars(symbol).toLowerCase()];
   }
-}
-
-const titleMap = new Map();
-titleMap.set("CHKN", "Chicken Tribe");
-titleMap.set("CHKCOP", "Chicken Tribe Coops");
-titleMap.set("XAPE", "Exiled Apes");
-titleMap.set("BH", "Breadheads");
-titleMap.set("NOOT", "Pesky Penguins");
-
-export function mapSymbolToCollectionTitle(symbol: string) {
-  return titleMap.get(symbol.replace(/\x00/g, ""));
 }
 
 export function trimNullChars(str: string) {

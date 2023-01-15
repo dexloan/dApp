@@ -21,7 +21,7 @@ import {
   useLoansTakenQuery,
   useLoansGivenQuery,
   useLoanOffersQuery,
-  useLoanOffersByLenderQuery,
+  useLoanOffersQuery,
 } from "../../hooks/query";
 import { LoanListings, LoanOffers } from "../../components/tables/loans";
 import { LoanLinks } from "../../components/buttons/loan";
@@ -30,7 +30,7 @@ import { LoanState } from "@prisma/client";
 
 const YourOffers = () => {
   const anchorWallet = useAnchorWallet();
-  const offersQuery = useLoanOffersByLenderQuery(anchorWallet?.publicKey);
+  const offersQuery = useLoanOffersQuery(anchorWallet?.publicKey);
 
   return <LoanOffers heading="Your Offers" offers={offersQuery.data} />;
 };

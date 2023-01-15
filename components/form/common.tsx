@@ -59,8 +59,8 @@ export interface CallOptionFormFields {
 
 interface LoanForecastProps {
   amountLabel?: string;
-  duration?: anchor.BN;
-  amount?: anchor.BN | null;
+  duration?: string;
+  amount?: string | null;
   basisPoints?: number;
   creatorBasisPoints?: number;
 }
@@ -80,8 +80,8 @@ export const LoanForecast = ({
       duration
     ) {
       return utils.formatTotalDue(
-        amount,
-        new anchor.BN(Date.now() / 1000).sub(duration),
+        BigInt(amount),
+        BigInt(Math.round(Date.now() / 1000)) - BigInt(duration),
         basisPoints + creatorBasisPoints,
         false
       );
@@ -90,33 +90,33 @@ export const LoanForecast = ({
 
   const days = useMemo(() => {
     if (duration) {
-      return duration.toNumber() / 86_400;
+      return Number(duration) / 86_400;
     }
   }, [duration]);
 
   return (
     <Flex direction="column" gap="2" justify="space-between">
       <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="xs" color="gray.500">
+        <Text fontSize="sm" color="gray.500">
           {amountLabel}
         </Text>
-        <Text fontSize="xs" whiteSpace="nowrap">
-          {amount ? utils.formatAmount(amount) : <EllipsisProgress />}
+        <Text fontSize="sm" whiteSpace="nowrap">
+          {amount ? utils.formatAmount(BigInt(amount)) : <EllipsisProgress />}
         </Text>
       </Flex>
       <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
           Duration
         </Text>
-        <Text fontSize="xs" whiteSpace="nowrap">
+        <Text fontSize="sm" whiteSpace="nowrap">
           {days} days
         </Text>
       </Flex>
       <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
           Lender Interest Rate
         </Text>
-        <Text fontSize="xs" whiteSpace="nowrap">
+        <Text fontSize="sm" whiteSpace="nowrap">
           {typeof basisPoints === "number" ? (
             utils.formatBasisPoints(basisPoints) + " APY"
           ) : (
@@ -125,10 +125,10 @@ export const LoanForecast = ({
         </Text>
       </Flex>
       <Flex direction="row" justifyContent="space-between" w="100%">
-        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+        <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
           Creator Interest Rate
         </Text>
-        <Text fontSize="xs" whiteSpace="nowrap">
+        <Text fontSize="sm" whiteSpace="nowrap">
           {typeof creatorBasisPoints === "number" ? (
             utils.formatBasisPoints(creatorBasisPoints) + " APY"
           ) : (
@@ -136,12 +136,11 @@ export const LoanForecast = ({
           )}
         </Text>
       </Flex>
-      <Divider />
       <Flex direction="row" justifyContent="space-between" w="100%">
         <Text fontSize="sm" color="gray.500">
           Total payable on maturity
         </Text>
-        <Text fontSize="sm" whiteSpace="nowrap">
+        <Text fontSize="md" whiteSpace="nowrap" fontWeight="semibold">
           {totalDue ?? <EllipsisProgress />}
         </Text>
       </Flex>
@@ -284,19 +283,23 @@ type ListingType = "loan" | "callOption" | "rental";
 
 interface SelectNftFormProps {
   listingType: ListingType;
-  collectionMint?: anchor.web3.PublicKey;
+  collection?: CollectionJson;
   onSelect: (selected: NftResult) => void;
 }
 
 export const SelectNftForm = ({
   listingType,
-  collectionMint,
+  collection,
   onSelect,
 }: SelectNftFormProps) => {
   const wallet = useAnchorWallet();
-  // TODO pass full CollectionJson object to avoid querying here?
-  const metadataQuery = useMetadataQuery(collectionMint?.toBase58());
   const nftQuery = useNftByOwnerQuery(wallet);
+
+  const collectionMint = useMemo(() => {
+    if (collection) {
+      return new anchor.web3.PublicKey(collection.mint);
+    }
+  }, [collection]);
 
   const collections = useMemo(() => {
     const collectionMap = nftQuery.data
@@ -388,9 +391,7 @@ export const SelectNftForm = ({
         <Box mb="6">
           <Text fontSize="sm">
             {collectionMint ? (
-              <Text>
-                No NFTs in the {metadataQuery.data?.data.name} collection found.
-              </Text>
+              <Text>No NFTs in the {collection?.name} collection found.</Text>
             ) : (
               <Text>
                 You do not currently hold any NFTs approved for trading on Onda
@@ -569,7 +570,6 @@ export const CollectionDetails = ({
           <Box w="100%">
             <Box pb="4">
               <Heading size="md">{collection?.name}</Heading>
-              <VerifiedCollection size="xs" name={collection?.name} />
             </Box>
             {forecast}
           </Box>
