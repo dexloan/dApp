@@ -74,21 +74,30 @@ export default async function handler(
             )) as CollectionData;
 
             const [metadataPda] = await findMetadataAddress(data.mint);
-            const metadata = await Metadata.fromAccountAddress(
-              connection,
-              metadataPda
-            );
+
+            // Sometimes collection mints don't have metadata
+            let metadata = null;
+
+            try {
+              metadata = await Metadata.fromAccountAddress(
+                connection,
+                metadataPda
+              );
+            } catch {}
 
             const collection = {
-              name: utils.trimNullChars(metadata.data.name),
-              symbol: utils.trimNullChars(metadata.data.symbol),
-              uri: utils.trimNullChars(metadata.data.uri),
               mint: data.mint.toBase58(),
               authority: data.authority.toBase58(),
               disabled: false,
               // @ts-ignore
               ...data.config,
             };
+
+            if (metadata) {
+              collection.uri = utils.trimNullChars(metadata.data.uri);
+              collection.name = utils.trimNullChars(metadata.data.name);
+              collection.symbol = utils.trimNullChars(metadata.data.symbol);
+            }
 
             await prisma.collection.upsert({
               where: {

@@ -10,9 +10,9 @@ datasource db {
 
 model Collection {
   address           String          @id @unique
-  name              String
-  symbol            String
-  uri               String
+  name              String?
+  symbol            String?
+  uri               String?
   mint              String          @unique
   authority         String
   disabled          Boolean         @default(false)
