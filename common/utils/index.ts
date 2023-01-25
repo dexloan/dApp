@@ -257,7 +257,7 @@ export function notNull<T>(value: T | null): value is NonNullable<T> {
   return value != null;
 }
 
-export function parseBitInts(result: any) {
+export function parseBigInts(result: any) {
   return JSON.parse(
     JSON.stringify(result, (key, value) =>
       typeof value === "bigint" ? "0x" + value.toString(16) : value

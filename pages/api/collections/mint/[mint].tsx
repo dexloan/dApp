@@ -12,5 +12,5 @@ export default async function handler(
     },
   });
 
-  res.json(utils.parseBitInts(result));
+  res.json(utils.parseBigInts(result));
 }
