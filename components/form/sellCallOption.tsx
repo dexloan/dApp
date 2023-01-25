@@ -1,7 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { useState } from "react";
-import { Control, Controller, useForm, useWatch } from "react-hook-form";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Box,
   Button,
@@ -9,135 +8,148 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
-  SimpleGrid,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
 } from "@chakra-ui/react";
-import { NftResult } from "../../common/types";
-import { CallOptionBid } from "../../common/model";
+
+import * as utils from "../../common/utils";
+import {
+  NftResult,
+  GroupedCallOptionBidJson,
+  CallOptionBidJson,
+} from "../../common/types";
 import {
   useCloseCallOptionBidMutation,
   useSellCallOptionMutation,
 } from "../../hooks/mutation";
+import { useCallOptionBidsQuery } from "../../hooks/query";
+import { MutationDialog } from "../dialog";
 import {
   ModalProps,
   SelectNftForm,
   CollectionDetails,
   CallOptionDetails,
 } from "./common";
-import { MutationDialog } from "../dialog";
 
 interface SellCallOptionModalProps extends ModalProps {
-  bid: CallOptionBid | null;
+  groupedBid: GroupedCallOptionBidJson | null;
 }
 
 export const SellCallOptionModal = ({
-  bid,
+  groupedBid,
   open,
   onRequestClose,
 }: SellCallOptionModalProps) => {
-  const anchorWallet = useAnchorWallet();
+  const [selected, setSelected] = useState<CallOptionBidJson | null>(null);
 
-  if (anchorWallet) {
-    const isBuyer = bid?.isBuyer(anchorWallet);
-
-    if (isBuyer) {
-      return <CloseBid open={open} bid={bid} onRequestClose={onRequestClose} />;
+  function renderBody() {
+    if (selected) {
+      return <SellCallOption bid={selected} onRequestClose={onRequestClose} />;
     }
 
-    return (
-      <SellCallOption open={open} bid={bid} onRequestClose={onRequestClose} />
-    );
-  }
-
-  return null; // TODO connect wallet
-};
-
-const SellCallOption = ({
-  open,
-  bid,
-  onRequestClose,
-}: SellCallOptionModalProps) => {
-  const [selected, setSelected] = useState<NftResult | null>(null);
-  const mutation = useSellCallOptionMutation(onRequestClose);
-
-  function onSubmit() {
-    if (bid && selected) {
-      mutation.mutate({
-        bid,
-        mint: selected.metadata.mint,
-      });
-    }
-  }
-
-  const body = selected ? (
-    <>
-      <ModalBody>
-        <CollectionDetails
-          metadata={selected.metadata}
-          forecast={
-            <CallOptionDetails
-              amount={bid?.data.amount}
-              strikePrice={bid?.data.strikePrice}
-              expiry={bid?.data.expiry}
-            />
-          }
+    if (groupedBid) {
+      return (
+        <BidsList
+          groupedBid={groupedBid}
+          onSelect={(bid) => setSelected(bid)}
         />
-      </ModalBody>
-      <ModalFooter>
-        <SimpleGrid columns={2} spacing={2} width="100%">
-          <Box>
-            <Button
-              isFullWidth
-              disabled={mutation.isLoading}
-              onClick={() => setSelected(null)}
-            >
-              Cancel
-            </Button>
-          </Box>
-          <Box>
-            <Button
-              isFullWidth
-              variant="primary"
-              isLoading={mutation.isLoading}
-              onClick={onSubmit}
-            >
-              Confirm
-            </Button>
-          </Box>
-        </SimpleGrid>
-      </ModalFooter>
-    </>
-  ) : (
-    <SelectNftForm
-      listingType="callOption"
-      collectionMint={bid?.metadata.mint}
-      onSelect={setSelected}
-    />
-  );
+      );
+    }
+
+    return null;
+  }
 
   return (
     <Modal
       isCentered
       size={selected ? "2xl" : "4xl"}
       isOpen={open}
-      onClose={() => {
-        if (!mutation.isLoading) {
-          onRequestClose();
-        }
-      }}
+      onClose={onRequestClose}
       onCloseComplete={() => setSelected(null)}
     >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          Sell Call Option
+          Loan Offers
         </ModalHeader>
-        {body}
+        {renderBody()}
       </ModalContent>
     </Modal>
   );
 };
+
+interface BidsListProps {
+  groupedBid: GroupedCallOptionBidJson;
+  onSelect: (offer: CallOptionBidJson) => void;
+}
+
+const BidsList = ({ groupedBid, onSelect }: BidsListProps) => {
+  const wallet = useWallet();
+  const walletAddress = wallet?.publicKey?.toBase58() ?? "";
+  const offersQuery = useCallOptionBidsQuery({
+    collections: [groupedBid.Collection.address],
+    amount: groupedBid.amount ?? undefined,
+    strikePrice: groupedBid.strikePrice,
+    expiry: groupedBid.expiry,
+  });
+
+  const renderedRows = offersQuery.data?.map((item) => (
+    <Tr key={item.address}>
+      <Td>{item.buyer}</Td>
+      <Td isNumeric>
+        <Button
+          disabled={walletAddress === item.buyer}
+          onClick={() => onSelect(item)}
+        >
+          Take
+        </Button>
+      </Td>
+    </Tr>
+  ));
+
+  return (
+    <>
+      <ModalBody>
+        <CollectionDetails
+          collection={groupedBid.Collection}
+          forecast={
+            <CallOptionDetails
+              amount={BigInt(groupedBid.amount)}
+              strikePrice={BigInt(groupedBid.strikePrice)}
+              expiry={utils.hexToNumber(groupedBid.expiry)}
+              creatorBasisPoints={groupedBid.Collection.optionBasisPoints}
+            />
+          }
+        />
+        <Box p="6">
+          <TableContainer
+            maxW="100%"
+            borderTop="1px"
+            borderColor="gray.800"
+            width="100%"
+          >
+            <Table size="sm" sx={{ tableLayout: "fixed" }}>
+              <Thead>
+                <Tr>
+                  <Th>Lender</Th>
+                </Tr>
+              </Thead>
+              <Tbody>{renderedRows}</Tbody>
+            </Table>
+          </TableContainer>
+        </Box>
+      </ModalBody>
+    </>
+  );
+};
+
+const SellCallOption = ({}) => {};
 
 const CloseBid = ({ open, bid, onRequestClose }: SellCallOptionModalProps) => {
   const mutation = useCloseCallOptionBidMutation(onRequestClose);

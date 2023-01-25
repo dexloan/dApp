@@ -11,11 +11,9 @@ import toast from "react-hot-toast";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import { LoanOfferJson, NftResult } from "../../common/types";
-import { LoanPretty, LoanOffer } from "../../common/model";
+import { LoanPretty } from "../../common/model";
 import {
   getLoansTakenCacheKey,
-  getLoanCacheKey,
-  getLoansQueryKey,
   getLoansGivenCacheKey,
   getNftByOwnerCacheKey,
   fetchLoanOffers,
@@ -75,12 +73,6 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
             variables.mint,
             anchorWallet.publicKey
           );
-
-          try {
-            const loan = await query.waitForLoan(connection, loanAddress);
-
-            await queryClient.setQueryData(getLoanCacheKey(loanAddress), loan);
-          } catch {}
         }
 
         toast.success("Listing created");
@@ -130,7 +122,9 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
           collections: [variables.collection.toBase58()],
         });
         const ids = pickOfferIds(currentOffers, variables.options.count);
-        console.log(currentOffers, ids);
+        console.log("current offers: ", currentOffers);
+        console.log("next offers: ", ids);
+
         return actions.offerLoan(
           connection,
           anchorWallet,
@@ -151,7 +145,7 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
       },
       async onSuccess() {
         setTimeout(() => queryClient.invalidateQueries(["loan_offers"]), 3000);
-        toast.success("Loan offer created");
+        toast.success("Loan offer(s) created");
         onSuccess();
       },
     }

@@ -87,15 +87,15 @@ export const CallOptionBids = ({
           />
         )}
       />
-      {/* <BidCallOptionModal
+      <BidCallOptionModal
         open={bidModal}
         onRequestClose={() => setBidModal(false)}
       />
       <SellCallOptionModal
-        bid={bid}
+        groupedBid={bid}
         open={Boolean(bid)}
         onRequestClose={() => setBid(null)}
-      /> */}
+      />
     </>
   );
 };

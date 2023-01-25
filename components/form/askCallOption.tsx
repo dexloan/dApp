@@ -20,7 +20,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import dayjs from "../../common/lib/dayjs";
-import { NftResult, CollectionConfig } from "../../common/types";
+import { CollectionJson, NftResult } from "../../common/types";
 import {
   AskCallOptionMutationVariables,
   useAskCallOptionMutation,
@@ -83,15 +83,19 @@ export const AskCallOptionModal = ({
 
 export const useExpiryOptions = () => {
   return useMemo(() => {
-    const now = dayjs().tz("America/New_York");
+    const now = dayjs().tz("America/New_York", true);
 
     return Array(52)
       .fill(undefined)
       .map((_, i) =>
         now
           .startOf("week")
-          .day(5)
+          .day(6)
+          .startOf("day")
           .add(i + 1, "week")
+          .tz("America/New_York", true)
+          // Ensure hour is 0 to avoid daylight savings issues
+          .hour(0)
       )
       .filter((day) => day.isAfter(now))
       .map((day) => day.unix());
@@ -125,6 +129,7 @@ const AskCallOptionForm = ({
     },
   });
 
+  const expiryOptions = useExpiryOptions();
   const collectionQuery = useCollectionByMintQuery(
     selected?.metadata.collection?.key.toBase58()
   );
@@ -145,8 +150,6 @@ const AskCallOptionForm = ({
     }
   });
 
-  const expiryOptions = useExpiryOptions();
-
   return (
     <>
       <ModalBody>
@@ -164,13 +167,10 @@ const AskCallOptionForm = ({
             <CollectionDetails
               collection={collectionQuery.data}
               forecast={
-                // <CallOptionDetails
-                //   amount={amount}
-                //   strikePrice={strikePrice}
-                //   expiry={expiry}
-                //   creatorBasisPoints={config?.optionBasisPoints}
-                // />
-                null
+                <CallOptionDetailsController
+                  control={control}
+                  collection={collectionQuery.data}
+                />
               }
             />
             <Box pb="4" pt="6" pl="6" pr="6">
@@ -313,40 +313,23 @@ const AskCallOptionForm = ({
   );
 };
 
-// interface DetailsProps {
-//   control: Control<CallOptionFormFields>;
-//   selected: NftResult;
-// }
+interface CallOptionDetailsControllerProps {
+  control: Control<CallOptionFormFields>;
+  collection: CollectionJson;
+}
 
-// const Details = ({ control, selected }: DetailsProps) => {
-//   const fields = useWatch({ control });
-//   const amount = useMemo(
-//     () =>
-//       fields.amount
-//         ? new anchor.BN(fields.amount * anchor.web3.LAMPORTS_PER_SOL)
-//         : undefined,
-//     [fields.amount]
-//   );
-//   const strikePrice = useMemo(
-//     () =>
-//       fields.strikePrice
-//         ? new anchor.BN(fields.strikePrice * anchor.web3.LAMPORTS_PER_SOL)
-//         : undefined,
-//     [fields.strikePrice]
-//   );
-//   const expiry = useMemo(
-//     () => (fields.expiry ? new anchor.BN(fields.expiry) : undefined),
-//     [fields.expiry]
-//   );
+const CallOptionDetailsController = ({
+  control,
+  collection,
+}: CallOptionDetailsControllerProps) => {
+  const { amount, strikePrice, expiry } = useWatch({ control });
 
-//   const collectionQuery = useCollectionByMintQuery(
-//     selected?.metadata.collection?.key
-//   );
-//   const config = collectionQuery?.data?.data.config as
-//     | CollectionConfig
-//     | undefined;
-
-//   return (
-
-//   );
-// };
+  return (
+    <CallOptionDetails
+      amount={amount ? BigInt(amount) : undefined}
+      strikePrice={strikePrice ? BigInt(strikePrice) : undefined}
+      expiry={expiry}
+      creatorBasisPoints={collection.optionBasisPoints}
+    />
+  );
+};

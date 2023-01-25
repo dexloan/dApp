@@ -1,7 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { useMemo } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Box,
   Button,

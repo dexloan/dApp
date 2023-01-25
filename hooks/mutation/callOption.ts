@@ -11,14 +11,15 @@ import { CallOptionState } from "@prisma/client";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { CallOptionStateEnum, NftResult } from "../../common/types";
+import {
+  CallOptionBidJson,
+  CallOptionStateEnum,
+  NftResult,
+} from "../../common/types";
 import {
   getCallOptionCacheKey,
-  getCallOptionsCacheKey,
-  getBuyerCallOptionsQueryKey,
-  getSellerCallOptionsQueryKey,
   getNftByOwnerCacheKey,
-  getCallOptionBidsCacheKey,
+  fetchCallOptionBids,
 } from "../query";
 import {
   CallOptionBid,
@@ -30,11 +31,26 @@ export interface BidCallOptionMutationVariables {
   collection: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {
+    count: number;
     amount: number;
     strikePrice: number;
     expiry: number;
   };
-  ids: number[];
+}
+
+function pickOfferIds(offers: CallOptionBidJson[], count: number) {
+  const ids = [];
+  const existingIds = offers.map((offer) => offer.bidId);
+
+  let id = 0;
+  while (ids.length < count && id <= 255) {
+    if (!existingIds.includes(id)) {
+      ids.push(id);
+    }
+    id++;
+  }
+
+  return ids;
 }
 
 export const useBidCallOptionMutation = (onSuccess: () => void) => {
@@ -43,15 +59,23 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
   const anchorWallet = useAnchorWallet();
 
   return useMutation(
-    (variables: BidCallOptionMutationVariables) => {
+    async (variables: BidCallOptionMutationVariables) => {
       if (anchorWallet) {
+        const currentOffers = await fetchCallOptionBids({
+          buyer: anchorWallet.publicKey.toBase58(),
+          collections: [variables.collection.toBase58()],
+        });
+        const ids = pickOfferIds(currentOffers, variables.options.count);
+        console.log("current offers: ", currentOffers);
+        console.log("next offers: ", ids);
+
         return actions.bidCallOption(
           connection,
           anchorWallet,
           variables.collection,
           variables.collectionMint,
           variables.options,
-          variables.ids
+          ids
         );
       }
       throw new Error("Not ready");
@@ -63,16 +87,12 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      async onSuccess(_, variables) {
-        if (anchorWallet) {
-          queryClient.invalidateQueries(getCallOptionBidsCacheKey());
-        }
-
-        const count = variables.ids.length;
-        toast.success(
-          `${count} bid${variables.ids.length > 1 ? "s" : ""} created`
+      async onSuccess() {
+        setTimeout(
+          () => queryClient.invalidateQueries(["call_option_bids"]),
+          3000
         );
-
+        toast.success("Call option bid(s) created");
         onSuccess();
       },
     }

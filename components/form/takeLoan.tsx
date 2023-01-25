@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Box,
   Button,
@@ -17,10 +17,6 @@ import {
   Th,
   Thead,
   Tr,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
 } from "@chakra-ui/react";
 
 import * as utils from "../../common/utils";
@@ -96,6 +92,7 @@ interface OffersListProps {
 
 const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
   const wallet = useWallet();
+  const walletAddress = wallet?.publicKey?.toBase58() ?? "";
   const offersQuery = useLoanOffersQuery({
     collections: [groupedOffer.Collection.address],
     amount: groupedOffer.amount ?? undefined,
@@ -108,7 +105,7 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
       <Td>{item.lender}</Td>
       <Td isNumeric>
         <Button
-          disabled={wallet.publicKey?.toBase58() === item.lender}
+          disabled={walletAddress === item.lender}
           onClick={() => onSelect(item)}
         >
           Take

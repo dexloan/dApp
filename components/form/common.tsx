@@ -149,9 +149,9 @@ export const LoanForecast = ({
 };
 
 interface CallOptionDetailsProps {
-  amount?: anchor.BN;
-  strikePrice?: anchor.BN;
-  expiry?: anchor.BN;
+  amount?: bigint;
+  strikePrice?: bigint;
+  expiry?: number;
   creatorBasisPoints?: number;
 }
 
@@ -185,7 +185,7 @@ export const CallOptionDetails = ({
         </Text>
         <Text fontSize="sm" whiteSpace="nowrap">
           {expiry ? (
-            dayjs.unix(expiry.toNumber()).format("DD/MM/YYYY")
+            dayjs.unix(expiry)).format("LLL")
           ) : (
             <EllipsisProgress />
           )}

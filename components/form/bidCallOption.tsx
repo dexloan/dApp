@@ -1,7 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Box,
   Button,
@@ -21,12 +19,8 @@ import {
 import { IoCalendar } from "react-icons/io5";
 
 import dayjs from "../../common/lib/dayjs";
-import {
-  useCollectionsQuery,
-  useCallOptionBidsByBuyerQuery,
-} from "../../hooks/query";
+import { useCollectionsQuery } from "../../hooks/query";
 import { useBidCallOptionMutation } from "../../hooks/mutation";
-import { Collection, CallOptionBidPretty } from "../../common/model";
 import { CallOptionFormFields, ModalProps, SliderField } from "./common";
 import { useExpiryOptions } from "./askCallOption";
 
@@ -54,33 +48,29 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
   });
 
   const expiryOptions = useExpiryOptions();
-
-  const wallet = useWallet();
-
+  const collectionsQuery = useCollectionsQuery();
   const mutation = useBidCallOptionMutation(() => onRequestClose());
 
   const onSubmit = handleSubmit((data) => {
-    const collection = collections.find(
-      (c) => data.collection === c.publicKey.toBase58()
-    );
+    if (collectionsQuery.data) {
+      const collection = collectionsQuery.data.find(
+        (c) => data.collection === c.address
+      );
 
-    if (collection?.metadata?.data.symbol) {
-      const ids = bidsQuery.data?.length
-        ? pickIds(bidsQuery.data, data.offers)
-        : [0];
+      if (collection) {
+        const options = {
+          count: data.offers,
+          amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
+          strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
+          expiry: data.expiry,
+        };
 
-      const options = {
-        amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
-        strikePrice: data.strikePrice * anchor.web3.LAMPORTS_PER_SOL,
-        expiry: data.expiry,
-      };
-
-      mutation.mutate({
-        ids,
-        options,
-        collectionMint: collection.metadata.mint,
-        collection: collection.publicKey,
-      });
+        mutation.mutate({
+          options,
+          collectionMint: new anchor.web3.PublicKey(collection.mint),
+          collection: new anchor.web3.PublicKey(collection.address),
+        });
+      }
     }
   });
 
@@ -101,7 +91,7 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
           Bid Call Option
         </ModalHeader>
         <ModalBody>
-          {bidsQuery.data === undefined ? (
+          {collectionsQuery.data === undefined ? (
             <Spinner colorScheme="onda" size="sm" thickness="4px" />
           ) : (
             <Box pb="4" pt="6" pl="6" pr="6">
@@ -126,12 +116,12 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
                             value={value}
                             onChange={onChange}
                           >
-                            {collections.map((collection) => (
+                            {collectionsQuery.data.map((collection) => (
                               <option
-                                key={collection.publicKey.toBase58()}
-                                value={collection.publicKey.toBase58()}
+                                key={collection.address}
+                                value={collection.address}
                               >
-                                {collection.metadata.data.name}
+                                {collection.name}
                               </option>
                             ))}
                           </Select>
@@ -221,14 +211,16 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
                             value={value}
                             onChange={onChange}
                           >
-                            {expiryOptions.map((unix) => (
-                              <option key={unix.toString()} value={unix}>
-                                {dayjs
-                                  .unix(unix)
-                                  .tz("America/New_York")
-                                  .format("DD/MM/YYYY")}
-                              </option>
-                            ))}
+                            {expiryOptions.map((unix) => {
+                              return (
+                                <option key={unix.toString()} value={unix}>
+                                  {dayjs
+                                    .unix(unix)
+                                    .tz("America/New_York")
+                                    .format("LLL")}
+                                </option>
+                              );
+                            })}
                           </Select>
                           <FormHelperText>
                             The date the call option is valid until
@@ -257,7 +249,7 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
           <Button
             isFullWidth
             variant="primary"
-            disabled={bidsQuery.isLoading}
+            disabled={collectionsQuery.isLoading}
             isLoading={mutation.isLoading}
             onClick={onSubmit}
           >
@@ -268,18 +260,3 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
     </Modal>
   );
 };
-
-function pickIds(bids: CallOptionBidPretty[], count: number) {
-  const ids = [];
-  const existingIds = bids.map((o) => o.data.id);
-
-  let id = 0;
-  while (ids.length < count && id <= 255) {
-    if (!existingIds.includes(id)) {
-      ids.push(id);
-    }
-    id++;
-  }
-
-  return ids;
-}
