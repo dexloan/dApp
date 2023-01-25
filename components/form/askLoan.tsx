@@ -167,7 +167,7 @@ const AskLoanForm = ({
         ) : (
           <>
             <CollectionDetails
-              metadata={selected.metadata}
+              collection={collectionQuery.data}
               forecast={
                 floorPrice ? (
                   <AskListingForecast

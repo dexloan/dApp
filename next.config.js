@@ -10,6 +10,7 @@ const nextConfig = {
       "www.arweave.net",
       "chickentribe.s3.us-west-2.amazonaws.com",
       "bears-reloaded.web.app",
+      "mnde-nft-api.mainnet-beta.marinade.finance",
     ],
   },
   reactStrictMode: true,

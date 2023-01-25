@@ -8,7 +8,7 @@ import { IoAdd } from "react-icons/io5";
 import { useCallOptionsQuery } from "../../hooks/query";
 import { CallOptionListings } from "../../components/tables/callOptions";
 import { useCallOptionSortState } from "../../components/tables";
-import { AskLoanModal } from "../../components/form";
+import { AskCallOptionModal } from "../../components/form";
 import { CallOptionLayout } from "../../components/layout";
 
 const CallOptions: NextPage = () => {
@@ -43,6 +43,10 @@ const CallOptions: NextPage = () => {
           isLoading={callOptionsQuery.isLoading}
         />
       </CallOptionLayout>
+      <AskCallOptionModal
+        open={callOptionModal}
+        onRequestClose={() => setCallOptionModal(false)}
+      />
     </>
   );
 };

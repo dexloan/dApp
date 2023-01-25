@@ -1,4 +1,3 @@
-import * as anchor from "@project-serum/anchor";
 import { useCallback, useState } from "react";
 import { Text, Tr, Td } from "@chakra-ui/react";
 

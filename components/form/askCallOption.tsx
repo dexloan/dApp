@@ -15,6 +15,7 @@ import {
   ModalBody,
   SimpleGrid,
   Select,
+  Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -82,18 +83,18 @@ export const AskCallOptionModal = ({
 
 export const useExpiryOptions = () => {
   return useMemo(() => {
-    return Array(24)
+    const now = dayjs().tz("America/New_York");
+
+    return Array(52)
       .fill(undefined)
       .map((_, i) =>
-        dayjs()
-          .tz("America/New_York")
-          .startOf("month")
-          .add(i + 1, "month")
-          .startOf("month")
-          .day(6)
-          .add(2, "week")
-          .unix()
-      );
+        now
+          .startOf("week")
+          .day(5)
+          .add(i + 1, "week")
+      )
+      .filter((day) => day.isAfter(now))
+      .map((day) => day.unix());
   }, []);
 };
 
@@ -124,6 +125,10 @@ const AskCallOptionForm = ({
     },
   });
 
+  const collectionQuery = useCollectionByMintQuery(
+    selected?.metadata.collection?.key.toBase58()
+  );
+
   const onSubmit = handleSubmit((data) => {
     const options = {
       amount: data.amount * anchor.web3.LAMPORTS_PER_SOL,
@@ -145,108 +150,134 @@ const AskCallOptionForm = ({
   return (
     <>
       <ModalBody>
-        <Details selected={selected} control={control} />
-        <Box pb="4" pt="6" pl="6" pr="6">
-          <form onSubmit={onSubmit}>
-            <FormControl isInvalid={!isValid}>
-              <Box pb="6">
-                <Controller
-                  name="amount"
-                  control={control}
-                  rules={{
-                    required: true,
-                    validate: (value) => {
-                      return !isNaN(value);
-                    },
-                  }}
-                  render={({
-                    field: { value, onChange },
-                    fieldState: { error },
-                  }) => (
-                    <FormControl isInvalid={Boolean(error)}>
-                      <FormLabel htmlFor="cost">Cost</FormLabel>
-                      <Input
-                        name="cost"
-                        placeholder="0.00◎"
-                        value={value}
-                        onChange={onChange}
-                      />
-                      <FormHelperText>
-                        The cost of the call option
-                      </FormHelperText>
-                    </FormControl>
-                  )}
-                />
-              </Box>
+        {!collectionQuery.data ? (
+          <Box
+            display="flex"
+            flex={1}
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Spinner size="sm" thickness="4px" />
+          </Box>
+        ) : (
+          <>
+            <CollectionDetails
+              collection={collectionQuery.data}
+              forecast={
+                // <CallOptionDetails
+                //   amount={amount}
+                //   strikePrice={strikePrice}
+                //   expiry={expiry}
+                //   creatorBasisPoints={config?.optionBasisPoints}
+                // />
+                null
+              }
+            />
+            <Box pb="4" pt="6" pl="6" pr="6">
+              <form onSubmit={onSubmit}>
+                <FormControl isInvalid={!isValid}>
+                  <Box pb="6">
+                    <Controller
+                      name="amount"
+                      control={control}
+                      rules={{
+                        required: true,
+                        validate: (value) => {
+                          return !isNaN(value);
+                        },
+                      }}
+                      render={({
+                        field: { value, onChange },
+                        fieldState: { error },
+                      }) => (
+                        <FormControl isInvalid={Boolean(error)}>
+                          <FormLabel htmlFor="cost">Cost</FormLabel>
+                          <Input
+                            name="cost"
+                            placeholder="0.00◎"
+                            value={value}
+                            onChange={onChange}
+                          />
+                          <FormHelperText>
+                            The cost of the call option
+                          </FormHelperText>
+                        </FormControl>
+                      )}
+                    />
+                  </Box>
 
-              <Box pb="6">
-                <Controller
-                  name="strikePrice"
-                  control={control}
-                  rules={{
-                    required: true,
-                    validate: (value) => {
-                      return !isNaN(value);
-                    },
-                  }}
-                  render={({
-                    field: { value, onChange },
-                    fieldState: { error },
-                  }) => (
-                    <FormControl isInvalid={Boolean(error)}>
-                      <FormLabel htmlFor="strike_price">Strike Price</FormLabel>
-                      <Input
-                        name="strike_price"
-                        placeholder="0.00◎"
-                        value={value}
-                        onChange={onChange}
-                      />
-                      <FormHelperText>
-                        The price at which the NFT can be bought
-                      </FormHelperText>
-                    </FormControl>
-                  )}
-                />
-              </Box>
+                  <Box pb="6">
+                    <Controller
+                      name="strikePrice"
+                      control={control}
+                      rules={{
+                        required: true,
+                        validate: (value) => {
+                          return !isNaN(value);
+                        },
+                      }}
+                      render={({
+                        field: { value, onChange },
+                        fieldState: { error },
+                      }) => (
+                        <FormControl isInvalid={Boolean(error)}>
+                          <FormLabel htmlFor="strike_price">
+                            Strike Price
+                          </FormLabel>
+                          <Input
+                            name="strike_price"
+                            placeholder="0.00◎"
+                            value={value}
+                            onChange={onChange}
+                          />
+                          <FormHelperText>
+                            The price at which the NFT can be bought
+                          </FormHelperText>
+                        </FormControl>
+                      )}
+                    />
+                  </Box>
 
-              <Box pb="6">
-                <Controller
-                  name="expiry"
-                  control={control}
-                  rules={{
-                    required: true,
-                  }}
-                  render={({
-                    field: { value, onChange },
-                    fieldState: { error },
-                  }) => (
-                    <FormControl isInvalid={Boolean(error)}>
-                      <FormLabel htmlFor="expiry">Expiry</FormLabel>
-                      <Select
-                        name="expiry"
-                        placeholder="Select expiry"
-                        value={value}
-                        onChange={onChange}
-                      >
-                        {expiryOptions.map((unix) => (
-                          <option key={unix.toString()} value={unix}>
-                            {dayjs
-                              .unix(unix)
-                              .tz("America/New_York")
-                              .format("DD/MM/YYYY")}
-                          </option>
-                        ))}
-                      </Select>
-                      <FormHelperText>
-                        The date the call option is valid until
-                      </FormHelperText>
-                    </FormControl>
-                  )}
-                />
-              </Box>
-            </FormControl>
-          </form>
-        </Box>
+                  <Box pb="6">
+                    <Controller
+                      name="expiry"
+                      control={control}
+                      rules={{
+                        required: true,
+                      }}
+                      render={({
+                        field: { value, onChange },
+                        fieldState: { error },
+                      }) => (
+                        <FormControl isInvalid={Boolean(error)}>
+                          <FormLabel htmlFor="expiry">Expiry</FormLabel>
+                          <Select
+                            name="expiry"
+                            placeholder="Select expiry"
+                            value={value}
+                            onChange={onChange}
+                          >
+                            {expiryOptions.map((unix) => (
+                              <option key={unix.toString()} value={unix}>
+                                {dayjs
+                                  .unix(unix)
+                                  .tz("America/New_York")
+                                  .format("DD/MM/YYYY")}
+                              </option>
+                            ))}
+                          </Select>
+                          <FormHelperText>
+                            The date the call option is valid until
+                          </FormHelperText>
+                        </FormControl>
+                      )}
+                    />
+                  </Box>
+                </FormControl>
+              </form>
+            </Box>
+          </>
+        )}
       </ModalBody>
       <ModalFooter>
         {onCancel ? (
@@ -282,50 +313,40 @@ const AskCallOptionForm = ({
   );
 };
 
-interface DetailsProps {
-  control: Control<CallOptionFormFields>;
-  selected: NftResult;
-}
+// interface DetailsProps {
+//   control: Control<CallOptionFormFields>;
+//   selected: NftResult;
+// }
 
-const Details = ({ control, selected }: DetailsProps) => {
-  const fields = useWatch({ control });
-  const amount = useMemo(
-    () =>
-      fields.amount
-        ? new anchor.BN(fields.amount * anchor.web3.LAMPORTS_PER_SOL)
-        : undefined,
-    [fields.amount]
-  );
-  const strikePrice = useMemo(
-    () =>
-      fields.strikePrice
-        ? new anchor.BN(fields.strikePrice * anchor.web3.LAMPORTS_PER_SOL)
-        : undefined,
-    [fields.strikePrice]
-  );
-  const expiry = useMemo(
-    () => (fields.expiry ? new anchor.BN(fields.expiry) : undefined),
-    [fields.expiry]
-  );
+// const Details = ({ control, selected }: DetailsProps) => {
+//   const fields = useWatch({ control });
+//   const amount = useMemo(
+//     () =>
+//       fields.amount
+//         ? new anchor.BN(fields.amount * anchor.web3.LAMPORTS_PER_SOL)
+//         : undefined,
+//     [fields.amount]
+//   );
+//   const strikePrice = useMemo(
+//     () =>
+//       fields.strikePrice
+//         ? new anchor.BN(fields.strikePrice * anchor.web3.LAMPORTS_PER_SOL)
+//         : undefined,
+//     [fields.strikePrice]
+//   );
+//   const expiry = useMemo(
+//     () => (fields.expiry ? new anchor.BN(fields.expiry) : undefined),
+//     [fields.expiry]
+//   );
 
-  const collectionQuery = useCollectionByMintQuery(
-    selected?.metadata.collection?.key
-  );
-  const config = collectionQuery?.data?.data.config as
-    | CollectionConfig
-    | undefined;
+//   const collectionQuery = useCollectionByMintQuery(
+//     selected?.metadata.collection?.key
+//   );
+//   const config = collectionQuery?.data?.data.config as
+//     | CollectionConfig
+//     | undefined;
 
-  return (
-    <CollectionDetails
-      metadata={selected.metadata}
-      forecast={
-        <CallOptionDetails
-          amount={amount}
-          strikePrice={strikePrice}
-          expiry={expiry}
-          creatorBasisPoints={config?.optionBasisPoints}
-        />
-      }
-    />
-  );
-};
+//   return (
+
+//   );
+// };
