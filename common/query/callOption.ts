@@ -14,10 +14,10 @@ import {
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,
-  borrower: anchor.web3.PublicKey
+  seller: anchor.web3.PublicKey
 ): Promise<anchor.web3.PublicKey> {
   const [callOptionAddress] = await anchor.web3.PublicKey.findProgramAddress(
-    [Buffer.from("call_option"), mint.toBuffer(), borrower.toBuffer()],
+    [Buffer.from("call_option"), mint.toBuffer(), seller.toBuffer()],
     LISTINGS_PROGRAM_ID
   );
 

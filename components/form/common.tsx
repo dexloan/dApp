@@ -184,11 +184,7 @@ export const CallOptionDetails = ({
           Expires
         </Text>
         <Text fontSize="sm" whiteSpace="nowrap">
-          {expiry ? (
-            dayjs.unix(expiry)).format("LLL")
-          ) : (
-            <EllipsisProgress />
-          )}
+          {expiry ? dayjs.unix(expiry).format("LLL") : <EllipsisProgress />}
         </Text>
       </Flex>
       <Tooltip label="Creator's split of the option cost">
@@ -523,17 +519,15 @@ const SectionHeader = ({
   </Box>
 );
 
-interface CollectionDetailsProps {
-  collection?: CollectionJson;
-  forecast: React.ReactNode;
+interface MintDetailsProps {
+  name?: string;
+  uri?: string;
+  info: React.ReactNode;
 }
 
-export const CollectionDetails = ({
-  collection,
-  forecast,
-}: CollectionDetailsProps) => {
+export const MintDetails = ({ name, uri, info }: MintDetailsProps) => {
   const [isVisible, setVisible] = useState(false);
-  const metadataQuery = useMetadataFileQuery(collection?.uri);
+  const metadataQuery = useMetadataFileQuery(uri);
 
   return (
     <Box pb="4" pt="2" px="6">
@@ -558,7 +552,7 @@ export const CollectionDetails = ({
                     layout="fill"
                     objectFit="cover"
                     src={metadataQuery.data?.image}
-                    alt={collection?.name}
+                    alt={name}
                     onLoad={() => setVisible(true)}
                   />
                 )}
@@ -569,9 +563,9 @@ export const CollectionDetails = ({
         <Flex flex={3} flexGrow={1}>
           <Box w="100%">
             <Box pb="4">
-              <Heading size="md">{collection?.name}</Heading>
+              <Heading size="md">{name}</Heading>
             </Box>
-            {forecast}
+            {info}
           </Box>
         </Flex>
       </Flex>

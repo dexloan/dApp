@@ -4,20 +4,13 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
-import { LoanState } from "@prisma/client";
-import { QueryClient, useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import { LoanOfferJson, NftResult } from "../../common/types";
-import { LoanPretty } from "../../common/model";
-import {
-  getLoansTakenCacheKey,
-  getLoansGivenCacheKey,
-  getNftByOwnerCacheKey,
-  fetchLoanOffers,
-} from "../query";
+import { getNftByOwnerCacheKey, fetchLoanOffers } from "../query";
 
 export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -237,44 +230,13 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        queryClient.setQueryData<LoanPretty[] | undefined>(
-          getLoansQueryKey(),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.data.mint !== variables.mint.toBase58()
-              );
-            }
-          }
-        );
-
-        queryClient.invalidateQueries(
-          getLoansGivenCacheKey(anchorWallet?.publicKey)
-        );
-
-        const loanAddress = await query.findLoanAddress(
+        const loadPda = await query.findLoanAddress(
           variables.mint,
           variables.borrower
         );
-
-        queryClient.setQueryData<LoanPretty | undefined>(
-          getLoanCacheKey(loanAddress),
-          (item) => {
-            if (item) {
-              return {
-                ...item,
-                data: {
-                  ...item.data,
-                  state: LoanState.Active,
-                  startDate: new anchor.BN(Date.now() / 1000).toNumber(),
-                },
-              };
-            }
-          }
-        );
-
-        toast.success("Loan created");
-
+        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
+        await queryClient.invalidateQueries(["loans"]);
+        toast.success("Loan given");
         onSuccess();
       },
       onError(err) {
@@ -318,37 +280,13 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        queryClient.setQueryData<LoanPretty[] | undefined>(
-          getLoansTakenCacheKey(anchorWallet?.publicKey),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.data.mint !== variables.mint.toBase58()
-              );
-            }
-          }
-        );
-
-        queryClient.setQueryData<LoanPretty[] | undefined>(
-          getLoansQueryKey(),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.data.mint !== variables.mint.toBase58()
-              );
-            }
-          }
-        );
-
-        const loanAddress = await query.findLoanAddress(
+        const loadPda = await query.findLoanAddress(
           variables.mint,
           variables.borrower
         );
-
-        setLoanState(queryClient, loanAddress, LoanState.Cancelled);
-
+        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
+        await queryClient.invalidateQueries(["loans"]);
         toast.success("Loan closed");
-
         onSuccess();
       },
       onError(err) {
@@ -399,34 +337,13 @@ export const useRepossessMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        toast.success("NFT repossessed.");
-
-        queryClient.setQueryData(
-          getLoansGivenCacheKey(anchorWallet?.publicKey),
-          (loans: LoanPretty[] | undefined) => {
-            if (!loans) return [];
-
-            return loans.filter(
-              (loan) => loan.data.mint !== variables.mint.toBase58()
-            );
-          }
-        );
-
-        setTimeout(
-          () =>
-            queryClient.invalidateQueries(
-              getLoansGivenCacheKey(anchorWallet?.publicKey)
-            ),
-          500
-        );
-
-        const loanAddress = await query.findLoanAddress(
+        const loadPda = await query.findLoanAddress(
           variables.mint,
           variables.borrower
         );
-
-        setLoanState(queryClient, loanAddress, LoanState.Defaulted);
-
+        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
+        await queryClient.invalidateQueries(["loans"]);
+        toast.success("NFT repossessed.");
         onSuccess();
       },
     }
@@ -472,49 +389,15 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        toast.success("Loan repaid. Your NFT has been unlocked.");
-
-        queryClient.setQueryData(
-          getLoansTakenCacheKey(anchorWallet?.publicKey),
-          (borrowings: LoanPretty[] | undefined) => {
-            if (!borrowings) return [];
-
-            return borrowings.filter(
-              (borrowing) => borrowing.data.mint !== variables.mint.toBase58()
-            );
-          }
-        );
-
-        const loanAddress = await query.findLoanAddress(
+        const loadPda = await query.findLoanAddress(
           variables.mint,
           variables.borrower
         );
-
-        setLoanState(queryClient, loanAddress, LoanState.Repaid);
-
+        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
+        await queryClient.invalidateQueries(["loans"]);
+        toast.success("Loan repaid. Your NFT has been unlocked.");
         onSuccess();
       },
     }
   );
 };
-
-function setLoanState(
-  queryClient: QueryClient,
-  loan: anchor.web3.PublicKey,
-  state: LoanState
-) {
-  queryClient.setQueryData<LoanPretty | undefined>(
-    getLoanCacheKey(loan),
-    (item) => {
-      if (item) {
-        return {
-          ...item,
-          data: {
-            ...item.data,
-            state,
-          },
-        };
-      }
-    }
-  );
-}

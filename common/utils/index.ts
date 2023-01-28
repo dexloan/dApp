@@ -257,6 +257,10 @@ export function notNull<T>(value: T | null): value is NonNullable<T> {
   return value != null;
 }
 
+export function toHexString(value: bigint | number): string {
+  return "0x" + value.toString(16);
+}
+
 export function parseBigInts(result: any) {
   return JSON.parse(
     JSON.stringify(result, (key, value) =>

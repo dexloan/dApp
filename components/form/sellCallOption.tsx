@@ -1,4 +1,3 @@
-import * as anchor from "@project-serum/anchor";
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -9,6 +8,8 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
+  ModalFooter,
+  SimpleGrid,
   Table,
   TableContainer,
   Tbody,
@@ -16,6 +17,7 @@ import {
   Th,
   Thead,
   Tr,
+  Spinner,
 } from "@chakra-ui/react";
 
 import * as utils from "../../common/utils";
@@ -33,7 +35,7 @@ import { MutationDialog } from "../dialog";
 import {
   ModalProps,
   SelectNftForm,
-  CollectionDetails,
+  MintDetails,
   CallOptionDetails,
 } from "./common";
 
@@ -46,18 +48,28 @@ export const SellCallOptionModal = ({
   open,
   onRequestClose,
 }: SellCallOptionModalProps) => {
-  const [selected, setSelected] = useState<CallOptionBidJson | null>(null);
+  const [selected, setSelected] = useState<NftResult | null>(null);
+  const [selectedBid, setSelectedBid] = useState<CallOptionBidJson | null>(
+    null
+  );
 
   function renderBody() {
-    if (selected) {
-      return <SellCallOption bid={selected} onRequestClose={onRequestClose} />;
+    if (selectedBid) {
+      return (
+        <SellCallOption
+          bid={selectedBid}
+          selected={selected}
+          onSelect={setSelected}
+          onRequestClose={onRequestClose}
+        />
+      );
     }
 
     if (groupedBid) {
       return (
         <BidsList
           groupedBid={groupedBid}
-          onSelect={(bid) => setSelected(bid)}
+          onSelect={(bid) => setSelectedBid(bid)}
         />
       );
     }
@@ -65,10 +77,30 @@ export const SellCallOptionModal = ({
     return null;
   }
 
+  function getModalSize() {
+    if (selected) {
+      return "2xl";
+    }
+
+    return "4xl";
+  }
+
+  function renderHeader() {
+    if (selected) {
+      return "Confirm sell call option";
+    }
+
+    if (selectedBid) {
+      return "Select an NFT to sell";
+    }
+
+    return "Select a buyer";
+  }
+
   return (
     <Modal
       isCentered
-      size={selected ? "2xl" : "4xl"}
+      size={getModalSize()}
       isOpen={open}
       onClose={onRequestClose}
       onCloseComplete={() => setSelected(null)}
@@ -76,7 +108,7 @@ export const SellCallOptionModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          Loan Offers
+          {renderHeader()}
         </ModalHeader>
         {renderBody()}
       </ModalContent>
@@ -107,7 +139,7 @@ const BidsList = ({ groupedBid, onSelect }: BidsListProps) => {
           disabled={walletAddress === item.buyer}
           onClick={() => onSelect(item)}
         >
-          Take
+          Sell
         </Button>
       </Td>
     </Tr>
@@ -116,9 +148,10 @@ const BidsList = ({ groupedBid, onSelect }: BidsListProps) => {
   return (
     <>
       <ModalBody>
-        <CollectionDetails
-          collection={groupedBid.Collection}
-          forecast={
+        <MintDetails
+          name={groupedBid.Collection.name ?? undefined}
+          uri={groupedBid.Collection.uri ?? undefined}
+          info={
             <CallOptionDetails
               amount={BigInt(groupedBid.amount)}
               strikePrice={BigInt(groupedBid.strikePrice)}
@@ -128,30 +161,113 @@ const BidsList = ({ groupedBid, onSelect }: BidsListProps) => {
           }
         />
         <Box p="6">
-          <TableContainer
-            maxW="100%"
-            borderTop="1px"
-            borderColor="gray.800"
-            width="100%"
-          >
-            <Table size="sm" sx={{ tableLayout: "fixed" }}>
-              <Thead>
-                <Tr>
-                  <Th>Lender</Th>
-                </Tr>
-              </Thead>
-              <Tbody>{renderedRows}</Tbody>
-            </Table>
-          </TableContainer>
+          {offersQuery.isLoading ? (
+            <Box display="flex" w="100%" p="6" justifyContent="center">
+              <Spinner size="sm" />
+            </Box>
+          ) : (
+            <TableContainer
+              maxW="100%"
+              borderTop="1px"
+              borderColor="gray.800"
+              width="100%"
+            >
+              <Table size="sm" sx={{ tableLayout: "fixed" }}>
+                <Thead>
+                  <Tr>
+                    <Th>Buyer</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>{renderedRows}</Tbody>
+              </Table>
+            </TableContainer>
+          )}
         </Box>
       </ModalBody>
     </>
   );
 };
 
-const SellCallOption = ({}) => {};
+interface SellCallOptionProps {
+  bid: CallOptionBidJson;
+  selected: NftResult | null;
+  onSelect: (nft: NftResult | null) => void;
+  onRequestClose: () => void;
+}
 
-const CloseBid = ({ open, bid, onRequestClose }: SellCallOptionModalProps) => {
+const SellCallOption = ({
+  bid,
+  selected,
+  onSelect,
+  onRequestClose,
+}: SellCallOptionProps) => {
+  const mutation = useSellCallOptionMutation(onRequestClose);
+
+  function onSubmit() {
+    if (bid && selected) {
+      mutation.mutate({
+        bid,
+        mint: selected.metadata.mint,
+      });
+    }
+  }
+
+  return selected ? (
+    <>
+      <ModalBody>
+        <MintDetails
+          name={selected?.metadata.data.name}
+          uri={selected.metadata.data.uri}
+          info={
+            <CallOptionDetails
+              amount={BigInt(bid.amount)}
+              strikePrice={BigInt(bid.strikePrice)}
+              expiry={utils.hexToNumber(bid.expiry)}
+              creatorBasisPoints={bid.Collection.optionBasisPoints}
+            />
+          }
+        />
+      </ModalBody>
+      <ModalFooter>
+        <SimpleGrid columns={2} spacing={2} width="100%">
+          <Box>
+            <Button
+              isFullWidth
+              disabled={mutation.isLoading}
+              onClick={() => onSelect(null)}
+            >
+              Cancel
+            </Button>
+          </Box>
+          <Box>
+            <Button
+              isFullWidth
+              variant="primary"
+              isLoading={mutation.isLoading}
+              onClick={onSubmit}
+            >
+              Confirm
+            </Button>
+          </Box>
+        </SimpleGrid>
+      </ModalFooter>
+    </>
+  ) : (
+    <ModalBody>
+      <SelectNftForm
+        listingType="callOption"
+        collection={bid.Collection}
+        onSelect={onSelect}
+      />
+    </ModalBody>
+  );
+};
+
+interface CloseBidProps extends ModalProps {
+  bid: CallOptionBidJson;
+}
+
+const CloseBid = ({ open, bid, onRequestClose }: CloseBidProps) => {
   const mutation = useCloseCallOptionBidMutation(onRequestClose);
 
   return (

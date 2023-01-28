@@ -31,12 +31,7 @@ import {
   useTakeLoanMutation,
 } from "../../hooks/mutation/loan";
 import { MutationDialog } from "../dialog";
-import {
-  ModalProps,
-  SelectNftForm,
-  CollectionDetails,
-  LoanForecast,
-} from "./common";
+import { ModalProps, SelectNftForm, MintDetails, LoanForecast } from "./common";
 
 interface TakeLoanModalProps extends ModalProps {
   groupedOffer: GroupedLoanOfferJson | null;
@@ -117,9 +112,10 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
   return (
     <>
       <ModalBody>
-        <CollectionDetails
-          collection={groupedOffer.Collection}
-          forecast={
+        <MintDetails
+          name={groupedOffer.Collection.name ?? undefined}
+          uri={groupedOffer.Collection.uri ?? undefined}
+          info={
             <LoanForecast
               amountLabel="Borrowing"
               amount={groupedOffer.amount}
@@ -172,9 +168,10 @@ const TakeLoanOffer = ({ offer, onRequestClose }: TakeLoanOfferProps) => {
   return selected ? (
     <>
       <ModalBody>
-        <CollectionDetails
-          collection={offer.Collection}
-          forecast={
+        <MintDetails
+          name={selected.metadata.data.name}
+          uri={selected.metadata.data.uri}
+          info={
             <LoanForecast
               amountLabel="Borrowing"
               amount={offer.amount}

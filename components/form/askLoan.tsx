@@ -31,7 +31,7 @@ import {
   ModalProps,
   SliderField,
   SelectNftForm,
-  CollectionDetails,
+  MintDetails,
 } from "./common";
 
 const defaultValues = {
@@ -166,9 +166,10 @@ const AskLoanForm = ({
           </Box>
         ) : (
           <>
-            <CollectionDetails
-              collection={collectionQuery.data}
-              forecast={
+            <MintDetails
+              name={selected.metadata.data.name}
+              uri={selected.metadata.data.uri}
+              info={
                 floorPrice ? (
                   <AskListingForecast
                     control={control}
@@ -272,8 +273,8 @@ const AskListingForecast = ({
 
   if (!ltv || !apy || !duration) return null;
 
-  const amount = new anchor.BN((ltv / 100) * floorPrice);
-  const durationSeconds = new anchor.BN(duration * 86_400);
+  const amount = utils.toHexString((ltv / 100) * floorPrice);
+  const durationSeconds = utils.toHexString(duration * 86_400);
   const basisPoints = apy * 100;
 
   return (

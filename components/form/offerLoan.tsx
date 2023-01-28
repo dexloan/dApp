@@ -25,7 +25,7 @@ import {
   ModalProps,
   SliderField,
   LoanForecast,
-  CollectionDetails,
+  MintDetails,
 } from "./common";
 import { CollectionJson } from "../../common/types";
 
@@ -108,9 +108,10 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
                   );
 
                   return (
-                    <CollectionDetails
-                      collection={selectedCollection}
-                      forecast={
+                    <MintDetails
+                      name={selectedCollection?.name ?? undefined}
+                      uri={selectedCollection?.uri ?? undefined}
+                      info={
                         <OfferListingForecast
                           control={control}
                           collection={selectedCollection}
@@ -251,7 +252,7 @@ const OfferListingForecast = ({
 
   const basisPoints = useMemo(() => (apy ? apy * 100 : undefined), [apy]);
   const durationSeconds = useMemo(
-    () => (duration ? new anchor.BN(duration * 86_400) : undefined),
+    () => (duration ? utils.toHexString(duration * 86_400) : undefined),
     [duration]
   );
 
@@ -260,13 +261,12 @@ const OfferListingForecast = ({
     ? utils.hexToNumber(collection?.floorPrice)
     : undefined;
 
-  const amount = useMemo(
-    () =>
-      floorPrice && ltv && offers
-        ? new anchor.BN((ltv / 100) * floorPrice * offers)
-        : undefined,
-    [floorPrice, ltv, offers]
-  );
+  const amount = useMemo(() => {
+    if (floorPrice && ltv && offers) {
+      const amount = (ltv / 100) * floorPrice * offers;
+      return utils.toHexString(amount);
+    }
+  }, [floorPrice, ltv, offers]);
 
   return (
     <LoanForecast

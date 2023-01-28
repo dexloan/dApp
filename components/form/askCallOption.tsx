@@ -31,7 +31,7 @@ import {
   SelectNftForm,
   ModalProps,
   SelectNftModalProps,
-  CollectionDetails,
+  MintDetails,
   CallOptionDetails,
 } from "./common";
 
@@ -164,9 +164,10 @@ const AskCallOptionForm = ({
           </Box>
         ) : (
           <>
-            <CollectionDetails
-              collection={collectionQuery.data}
-              forecast={
+            <MintDetails
+              name={selected.metadata.data.name}
+              uri={selected.metadata.data.uri ?? undefined}
+              info={
                 <CallOptionDetailsController
                   control={control}
                   collection={collectionQuery.data}

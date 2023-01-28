@@ -3,7 +3,6 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { IoAdd } from "react-icons/io5";
 import { useState } from "react";
 
-import { CallOptionBid, CallOptionBidPretty } from "../../../common/model";
 import { ColumnHeader, Col } from "../../table";
 import { BidCallOptionModal, SellCallOptionModal } from "../../form";
 import { ListingsTable } from "../../table";

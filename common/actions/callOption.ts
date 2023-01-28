@@ -7,7 +7,7 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
-import { RentalData } from "../types";
+import { CallOptionBidJson, RentalData } from "../types";
 import { CallOptionBid } from "../model";
 import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
@@ -63,23 +63,25 @@ export async function bidCallOption(
 export async function closeBid(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
-  bid: CallOptionBid
+  bid: CallOptionBidJson
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
+  const callOptionBid = new anchor.web3.PublicKey(bid.address);
+  const collection = new anchor.web3.PublicKey(bid.Collection.address);
   const escrowPaymentAccount = await query.findCallOptionBidTreasury(
-    bid.publicKey
+    callOptionBid
   );
 
   const transaction = await program.methods
-    .closeCallOptionBid(bid.data.id)
+    .closeCallOptionBid(bid.bidId)
     .accounts({
       signer: SIGNER,
       buyer: wallet.publicKey,
-      callOptionBid: bid.publicKey,
+      callOptionBid,
       escrowPaymentAccount,
-      collection: bid.data.collection,
+      collection,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       systemProgram: anchor.web3.SystemProgram.programId,
     })
@@ -92,18 +94,17 @@ export async function sellCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  bid: CallOptionBid
+  bid: CallOptionBidJson
 ): Promise<void> {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
-  const callOption = await query.findLoanAddress(mint, wallet.publicKey);
-  const callOptionBid = await query.findCallOptionBidAddress(
-    bid.metadata.mint,
-    bid.data.buyer,
-    bid.data.id
-  );
-  const callOptionBidVault = await query.findLoanOfferVaultAddress(
+  const buyer = new anchor.web3.PublicKey(bid.buyer);
+  const callOptionBid = new anchor.web3.PublicKey(bid.address);
+  const collection = new anchor.web3.PublicKey(bid.Collection.address);
+
+  const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
+  const callOptionBidVault = await query.findCallOptionBidTreasury(
     callOptionBid
   );
   const tokenManager = await query.findTokenManagerAddress(
@@ -116,17 +117,17 @@ export async function sellCallOption(
   const [edition] = await query.findEditionAddress(mint);
 
   const transaction = await program.methods
-    .sellCallOption(bid.data.id)
+    .sellCallOption(bid.bidId)
     .accounts({
       callOption,
       callOptionBid,
       tokenManager,
+      collection,
       mint,
       metadata,
       edition,
+      buyer,
       seller: wallet.publicKey,
-      buyer: bid.data.buyer,
-      collection: bid.data.collection,
       depositTokenAccount: tokenAccount,
       escrowPaymentAccount: callOptionBidVault,
       systemProgram: anchor.web3.SystemProgram.programId,

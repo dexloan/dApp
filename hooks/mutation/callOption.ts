@@ -12,6 +12,7 @@ import { CallOptionState } from "@prisma/client";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import {
+  CallOptionJson,
   CallOptionBidJson,
   CallOptionStateEnum,
   NftResult,
@@ -21,11 +22,6 @@ import {
   getNftByOwnerCacheKey,
   fetchCallOptionBids,
 } from "../query";
-import {
-  CallOptionBid,
-  CallOptionBidPretty,
-  CallOptionPretty,
-} from "../../common/model";
 
 export interface BidCallOptionMutationVariables {
   collection: anchor.web3.PublicKey;
@@ -88,10 +84,7 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess() {
-        setTimeout(
-          () => queryClient.invalidateQueries(["call_option_bids"]),
-          3000
-        );
+        await queryClient.invalidateQueries(["call_option_bids"]);
         toast.success("Call option bid(s) created");
         onSuccess();
       },
@@ -101,7 +94,7 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
 
 interface SellCallOptionMutation {
   mint: anchor.web3.PublicKey;
-  bid: CallOptionBid;
+  bid: CallOptionBidJson;
 }
 
 export const useSellCallOptionMutation = (onSuccess: () => void) => {
@@ -122,24 +115,9 @@ export const useSellCallOptionMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      async onSuccess(_, variables) {
-        queryClient.setQueryData<CallOptionBidPretty[] | undefined>(
-          getCallOptionBidsCacheKey(),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.publicKey !== variables.bid.publicKey.toBase58()
-              );
-            }
-          }
-        );
-
-        queryClient.invalidateQueries(
-          getSellerCallOptionsQueryKey(anchorWallet?.publicKey)
-        );
-
+      async onSuccess() {
+        await queryClient.invalidateQueries(["call_option_bids"]);
         toast.success("Loan taken");
-
         onSuccess();
       },
       onError(err) {
@@ -157,7 +135,7 @@ export const useCloseCallOptionBidMutation = (onSuccess: () => void) => {
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, CallOptionBid>(
+  return useMutation<void, Error, CallOptionBidJson>(
     async (variables) => {
       if (anchorWallet) {
         return actions.closeBid(connection, anchorWallet, variables);
@@ -166,19 +144,8 @@ export const useCloseCallOptionBidMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        queryClient.setQueryData<CallOptionBidPretty[] | undefined>(
-          getCallOptionBidsCacheKey(),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.publicKey !== variables.publicKey.toBase58()
-              );
-            }
-          }
-        );
-
-        toast.success("Bid closed");
-
+        await queryClient.invalidateQueries(["call_option_bids"]);
+        toast.success("Call option bid closed");
         onSuccess();
       },
       onError(err) {
@@ -226,41 +193,9 @@ export const useAskCallOptionMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      async onSuccess(_, variables) {
-        queryClient.setQueryData<NftResult[]>(
-          getNftByOwnerCacheKey(anchorWallet?.publicKey),
-          (data) => {
-            if (!data) {
-              return [];
-            }
-            return data.filter(
-              (item: NftResult) =>
-                !item?.tokenAccount.mint.equals(variables.mint)
-            );
-          }
-        );
-
-        if (anchorWallet) {
-          const callOptionAddress = await query.findCallOptionAddress(
-            variables.mint,
-            anchorWallet.publicKey
-          );
-
-          try {
-            const callOption = await query.waitForCallOption(
-              connection,
-              callOptionAddress
-            );
-
-            queryClient.setQueryData(
-              getCallOptionCacheKey(callOptionAddress),
-              callOption
-            );
-          } catch {}
-        }
-
-        toast.success("Listing created");
-
+      async onSuccess() {
+        await queryClient.invalidateQueries(["call_options"]);
+        toast.success("Call Option Ask created");
         onSuccess();
       },
     }
@@ -298,41 +233,13 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        queryClient.setQueryData<CallOptionPretty[] | undefined>(
-          getSellerCallOptionsQueryKey(anchorWallet?.publicKey),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.data.mint !== variables.mint.toBase58()
-              );
-            }
-          }
-        );
-
-        queryClient.setQueryData<CallOptionPretty[] | undefined>(
-          getCallOptionsCacheKey(0),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.data.mint !== variables.mint.toBase58()
-              );
-            }
-          }
-        );
-
-        const callOptionAddress = await query.findCallOptionAddress(
+        const callOptionPda = await query.findCallOptionAddress(
           variables.mint,
           variables.seller
         );
-
-        setCallOptionState(
-          queryClient,
-          callOptionAddress,
-          CallOptionState.Cancelled
-        );
-
-        toast.success("Call option closed");
-
+        await queryClient.invalidateQueries(["call_option", callOptionPda]);
+        await queryClient.invalidateQueries(["call_options"]);
+        toast.success("Call Option closed");
         onSuccess();
       },
       onError(err) {
@@ -364,48 +271,13 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const callOptionAddress = await query.findCallOptionAddress(
+        const callOptionPda = await query.findCallOptionAddress(
           variables.mint,
           variables.seller
         );
-
-        queryClient.setQueryData<CallOptionPretty[] | undefined>(
-          getCallOptionsCacheKey(0),
-          (data) => {
-            if (data) {
-              return data?.filter(
-                (item) => item.data.mint !== variables.mint.toBase58()
-              );
-            }
-          }
-        );
-
-        setTimeout(
-          () =>
-            queryClient.invalidateQueries(
-              getBuyerCallOptionsQueryKey(anchorWallet?.publicKey)
-            ),
-          500
-        );
-
-        queryClient.setQueryData<CallOptionPretty | undefined>(
-          getCallOptionCacheKey(callOptionAddress),
-          (item) => {
-            if (item && anchorWallet) {
-              return {
-                ...item,
-                data: {
-                  ...item.data,
-                  state: CallOptionState.Active,
-                  buyer: anchorWallet.publicKey.toBase58(),
-                },
-              };
-            }
-          }
-        );
-
+        await queryClient.invalidateQueries(["call_option", callOptionPda]);
+        await queryClient.invalidateQueries(["call_options"]);
         toast.success("Call option bought");
-
         onSuccess();
       },
       onError(err) {
@@ -457,49 +329,16 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      onSuccess(_, variables) {
-        queryClient.setQueryData(
-          getBuyerCallOptionsQueryKey(anchorWallet?.publicKey),
-          (items: CallOptionPretty[] | undefined) => {
-            if (!items) return [];
-
-            return items.filter(
-              (item) => item.data.mint !== variables.mint.toBase58()
-            );
-          }
-        );
-
-        setCallOptionState(
-          queryClient,
+      async onSuccess(_, variables) {
+        const callOptionPda = await query.findCallOptionAddress(
           variables.mint,
-          CallOptionState.Exercised
+          variables.seller
         );
-
+        await queryClient.invalidateQueries(["call_option", callOptionPda]);
+        await queryClient.invalidateQueries(["call_options"]);
         toast.success("Option exercised");
-
         onSuccess();
       },
     }
   );
 };
-
-function setCallOptionState(
-  queryClient: QueryClient,
-  callOption: anchor.web3.PublicKey,
-  state: CallOptionStateEnum
-) {
-  queryClient.setQueryData<CallOptionPretty | undefined>(
-    getCallOptionCacheKey(callOption),
-    (item) => {
-      if (item) {
-        return {
-          ...item,
-          data: {
-            ...item.data,
-            state,
-          },
-        };
-      }
-    }
-  );
-}
