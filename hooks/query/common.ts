@@ -125,7 +125,7 @@ export const getMetadataFileCacheKey = (uri?: string) => ["metadata_file", uri];
 
 export function useMetadataFileQuery(uri?: string) {
   return useQuery(
-    getMetadataFileCacheKey(uri),
+    ["metadata_file", uri],
     () => {
       if (uri) {
         return fetch(uri).then((response) => {

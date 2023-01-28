@@ -50,6 +50,7 @@ model Loan {
   collectionAddress  String
   currentInstallment Int
   Collection         Collection @relation(fields: [collectionAddress], references: [address])
+  uri                String
 
   @@id([id, address])
 }
@@ -81,6 +82,7 @@ model CallOption {
   tokenMint          String?
   collectionAddress  String
   Collection         Collection      @relation(fields: [collectionAddress], references: [address])
+  uri                String
 
   @@id([id, address])
 }
@@ -110,6 +112,7 @@ model Rental {
   mint               String
   collectionAddress  String
   Collection         Collection  @relation(fields: [collectionAddress], references: [address])
+  uri                String
 }
 
 enum LoanState {

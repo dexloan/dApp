@@ -101,13 +101,17 @@ export const useLoanAddress = (
   return address;
 };
 
-export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
-  const { connection } = useConnection();
+export function fetchLoan(address: string): Promise<LoanJson> {
+  return fetch(`${process.env.NEXT_PUBLIC_HOST}/api/loan/item/${address}`).then(
+    (res) => res.json()
+  );
+}
 
+export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
   return useQuery(
     ["loan", loanAddress?.toBase58()],
     () => {
-      if (loanAddress) return query.fetchLoan(connection, loanAddress);
+      if (loanAddress) return fetchLoan(loanAddress.toBase58());
     },
     { enabled: Boolean(loanAddress) }
   );

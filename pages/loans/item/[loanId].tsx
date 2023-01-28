@@ -19,11 +19,8 @@ import { useEffect, useMemo, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
-import { fetchLoan } from "../../../common/query";
-import { Loan } from "../../../common/model";
 import {
-  getLoanCacheKey,
-  getMetadataFileCacheKey,
+  fetchLoan,
   useLoanQuery,
   useMetadataFileQuery,
 } from "../../../hooks/query";
@@ -45,6 +42,8 @@ import { NftLayout } from "../../../components/layout";
 import { EllipsisProgress } from "../../../components/progress";
 import { DocumentHead } from "../../../components/document";
 import { Detail } from "../../../components/detail";
+import { findMetadataAddress } from "../../../common/query";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 interface LoanProps {
   dehydratedState: DehydratedState | undefined;
@@ -57,12 +56,6 @@ const LoanPage: NextPage<LoanProps> = () => {
     loanQueryResult.data?.metadata.data.uri
   );
   const jsonMetadata = metadataQuery.data;
-
-  const loan = useMemo(() => {
-    if (loanQueryResult.data) {
-      return Loan.fromJSON(loanQueryResult.data);
-    }
-  }, [loanQueryResult.data]);
 
   if (loanQueryResult.error instanceof Error) {
     return (
@@ -79,7 +72,7 @@ const LoanPage: NextPage<LoanProps> = () => {
     );
   }
 
-  if (!loan || !jsonMetadata) {
+  if (!loanQueryResult.data || !jsonMetadata) {
     return null;
   }
 
@@ -106,18 +99,19 @@ LoanPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
-      const connection = new anchor.web3.Connection(
-        process.env.BACKEND_RPC_ENDPOINT as string
-      );
       const loanAddress = new anchor.web3.PublicKey(ctx.query.loanId as string);
 
       const loan = await queryClient.fetchQuery(
-        getLoanCacheKey(loanAddress),
-        () => fetchLoan(connection, loanAddress)
+        ["loan", loanAddress.toBase58()],
+        () => fetchLoan(loanAddress.toBase58())
       );
 
+      const mint = new anchor.web3.PublicKey(loan.mint);
+      const metadataPda = await findMetadataAddress(mint);
+      const metadata = Metadata.fromAccountAddress();
+
       await queryClient.prefetchQuery(
-        getMetadataFileCacheKey(loan.metadata.data.uri),
+        ["metadata_file", loan.metadata.data.uri],
         () =>
           fetch(loan.metadata.data.uri).then((response) => {
             return response.json().then((data) => data);
@@ -153,12 +147,6 @@ const LoanLayout = () => {
 
   const symbol = loanQuery.data?.metadata?.data.symbol;
   const floorPrice = useFloorPrice(symbol);
-
-  const loan = useMemo(() => {
-    if (loanQuery.data) {
-      return Loan.fromJSON(loanQuery.data);
-    }
-  }, [loanQuery.data]);
 
   function renderActiveButton() {
     if (anchorWallet && loan?.isBorrower(anchorWallet)) {

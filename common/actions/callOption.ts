@@ -8,7 +8,6 @@ import {
 
 import * as query from "../query";
 import { CallOptionBidJson, RentalData } from "../types";
-import { CallOptionBid } from "../model";
 import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";

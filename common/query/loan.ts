@@ -3,14 +3,7 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { CollectionData, LoanData, LoanOfferData } from "../types";
-import {
-  Collection,
-  Loan,
-  LoanPretty,
-  LoanOffer,
-  LoanOfferPretty,
-} from "../model";
+import { CollectionData, LoanData, LoanJson, LoanOfferData } from "../types";
 import { getProgram, getProvider } from "../provider";
 import { fetchMetadata, fetchMetadataAccounts } from "./common";
 
@@ -75,45 +68,6 @@ export async function findLoanOfferVaultAddress(
   );
 
   return vaultAddress;
-}
-
-/**
- * Queries
- */
-export async function fetchLoan(
-  connection: anchor.web3.Connection,
-  address: anchor.web3.PublicKey
-): Promise<LoanPretty> {
-  const provider = getProvider(connection);
-  const program = getProgram(provider);
-
-  const loanAccount = await program.account.loan.fetch(address);
-
-  const metadata = await fetchMetadata(connection, loanAccount.mint);
-
-  return new Loan(loanAccount as LoanData, metadata, address).pretty();
-}
-
-export async function waitForLoan(
-  connection: anchor.web3.Connection,
-  address: anchor.web3.PublicKey
-): Promise<LoanPretty> {
-  async function tryFetchLoan(retry: number): Promise<LoanPretty> {
-    await utils.wait(800);
-
-    if (retry > 3) {
-      throw new Error("Max retries");
-    }
-
-    try {
-      const loan = await fetchLoan(connection, address);
-      return loan;
-    } catch {
-      return tryFetchLoan(retry + 1);
-    }
-  }
-
-  return tryFetchLoan(0);
 }
 
 export async function fetchMultipleLoans(

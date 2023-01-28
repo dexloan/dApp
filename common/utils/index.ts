@@ -109,52 +109,6 @@ export function formatTotalDue(
   return formatAmount(total);
 }
 
-export function calculateInterestOnMaturity(
-  amount: anchor.BN,
-  duration: anchor.BN,
-  basisPoints: number
-) {
-  const interestRate = calculateProRataInterestRate(basisPoints, duration);
-  return new anchor.BN(amount.toNumber() * interestRate);
-}
-
-export function calculateAmountOnMaturity(
-  amount: anchor.BN,
-  duration: anchor.BN,
-  basisPoints: number
-): anchor.BN {
-  return amount.add(calculateInterestOnMaturity(amount, duration, basisPoints));
-}
-
-export function formatAmountOnMaturity(
-  amount: anchor.BN,
-  duration: anchor.BN,
-  basisPoints: number
-): string {
-  return formatAmount(calculateAmountOnMaturity(amount, duration, basisPoints));
-}
-
-export function yieldGenerated(
-  amount: anchor.BN,
-  startDate: anchor.BN,
-  basisPoints: number
-): anchor.BN {
-  const now = new anchor.BN(Date.now() / 1000);
-  const elapsed = now.sub(startDate);
-  return calculateInterestOnMaturity(amount, elapsed, basisPoints);
-}
-
-export function totalAmount(
-  amount: anchor.BN,
-  startDate: anchor.BN,
-  basisPoints: number
-): string {
-  const interestSol = yieldGenerated(amount, startDate, basisPoints);
-  const amountSol = amount.div(LAMPORTS_PER_SOL);
-  const totalSol = amountSol.add(interestSol);
-  return totalSol.toNumber().toFixed(2).replace(/0$/, "") + "◎";
-}
-
 export function basisPointsToPercent(basisPoints: number) {
   return (basisPoints / 100).toFixed(2) + "%";
 }

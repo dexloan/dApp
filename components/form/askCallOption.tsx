@@ -325,10 +325,26 @@ const CallOptionDetailsController = ({
 }: CallOptionDetailsControllerProps) => {
   const { amount, strikePrice, expiry } = useWatch({ control });
 
+  const lamportsAmount = useMemo(() => {
+    if (amount) {
+      try {
+        return BigInt(Math.floor(amount * anchor.web3.LAMPORTS_PER_SOL));
+      } catch {}
+    }
+  }, [amount]);
+
+  const lamportsStrikePrice = useMemo(() => {
+    if (strikePrice) {
+      try {
+        return BigInt(Math.floor(strikePrice * anchor.web3.LAMPORTS_PER_SOL));
+      } catch {}
+    }
+  }, [strikePrice]);
+
   return (
     <CallOptionDetails
-      amount={amount ? BigInt(amount) : undefined}
-      strikePrice={strikePrice ? BigInt(strikePrice) : undefined}
+      amount={lamportsAmount}
+      strikePrice={lamportsStrikePrice}
       expiry={expiry}
       creatorBasisPoints={collection.optionBasisPoints}
     />
