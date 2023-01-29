@@ -67,6 +67,9 @@ export function calculateFeeFromBasisPoints(
   return (BigInt(basisPoints) * amount) / BigInt(10_000);
 }
 
+/*
+ * Calculates the interest due on a loan.
+ **/
 export function calculateLoanRepaymentFee(
   amount: bigint,
   basisPoints: number,
@@ -85,6 +88,9 @@ export function calculateLoanRepaymentFee(
   return interestDue;
 }
 
+/*
+ * Calculates the interest currently due on a loan.
+ **/
 export function calculateInterestDue(
   amount: bigint,
   startDate: bigint,
@@ -97,6 +103,20 @@ export function calculateInterestDue(
   return calculateLoanRepaymentFee(amount, basisPoints, elapsed, expired);
 }
 
+/*
+ * Calculates the total amount repayable on loan maturity.
+ **/
+export function calculateAmountOnMaturity(
+  amount: bigint,
+  duration: bigint,
+  basisPoints: number
+): bigint {
+  return amount + calculateLoanRepaymentFee(amount, basisPoints, duration);
+}
+
+/*
+ * Calculates the total amount repayable now.
+ **/
 export function formatTotalDue(
   amount: bigint,
   startDate: bigint,
@@ -107,6 +127,14 @@ export function formatTotalDue(
     amount + calculateInterestDue(amount, startDate, basisPoints, expired);
 
   return formatAmount(total);
+}
+
+/*
+ * Gets the due date of a loan
+ * @returns {dayjs} - The due date of the loan
+ **/
+export function getDueDate(startDate: bigint, duration: bigint) {
+  return dayjs.unix(Number(startDate + duration)).tz("America/New_York");
 }
 
 export function basisPointsToPercent(basisPoints: number) {
@@ -175,28 +203,6 @@ export function formatAmount(amount?: bigint): string {
 
 export function formatMonths(duration?: anchor.BN) {
   return duration ? toMonths(duration.toNumber()) + " months" : null;
-}
-
-export const nameMap = new Map();
-nameMap.set("CHKN", "chicken_tribe");
-nameMap.set("CHKCOP", "chicken_tribe_coops");
-nameMap.set("XAPE", "exiled_degen_ape_academy");
-nameMap.set("BH", "lgtb");
-nameMap.set("LGTB", "lgtb");
-nameMap.set("NOOT", "pesky_penguins");
-nameMap.set("THUG", "thugbirdz");
-
-export function mapSymbolToCollectionName(symbol: string) {
-  return nameMap.get(trimNullChars(symbol));
-}
-
-export function getFloorPrice(
-  floorPrices?: Record<string, number>,
-  symbol?: string
-) {
-  if (floorPrices && symbol) {
-    return floorPrices[trimNullChars(symbol).toLowerCase()];
-  }
 }
 
 export function trimNullChars(str: string) {

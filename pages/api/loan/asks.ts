@@ -36,3 +36,22 @@ export default async function handler(
 
   res.json(utils.parseBigInts(result));
 }
+
+/**
+ * Queries for LTV (Loan-to-Value) of a loan.
+ * ================================
+ * SELECT * FROM Loan
+ * JOIN Collection ON Loan.collectionAddress = Collection.address
+ * WHERE (Loan.amount / Collection.floorPrice) * 100 = [specified LTV value];
+ * ================================
+ * SELECT * FROM Loan
+ * JOIN Collection ON Loan.collectionAddress = Collection.address
+ * ORDER BY (Loan.amount / Collection.floorPrice) * 100 DESC;
+ * ================================
+ * const loans = await prisma.loan.findMany({
+ * include: { Collection: true },
+ * orderBy: {
+ *   'amount / Collection.floorPrice': 'desc'
+ * }
+ * });
+ */

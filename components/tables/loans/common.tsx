@@ -8,6 +8,7 @@ import {
   GroupedLoanOfferJson,
 } from "../../../common/types";
 import { SortDirection } from "../../../common/types";
+import { useLTV } from "../../../hooks/render";
 import { NFTCellNew } from "../../table";
 import { FloorPrice } from "../../floorPrice";
 
@@ -45,6 +46,7 @@ interface LoanRowProps {
 }
 
 export const LoanRow = ({ item, subtitle, onClick }: LoanRowProps) => {
+  const ltv = useLTV(item);
   const floorPrice = item.Collection.floorPrice;
   const creatorBasisPoints =
     "creatorBasisPoints" in item
@@ -71,7 +73,7 @@ export const LoanRow = ({ item, subtitle, onClick }: LoanRowProps) => {
           </Text>
         </Tooltip>
       </Td>
-      <Td isNumeric>{getLTV(floorPrice, item.amount)}</Td>
+      <Td isNumeric>{ltv}</Td>
       <Td isNumeric>
         <Box>
           <Text mb="1">

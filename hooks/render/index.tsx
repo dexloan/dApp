@@ -1,39 +1,86 @@
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
-import * as anchor from "@project-serum/anchor";
 import { useMemo } from "react";
 
 import * as utils from "../../common/utils";
+import {
+  GroupedLoanOfferJson,
+  LoanJson,
+  LoanOfferJson,
+} from "../../common/types";
 import { EllipsisProgress } from "../../components/progress";
-import { useFloorPricesQuery, useMetadataQuery } from "../query";
 
-export const useFloorPrice = (symbol?: string): number | undefined => {
-  const formattedSymbol = useMemo(() => {
-    if (symbol) {
-      return utils.trimNullChars(symbol).toLowerCase();
-    }
-  }, [symbol]);
-
-  const floorPricesQuery = useFloorPricesQuery();
-
-  if (formattedSymbol) {
-    return floorPricesQuery.data?.[formattedSymbol];
-  }
-};
-
-export function useLTV(amount?: anchor.BN | null, floorPrice?: number) {
+export function useLTV(loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson) {
   return useMemo(() => {
+    const amount = loan?.amount;
+    const floorPrice = loan?.Collection.floorPrice;
+
     if (amount && floorPrice) {
-      const percentage = Number((amount.toNumber() / floorPrice) * 100).toFixed(
-        2
-      );
+      const percentage = (
+        (utils.hexToNumber(amount) / utils.hexToNumber(floorPrice)) *
+        100
+      ).toFixed(2);
       return percentage + "%";
     }
 
     return <EllipsisProgress />;
-  }, [amount, floorPrice]);
+  }, [loan]);
 }
 
-export function useCollectionName(metadata?: Metadata) {
-  const query = useMetadataQuery(metadata?.collection?.key.toBase58());
-  return query.data?.data.name ?? null;
+export function useIsExpired(loan?: LoanJson) {
+  return useMemo(() => {
+    if (loan?.startDate) {
+      const now = BigInt(Date.now() / 1000);
+      const expiresAt = BigInt(loan.startDate) + BigInt(loan.duration);
+      return now > expiresAt;
+    }
+    return false;
+  }, [loan?.duration, loan?.startDate]);
+}
+
+export function useAmpuntOnMaturity(
+  loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson
+) {
+  return useMemo(() => {
+    if (loan && loan?.amount) {
+      const amount = BigInt(loan.amount);
+      const duration = BigInt(loan.duration);
+      const lenderBasisPoints = loan?.basisPoints;
+      const creatorBasisPoints =
+        "creatorBasisPoints" in loan
+          ? loan.creatorBasisPoints ?? loan.Collection.loanBasisPoints
+          : loan.Collection.loanBasisPoints;
+
+      return utils.formatAmount(
+        utils.calculateAmountOnMaturity(
+          amount,
+          duration,
+          lenderBasisPoints + creatorBasisPoints
+        )
+      );
+    }
+
+    return <EllipsisProgress />;
+  }, [loan]);
+}
+
+interface UseDueDateProps {
+  loan?: LoanJson;
+  displayTime?: boolean;
+}
+
+export function useDueDate({ loan, displayTime = false }: UseDueDateProps) {
+  return useMemo(() => {
+    if (loan) {
+      const date = utils.getDueDate(
+        loan.startDate ? BigInt(loan.startDate) : BigInt(Date.now() / 1000),
+        BigInt(loan.duration)
+      );
+
+      return (
+        date.format("MMM D, YYYY") +
+        (displayTime ? ` at ${date.format("h:mm A z")}` : "")
+      );
+    }
+
+    return <EllipsisProgress />;
+  }, [loan, displayTime]);
 }

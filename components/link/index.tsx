@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Box, Image, LinkBox, LinkOverlay, Text } from "@chakra-ui/react";
 
 interface SolscanLinks {
-  mint?: anchor.web3.PublicKey;
+  mint?: string;
 }
 
 export function ExternalLinks({ mint }: SolscanLinks) {
@@ -30,10 +30,7 @@ export function ExternalLinks({ mint }: SolscanLinks) {
           <Image src="/solscan.png" alt="Solscan Logo" h="4" />
         </Box>
         <Text color="gray.400" size="sm" fontWeight="semibold" pl="2">
-          <LinkOverlay
-            href={`https://solscan.io/token/${mint?.toBase58()}`}
-            isExternal
-          >
+          <LinkOverlay href={`https://solscan.io/token/${mint}`} isExternal>
             View on Solscan
           </LinkOverlay>
         </Text>
@@ -61,7 +58,7 @@ export function ExternalLinks({ mint }: SolscanLinks) {
         </Box>
         <Text color="gray.400" size="sm" fontWeight="semibold" pl="2">
           <LinkOverlay
-            href={`https://explorer.solana.com/address/${mint?.toBase58()}`}
+            href={`https://explorer.solana.com/address/${mint}`}
             isExternal
           >
             View on Solana Explorer

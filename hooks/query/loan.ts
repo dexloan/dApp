@@ -107,13 +107,13 @@ export function fetchLoan(address: string): Promise<LoanJson> {
   );
 }
 
-export function useLoanQuery(loanAddress: anchor.web3.PublicKey | undefined) {
+export function useLoanQuery(loanPda: string | undefined) {
   return useQuery(
-    ["loan", loanAddress?.toBase58()],
+    ["loan", loanPda],
     () => {
-      if (loanAddress) return fetchLoan(loanAddress.toBase58());
+      if (loanPda) return fetchLoan(loanPda);
     },
-    { enabled: Boolean(loanAddress) }
+    { enabled: Boolean(loanPda) }
   );
 }
 

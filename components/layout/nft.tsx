@@ -1,6 +1,7 @@
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { Box, Container, Heading, Flex, Text } from "@chakra-ui/react";
 
+import { CollectionJson } from "../../common/types";
 import { Activity } from "../activity";
 import { Attributes } from "../attributes";
 import { Detail } from "../detail";
@@ -14,12 +15,20 @@ type Stat = {
 };
 
 interface NftLayoutProps {
-  metadata?: Metadata;
+  mint?: string;
+  metadataJson?: any;
+  collection?: CollectionJson;
   action?: React.ReactNode;
   stats?: Stat[][];
 }
 
-export const NftLayout = ({ metadata, action, stats = [] }: NftLayoutProps) => {
+export const NftLayout = ({
+  mint,
+  metadataJson,
+  collection,
+  action,
+  stats = [],
+}: NftLayoutProps) => {
   return (
     <Container maxW={{ md: "container.md", lg: "container.lg" }}>
       <Flex
@@ -39,10 +48,10 @@ export const NftLayout = ({ metadata, action, stats = [] }: NftLayoutProps) => {
           w={{ base: "100%", lg: "auto" }}
           maxW={{ base: "xl", lg: "100%" }}
         >
-          <ListingImage uri={metadata?.data.uri} />
-          <ExternalLinks mint={metadata?.mint} />
+          <ListingImage src={metadataJson?.image} />
+          <ExternalLinks mint={mint} />
           <Box mb="6">
-            <Attributes uri={metadata?.data.uri} />
+            <Attributes attributes={metadataJson.attributes} />
           </Box>
         </Box>
         <Box flex={1} width="100%" maxW="xl" pl={{ lg: "12" }}>
@@ -52,10 +61,10 @@ export const NftLayout = ({ metadata, action, stats = [] }: NftLayoutProps) => {
 
           <Detail>
             <Heading as="h1" size="md" color="gray.200" fontWeight="black">
-              {metadata?.data.name}
+              {metadataJson?.name}
             </Heading>
             <Box mb="8">
-              <VerifiedCollection metadata={metadata} />
+              <VerifiedCollection name={collection?.name ?? undefined} />
             </Box>
             {stats.map((row, index) => (
               <Flex key={index} direction="row" gap="12" mt="6">
@@ -74,7 +83,7 @@ export const NftLayout = ({ metadata, action, stats = [] }: NftLayoutProps) => {
             {action}
           </Detail>
 
-          <Activity mint={metadata?.mint} />
+          <Activity mint={mint} />
         </Box>
       </Flex>
     </Container>

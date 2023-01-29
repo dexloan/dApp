@@ -1,27 +1,24 @@
 import { Box, Heading, Flex, Text } from "@chakra-ui/react";
-import { useMetadataFileQuery } from "../../hooks/query";
 import { Detail } from "../detail";
-
-interface AttributesProps {
-  uri?: string;
-}
 
 type Attr = {
   trait_type: string;
   value: string;
 };
 
-export const Attributes = ({ uri }: AttributesProps) => {
-  const metadataFileQuery = useMetadataFileQuery(uri);
+interface AttributesProps {
+  attributes?: Attr[];
+}
 
-  if (metadataFileQuery.data?.attributes) {
+export const Attributes = ({ attributes }: AttributesProps) => {
+  if (attributes) {
     return (
       <Detail>
         <Heading color="gray.400" size="sm" mb="4">
           Attributes
         </Heading>
         <Flex flexWrap="wrap" gap="2">
-          {metadataFileQuery.data.attributes
+          {attributes
             .filter((attr: Attr) => attr.value?.length)
             .map((attr: Attr) => (
               <Box

@@ -15,16 +15,22 @@ import {
 import { LoanState } from "@prisma/client";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert } from "react-icons/io5";
 
+import * as utils from "../../../common/utils";
 import {
   fetchLoan,
   useLoanQuery,
   useMetadataFileQuery,
 } from "../../../hooks/query";
-import { useFloorPrice } from "../../../hooks/render";
+import {
+  useDueDate,
+  useLTV,
+  useIsExpired,
+  useAmpuntOnMaturity,
+} from "../../../hooks/render";
 import {
   useCloseLoanMutation,
   useGiveLoanMutation,
@@ -42,22 +48,19 @@ import { NftLayout } from "../../../components/layout";
 import { EllipsisProgress } from "../../../components/progress";
 import { DocumentHead } from "../../../components/document";
 import { Detail } from "../../../components/detail";
-import { findMetadataAddress } from "../../../common/query";
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 interface LoanProps {
   dehydratedState: DehydratedState | undefined;
 }
 
 const LoanPage: NextPage<LoanProps> = () => {
-  const loanAddress = usePageParam();
-  const loanQueryResult = useLoanQuery(loanAddress);
-  const metadataQuery = useMetadataFileQuery(
-    loanQueryResult.data?.metadata.data.uri
-  );
+  const loanPda = usePageParam();
+  const loanQueryResult = useLoanQuery(loanPda);
+  const metadataQuery = useMetadataFileQuery(loanQueryResult.data?.uri);
+  const loan = loanQueryResult.data;
   const jsonMetadata = metadataQuery.data;
 
-  if (loanQueryResult.error instanceof Error) {
+  if (loanQueryResult.error || !loan || !jsonMetadata) {
     return (
       <Container maxW="container.md">
         <Box mt="2">
@@ -65,28 +68,33 @@ const LoanPage: NextPage<LoanProps> = () => {
             <Heading size="xl" fontWeight="black" mt="6" mb="6">
               404 Error
             </Heading>
-            <Text fontSize="lg">{loanQueryResult.error.message}</Text>
+            <Text fontSize="lg">
+              {loanQueryResult.error instanceof Error
+                ? loanQueryResult.error.message
+                : `Loan with address ${loanPda} not found`}
+            </Text>
           </Flex>
         </Box>
       </Container>
     );
   }
 
-  if (!loanQueryResult.data || !jsonMetadata) {
-    return null;
-  }
-
   return (
     <>
       <DocumentHead
-        title={loan.metadata.data.name}
+        title={jsonMetadata.name}
         description={`Borrowring ${loan.amount} over ${loan.duration}`}
         image={jsonMetadata.image}
-        imageAlt={loan.metadata.data.name}
-        url={`loan/${loan.publicKey.toBase58()}`}
+        imageAlt={jsonMetadata.name}
+        url={`loan/${loan.address}`}
         twitterLabels={[
           { label: "Amount", value: loan.amount || "" },
-          { label: "APY", value: loan.apy },
+          {
+            label: "APY",
+            value: utils.formatBasisPoints(
+              loan.basisPoints + loan.Collection.loanBasisPoints
+            ),
+          },
           { label: "Duration", value: loan.duration },
         ]}
       />
@@ -106,16 +114,8 @@ LoanPage.getInitialProps = async (ctx) => {
         () => fetchLoan(loanAddress.toBase58())
       );
 
-      const mint = new anchor.web3.PublicKey(loan.mint);
-      const metadataPda = await findMetadataAddress(mint);
-      const metadata = Metadata.fromAccountAddress();
-
-      await queryClient.prefetchQuery(
-        ["metadata_file", loan.metadata.data.uri],
-        () =>
-          fetch(loan.metadata.data.uri).then((response) => {
-            return response.json().then((data) => data);
-          })
+      await queryClient.prefetchQuery(["metadata_file", loan.uri], () =>
+        fetch(loan.uri).then((res) => res.json())
       );
 
       return {
@@ -133,10 +133,7 @@ LoanPage.getInitialProps = async (ctx) => {
 
 function usePageParam() {
   const router = useRouter();
-  return useMemo(
-    () => new anchor.web3.PublicKey(router.query.loanId as string),
-    [router]
-  );
+  return router.query.loanId as string | undefined;
 }
 
 const LoanLayout = () => {
@@ -144,14 +141,28 @@ const LoanLayout = () => {
 
   const loanAddress = usePageParam();
   const loanQuery = useLoanQuery(loanAddress);
+  const metadataQuery = useMetadataFileQuery(loanQuery.data?.uri);
+  const loan = loanQuery.data;
+  const jsonMetadata = metadataQuery.data;
 
-  const symbol = loanQuery.data?.metadata?.data.symbol;
-  const floorPrice = useFloorPrice(symbol);
+  const isExpired = useIsExpired(loan);
+  const isBorrower =
+    anchorWallet && anchorWallet.publicKey.toBase58() === loan?.borrower;
+  const isLender =
+    anchorWallet && anchorWallet.publicKey.toBase58() === loan?.lender;
+
+  const ltv = useLTV(loan);
+  const apy = useAPY(loan);
+  const amount = useAmount(loan);
+  const duration = useDuration(loan);
+  const amountOnMaturity = useAmpuntOnMaturity(loan);
+  const dueDate = useDueDate({ loan });
+  const dueDateWithTime = useDueDate({ loan, displayTime: true });
 
   function renderActiveButton() {
-    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
+    if (isBorrower) {
       return <RepayButton loan={loan} />;
-    } else if (anchorWallet && loan?.expired && loan?.isLender(anchorWallet)) {
+    } else if (isExpired && isLender) {
       return <RepossessButton loan={loan} />;
     }
 
@@ -159,7 +170,7 @@ const LoanLayout = () => {
   }
 
   function renderListedButton() {
-    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
+    if (isBorrower) {
       return <CancelButton loan={loan} />;
     } else if (loan) {
       return <LendButton loan={loan} />;
@@ -168,23 +179,12 @@ const LoanLayout = () => {
   }
 
   function renderCloseAccountButton() {
-    if (anchorWallet && loan?.isBorrower(anchorWallet)) {
+    if (isBorrower) {
       return <CloseAccountButton loan={loan} />;
     }
 
     return null;
   }
-
-  const currentLTV = useMemo(() => {
-    if (loan?.data?.amount && floorPrice) {
-      const percentage = Number(
-        (loan.data.amount.toNumber() / floorPrice) * 100
-      ).toFixed(2);
-      return percentage + "%";
-    }
-
-    return <EllipsisProgress />;
-  }, [loan?.data, floorPrice]);
 
   function renderByState() {
     if (loan === undefined) return null;
@@ -199,9 +199,9 @@ const LoanLayout = () => {
               </Box>
             }
           >
-            Total amount due for repayment by {loan.dueDate} will be&nbsp;
+            Total amount due for repayment by {dueDate} will be&nbsp;
             <Text as="span" fontWeight="semibold">
-              {loan.amountOnMaturity}
+              {amountOnMaturity}
             </Text>
             . Failure to repay the loan by this date may result in repossession
             of the NFT by the lender.
@@ -216,7 +216,7 @@ const LoanLayout = () => {
                 <TagLeftIcon boxSize="12px" as={IoLeaf} />
                 <TagLabel>Loan Active</TagLabel>
               </Tag>
-              {loan.expired && (
+              {isExpired && (
                 <Tag ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Repayment Overdue</TagLabel>
@@ -231,9 +231,9 @@ const LoanLayout = () => {
               }
             >
               <Text>
-                Repayment {loan.expired ? "was due before " : "due by "}
+                Repayment {isExpired ? "was due before " : "due by "}
                 <Text as="span" fontWeight="semibold">
-                  {loan.dueDateAndTime}
+                  {dueDateWithTime}
                 </Text>
                 . Failure to repay the loan by this date may result in
                 repossession of the NFT by the lender.
@@ -242,7 +242,6 @@ const LoanLayout = () => {
           </>
         );
 
-      // @ts-expect-error
       case LoanState.Repaid:
         return (
           <>
@@ -285,7 +284,9 @@ const LoanLayout = () => {
 
   return (
     <NftLayout
-      metadata={loan?.metadata}
+      mint={loan?.mint}
+      metadataJson={jsonMetadata}
+      collection={loan?.Collection}
       stats={
         loan
           ? [
@@ -294,7 +295,7 @@ const LoanLayout = () => {
                 { label: "Duration", value: loan.duration },
                 { label: "APY", value: loan.apy },
               ],
-              [{ label: "Loan to Floor Value", value: currentLTV }],
+              [{ label: "Loan to Floor Value", value: ltv }],
             ]
           : undefined
       }

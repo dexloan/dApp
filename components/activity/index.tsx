@@ -8,7 +8,7 @@ import * as utils from "../../common/utils";
 import { fetchParsedTransactions } from "../../common/query";
 
 interface ActivityProps {
-  mint?: anchor.web3.PublicKey;
+  mint?: string;
 }
 
 interface Activity {
@@ -22,12 +22,12 @@ export const Activity = ({ mint }: ActivityProps) => {
   const { connection } = useConnection();
 
   const activityQuery = useQuery(
-    ["activity", mint?.toBase58()],
+    ["activity", mint],
     async () => {
       if (mint) {
         const parsedTransactions = await fetchParsedTransactions(
           connection,
-          mint,
+          new anchor.web3.PublicKey(mint),
           20 // limit
         );
         return parsedTransactions.map(mapTransaction).filter(Boolean);
@@ -48,7 +48,7 @@ export const Activity = ({ mint }: ActivityProps) => {
       default:
         return (
           <Text fontWeight="medium" fontSize="sm">
-            {utils.formatAmount(activity.lamports)}
+            {utils.formatAmount(BigInt(activity.lamports.toString("hex")))}
           </Text>
         );
     }

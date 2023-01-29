@@ -1,18 +1,15 @@
-import { Image, Box, Fade, Skeleton } from "@chakra-ui/react";
+import { Image, Box, Skeleton } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { useMetadataFileQuery } from "../../hooks/query";
 
 interface ListingImageProps {
-  uri: string | undefined;
+  src: string | undefined;
 }
 
-export function ListingImage({ uri }: ListingImageProps) {
+export function ListingImage({ src }: ListingImageProps) {
   const [loaded, setLoaded] = useState(false);
-  const metadataFileQuery = useMetadataFileQuery(uri);
 
   useEffect(() => {
-    if (metadataFileQuery.data) {
-      const src = metadataFileQuery.data.image;
+    if (src) {
       const img = document.createElement("img");
 
       img.onload = () => {
@@ -21,7 +18,7 @@ export function ListingImage({ uri }: ListingImageProps) {
 
       img.src = src;
     }
-  }, [metadataFileQuery.data]);
+  }, [src]);
 
   return (
     <Box
@@ -40,7 +37,7 @@ export function ListingImage({ uri }: ListingImageProps) {
           height="100%"
           width="100%"
           borderRadius="sm"
-          src={metadataFileQuery.data?.image}
+          src={src}
           alt="NFT art"
         />
       </Skeleton>
