@@ -538,6 +538,17 @@ async function createLoan(
     throw new Error("metadata uri not found");
   }
 
+  console.log("creating loan entry", {
+    ...mapLoanEntry(data),
+    address: loanPda.toBase58(),
+    uri: utils.trimNullChars(metadata.data.uri),
+    Collection: {
+      connect: {
+        address: collectionPda.toBase58(),
+      },
+    },
+  });
+
   return prisma.loan.create({
     data: {
       ...mapLoanEntry(data),

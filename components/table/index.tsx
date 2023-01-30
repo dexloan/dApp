@@ -19,9 +19,8 @@ import React, { useState, useMemo } from "react";
 import { IoCaretDown, IoCaretUp, IoInformationCircle } from "react-icons/io5";
 import Image from "next/image";
 
-import { SortDirection } from "../../common/types";
+import { CollectionJson, SortDirection } from "../../common/types";
 import { useMetadataFileQuery, useMetadataQuery } from "../../hooks/query";
-import { useCollectionName } from "../../hooks/render";
 
 interface ColumnHeaderProps {
   children: string;
@@ -88,13 +87,13 @@ export const LTVHeader = () => {
 interface NFTCellProps {
   subtitle?: React.ReactNode;
   mint?: string;
+  collection?: CollectionJson;
 }
 
-export const NFTCellNew = ({ subtitle, mint }: NFTCellProps) => {
+export const NFTCellNew = ({ collection, subtitle, mint }: NFTCellProps) => {
   const [isVisible, setVisible] = useState(false);
   const metadataQuery = useMetadataQuery(mint);
   const metadataJsonQuery = useMetadataFileQuery(metadataQuery.data?.data.uri);
-  const collectionName = useCollectionName(metadataQuery.data);
 
   return (
     <Td>
@@ -139,66 +138,7 @@ export const NFTCellNew = ({ subtitle, mint }: NFTCellProps) => {
         <Box ml="4">
           <Text mb="1">{metadataQuery.data?.data.name}</Text>
           <Text fontSize="xs" color="gray.500">
-            {subtitle ?? collectionName}
-          </Text>
-        </Box>
-      </Box>
-    </Td>
-  );
-};
-
-interface NFTCellProps {
-  subtitle?: React.ReactNode;
-  metadata?: Metadata;
-}
-
-export const NFTCell = ({ subtitle, metadata }: NFTCellProps) => {
-  const [isVisible, setVisible] = useState(false);
-  const metadataQuery = useMetadataFileQuery(metadata?.data.uri);
-  const collectionName = useCollectionName(metadata);
-
-  return (
-    <Td>
-      <Box display="flex" alignItems="center">
-        <Box
-          as="span"
-          display="block"
-          position="relative"
-          width="12"
-          height="12"
-          borderRadius="sm"
-          overflow="hidden"
-        >
-          <Box
-            as="span"
-            position="absolute"
-            left="0"
-            top="0"
-            right="0"
-            bottom="0"
-          >
-            <Skeleton
-              height="100%"
-              width="100%"
-              isLoaded={metadataQuery.data?.image && isVisible}
-            >
-              {metadataQuery.data?.image && (
-                <Image
-                  quality={100}
-                  layout="fill"
-                  objectFit="cover"
-                  src={metadataQuery.data?.image}
-                  alt={metadata?.data.name}
-                  onLoad={() => setVisible(true)}
-                />
-              )}
-            </Skeleton>
-          </Box>
-        </Box>
-        <Box ml="4">
-          <Text mb="1">{metadata?.data.name}</Text>
-          <Text fontSize="xs" color="gray.500">
-            {subtitle ?? collectionName}
+            {subtitle ?? collection?.name ?? null}
           </Text>
         </Box>
       </Box>

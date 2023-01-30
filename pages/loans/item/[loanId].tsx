@@ -295,9 +295,9 @@ const LoanLayout = () => {
         loan
           ? [
               [
-                { label: "Borrowing", value: loan.amount },
-                { label: "Duration", value: loan.duration },
-                { label: "APY", value: loan.apy },
+                { label: "Borrowing", value: amount },
+                { label: "Duration", value: duration },
+                { label: "APY", value: apy.total },
               ],
               [{ label: "Loan to Floor Value", value: ltv }],
             ]
@@ -485,7 +485,7 @@ export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({
         open={dialog}
         loading={mutation.isLoading}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(loan.data)}
+        onConfirm={() => mutation.mutate(loan)}
       />
     </>
   );

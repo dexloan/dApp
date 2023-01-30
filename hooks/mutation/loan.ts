@@ -9,8 +9,10 @@ import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { LoanOfferJson, NftResult } from "../../common/types";
+import { LoanJson, LoanOfferJson, NftResult } from "../../common/types";
 import { getNftByOwnerCacheKey, fetchLoanOffers } from "../query";
+import { wait } from "../../common/utils";
+import { findLoanAddress } from "../../common/query";
 
 export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -48,28 +50,16 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        queryClient.setQueryData<NftResult[]>(
-          getNftByOwnerCacheKey(anchorWallet?.publicKey),
-          (data) => {
-            if (!data) {
-              return [];
-            }
-            return data.filter(
-              (item: NftResult) =>
-                !item?.tokenAccount.mint.equals(variables.mint)
-            );
-          }
-        );
-
         if (anchorWallet) {
-          const loanAddress = await query.findLoanAddress(
+          await wait(1000);
+          const loanPda = await findLoanAddress(
             variables.mint,
-            anchorWallet.publicKey
+            anchorWallet?.publicKey
           );
+          await queryClient.invalidateQueries(["loans"]);
+          await queryClient.invalidateQueries(["loan", loanPda.toBase58()]);
         }
-
         toast.success("Listing created");
-
         onSuccess();
       },
     }
@@ -137,7 +127,8 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess() {
-        setTimeout(() => queryClient.invalidateQueries(["loan_offers"]), 3000);
+        await wait(1000);
+        await queryClient.invalidateQueries(["loan_offers"]);
         toast.success("Loan offer(s) created");
         onSuccess();
       },
@@ -169,6 +160,7 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess() {
+        await wait(1000);
         queryClient.invalidateQueries(["loan_offers"]);
         toast.success("Loan taken");
         onSuccess();
@@ -211,29 +203,26 @@ export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
   );
 };
 
-interface GiveLoanVariables {
-  mint: anchor.web3.PublicKey;
-  borrower: anchor.web3.PublicKey;
-}
-
 export const useGiveLoanMutation = (onSuccess: () => void) => {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, GiveLoanVariables>(
-    async ({ mint, borrower }) => {
+  return useMutation<void, Error, LoanJson>(
+    async (loan) => {
       if (anchorWallet) {
+        const mint = new anchor.web3.PublicKey(loan.mint);
+        const borrower = new anchor.web3.PublicKey(loan.borrower);
         return actions.giveLoan(connection, anchorWallet, mint, borrower);
       }
       throw new Error("Not ready");
     },
     {
       async onSuccess(_, variables) {
-        const loadPda = await query.findLoanAddress(
-          variables.mint,
-          variables.borrower
-        );
+        await wait(1000);
+        const mint = new anchor.web3.PublicKey(variables.mint);
+        const borrower = new anchor.web3.PublicKey(variables.borrower);
+        const loadPda = await query.findLoanAddress(mint, borrower);
         await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
         await queryClient.invalidateQueries(["loans"]);
         toast.success("Loan given");
@@ -249,20 +238,17 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
   );
 };
 
-interface CloseLoanVariables {
-  mint: anchor.web3.PublicKey;
-  borrower: anchor.web3.PublicKey;
-}
-
 export const useCloseLoanMutation = (onSuccess: () => void) => {
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, CloseLoanVariables>(
-    async ({ mint }) => {
+  return useMutation<void, Error, LoanJson>(
+    async (loan) => {
       if (anchorWallet) {
+        const mint = new anchor.web3.PublicKey(loan.mint);
+
         const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
@@ -280,10 +266,10 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const loadPda = await query.findLoanAddress(
-          variables.mint,
-          variables.borrower
-        );
+        await wait(1000);
+        const mint = new anchor.web3.PublicKey(variables.mint);
+        const borrower = new anchor.web3.PublicKey(variables.borrower);
+        const loadPda = await query.findLoanAddress(mint, borrower);
         await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
         await queryClient.invalidateQueries(["loans"]);
         toast.success("Loan closed");
@@ -299,20 +285,17 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
   );
 };
 
-interface RepossessProps {
-  mint: anchor.web3.PublicKey;
-  borrower: anchor.web3.PublicKey;
-}
-
 export const useRepossessMutation = (onSuccess: () => void) => {
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, RepossessProps>(
-    async ({ mint, borrower }) => {
+  return useMutation<void, Error, LoanJson>(
+    async (loan) => {
       if (anchorWallet && wallet.publicKey) {
+        const mint = new anchor.web3.PublicKey(loan.mint);
+        const borrower = new anchor.web3.PublicKey(loan.borrower);
         const lenderTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
@@ -337,10 +320,9 @@ export const useRepossessMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        const loadPda = await query.findLoanAddress(
-          variables.mint,
-          variables.borrower
-        );
+        const mint = new anchor.web3.PublicKey(variables.mint);
+        const borrower = new anchor.web3.PublicKey(variables.borrower);
+        const loadPda = await query.findLoanAddress(mint, borrower);
         await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
         await queryClient.invalidateQueries(["loans"]);
         toast.success("NFT repossessed.");
@@ -350,21 +332,17 @@ export const useRepossessMutation = (onSuccess: () => void) => {
   );
 };
 
-interface RepayLoanProps {
-  mint: anchor.web3.PublicKey;
-  borrower: anchor.web3.PublicKey;
-  lender: anchor.web3.PublicKey | null;
-}
-
 export const useRepayLoanMutation = (onSuccess: () => void) => {
   const { connection } = useConnection();
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, RepayLoanProps>(
-    async ({ mint, lender }) => {
-      if (anchorWallet && lender) {
+  return useMutation<void, Error, LoanJson>(
+    async (loan) => {
+      if (anchorWallet && loan.lender) {
+        const mint = new anchor.web3.PublicKey(loan.mint);
+        const lender = new anchor.web3.PublicKey(loan.lender);
         const borrowerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
           wallet,
@@ -389,10 +367,10 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        const loadPda = await query.findLoanAddress(
-          variables.mint,
-          variables.borrower
-        );
+        await wait(1000);
+        const mint = new anchor.web3.PublicKey(variables.mint);
+        const borrower = new anchor.web3.PublicKey(variables.borrower);
+        const loadPda = await query.findLoanAddress(mint, borrower);
         await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
         await queryClient.invalidateQueries(["loans"]);
         toast.success("Loan repaid. Your NFT has been unlocked.");

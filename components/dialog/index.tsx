@@ -9,7 +9,14 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import { CallOption, Loan, Rental } from "../../common/model";
+import { CallOption, Rental } from "../../common/model";
+import { LoanJson } from "../../common/types";
+import {
+  useAPY,
+  useDueDate,
+  useInterestDue,
+  useTotalDue,
+} from "../../hooks/render";
 
 interface MutationDialogProps {
   open: boolean;
@@ -67,7 +74,7 @@ interface LoanDialogProps
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  loan: Loan;
+  loan: LoanJson;
 }
 
 export const LoanDialog: React.FC<LoanDialogProps> = ({
@@ -77,6 +84,10 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
   onConfirm,
   onRequestClose,
 }) => {
+  const apy = useAPY(loan);
+  const interestDue = useInterestDue(loan);
+  const dueDate = useDueDate({ loan });
+
   return (
     <MutationDialog
       open={open}
@@ -89,11 +100,11 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
               {loan.amount}
             </Badge>{" "}
             <Badge fontSize="md" colorScheme="teal">
-              {loan.interestDue}
+              {interestDue}
             </Badge>{" "}
-            <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>{" "}
+            <Badge fontSize="md">{apy.total} APY</Badge>{" "}
           </Text>
-          <Text mb="4">Loan will mature on {loan.dueDate}.</Text>
+          <Text mb="4">Loan will mature on {dueDate}.</Text>
           <Text fontSize="sm">
             This loan may be repaid in full at any time. Interest will be
             calculated on a pro-rata basis at the time of repayment. If the
@@ -130,6 +141,10 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
   onConfirm,
   onRequestClose,
 }) => {
+  const apy = useAPY(loan);
+  const interestDue = useInterestDue(loan);
+  const totalDue = useTotalDue(loan);
+
   return (
     <MutationDialog
       open={open}
@@ -142,16 +157,16 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
               {loan.amount}
             </Badge>
             <Badge borderRadius="md" fontSize="md" mr="2">
-              {loan.data.basisPoints / 100}% APY
+              {apy.total} APY
             </Badge>
             <Badge colorScheme="blue" borderRadius="md" fontSize="md">
-              {loan.interestDue}
+              {interestDue}
             </Badge>
           </Text>
           <Text mb="4">
             Repay full loan amount of{" "}
             <Text as="span" fontWeight="semibold">
-              {loan.totalDue}
+              {totalDue}
             </Text>{" "}
             to unlock your NFT.
           </Text>

@@ -66,7 +66,11 @@ export const LoanRow = ({ item, subtitle, onClick }: LoanRowProps) => {
       _hover={{ bg: "rgba(255, 255, 255, 0.02)" }}
       onClick={onClick}
     >
-      <NFTCellNew subtitle={subtitle} mint={mint} />
+      <NFTCellNew
+        subtitle={subtitle}
+        mint={mint}
+        collection={item.Collection}
+      />
       <Td isNumeric>{duration}</Td>
       <Td isNumeric>
         <Text mb="1">{apy.total}</Text>

@@ -11,7 +11,7 @@ import { VerifiedCollection } from "../collection";
 
 type Stat = {
   label: string;
-  value?: string | JSX.Element;
+  value?: string | React.ReactNode;
 };
 
 interface NftLayoutProps {

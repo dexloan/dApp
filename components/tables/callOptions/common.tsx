@@ -59,6 +59,7 @@ export const OptionRow = ({ subtitle, option, onClick }: OptionRowProps) => {
       <NFTCellNew
         subtitle={subtitle}
         mint={"mint" in option ? option.mint : option.Collection.mint}
+        collection={option.Collection}
       />
       <Td>
         <Text mb="1">
