@@ -84,3 +84,70 @@ export function useDueDate({ loan, displayTime = false }: UseDueDateProps) {
     return <EllipsisProgress />;
   }, [loan, displayTime]);
 }
+
+export function useAPY(loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson) {
+  return useMemo(() => {
+    if (loan) {
+      const lenderBasisPoints = loan.basisPoints;
+      const creatorBasisPoints =
+        "creatorBasisPoints" in loan
+          ? loan.creatorBasisPoints
+          : loan.Collection.loanBasisPoints;
+
+      const lender = utils.basisPointsToPercent(lenderBasisPoints);
+      const creator = utils.basisPointsToPercent(creatorBasisPoints);
+      const total = utils.basisPointsToPercent(
+        lenderBasisPoints + creatorBasisPoints
+      );
+      return {
+        lender,
+        creator,
+        total,
+      };
+    }
+
+    return {
+      lender: null,
+      creator: null,
+      total: null,
+    };
+  }, [loan]);
+}
+
+export function useAmount(
+  loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson
+) {
+  return useMemo(() => {
+    if (loan?.amount) {
+      return utils.formatHexAmount(loan.amount);
+    }
+
+    return null;
+  }, [loan]);
+}
+
+export function useDuration(
+  loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson
+) {
+  return useMemo(() => {
+    if (loan?.duration) {
+      return utils.formatHexDuration(loan.duration);
+    }
+
+    return <EllipsisProgress />;
+  }, [loan]);
+}
+
+export function useFloorPrice(
+  loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson
+) {
+  return useMemo(() => {
+    const floorPrice = loan?.Collection.floorPrice;
+
+    if (floorPrice) {
+      return utils.formatHexAmount(floorPrice);
+    }
+
+    return null;
+  }, [loan]);
+}

@@ -26,6 +26,9 @@ import {
   useMetadataFileQuery,
 } from "../../../hooks/query";
 import {
+  useAmount,
+  useAPY,
+  useDuration,
   useDueDate,
   useLTV,
   useIsExpired,
@@ -48,6 +51,7 @@ import { NftLayout } from "../../../components/layout";
 import { EllipsisProgress } from "../../../components/progress";
 import { DocumentHead } from "../../../components/document";
 import { Detail } from "../../../components/detail";
+import { LoanJson } from "../../../common/types";
 
 interface LoanProps {
   dehydratedState: DehydratedState | undefined;
@@ -305,7 +309,7 @@ const LoanLayout = () => {
 };
 
 interface LoanButtonProps {
-  loan: Loan;
+  loan: LoanJson;
 }
 
 const LendButton = ({ loan }: LoanButtonProps) => {
@@ -332,14 +336,14 @@ const LendButton = ({ loan }: LoanButtonProps) => {
         open={open}
         loading={mutation.isLoading}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(loan.data)}
+        onConfirm={() => mutation.mutate(loan)}
       />
     </>
   );
 };
 
 interface CancelButtonProps {
-  loan: Loan;
+  loan: LoanJson;
 }
 
 const CancelButton = ({ loan }: CancelButtonProps) => {
@@ -365,14 +369,14 @@ const CancelButton = ({ loan }: CancelButtonProps) => {
         open={dialog}
         loading={mutation.isLoading}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(loan.data)}
+        onConfirm={() => mutation.mutate(loan)}
       />
     </>
   );
 };
 
 interface RepayButtonProps {
-  loan: Loan;
+  loan: LoanJson;
 }
 
 const RepayButton = ({ loan }: RepayButtonProps) => {
@@ -406,14 +410,14 @@ const RepayButton = ({ loan }: RepayButtonProps) => {
         loading={mutation.isLoading}
         loan={loan}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(loan.data)}
+        onConfirm={() => mutation.mutate(loan)}
       />
     </>
   );
 };
 
 interface RepossessButtonProps {
-  loan: Loan;
+  loan: LoanJson;
 }
 
 const RepossessButton: React.FC<RepossessButtonProps> = ({ loan }) => {
@@ -439,14 +443,14 @@ const RepossessButton: React.FC<RepossessButtonProps> = ({ loan }) => {
         open={dialog}
         loading={mutation.isLoading}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(loan.data)}
+        onConfirm={() => mutation.mutate(loan)}
       />
     </>
   );
 };
 
 interface CloseAcccountButtonProps {
-  loan: Loan;
+  loan: LoanJson;
 }
 
 export const CloseAccountButton: React.FC<CloseAcccountButtonProps> = ({

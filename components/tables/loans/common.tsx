@@ -8,7 +8,13 @@ import {
   GroupedLoanOfferJson,
 } from "../../../common/types";
 import { SortDirection } from "../../../common/types";
-import { useLTV } from "../../../hooks/render";
+import {
+  useAmount,
+  useAPY,
+  useLTV,
+  useDuration,
+  useFloorPrice,
+} from "../../../hooks/render";
 import { NFTCellNew } from "../../table";
 import { FloorPrice } from "../../floorPrice";
 
@@ -46,12 +52,12 @@ interface LoanRowProps {
 }
 
 export const LoanRow = ({ item, subtitle, onClick }: LoanRowProps) => {
+  const amount = useAmount(item);
+  const floorPrice = useFloorPrice(item);
+  const apy = useAPY(item);
+  const duration = useDuration(item);
   const ltv = useLTV(item);
-  const floorPrice = item.Collection.floorPrice;
-  const creatorBasisPoints =
-    "creatorBasisPoints" in item
-      ? item.creatorBasisPoints
-      : item.Collection.loanBasisPoints;
+
   const mint = "mint" in item ? item.mint : item.Collection.mint;
 
   return (
@@ -61,42 +67,22 @@ export const LoanRow = ({ item, subtitle, onClick }: LoanRowProps) => {
       onClick={onClick}
     >
       <NFTCellNew subtitle={subtitle} mint={mint} />
-      <Td isNumeric>{utils.formatHexDuration(item.duration)}</Td>
+      <Td isNumeric>{duration}</Td>
       <Td isNumeric>
-        <Text mb="1">
-          {utils.basisPointsToPercent(item.basisPoints + creatorBasisPoints)}
-        </Text>
+        <Text mb="1">{apy.total}</Text>
         <Tooltip label="Lender and creator interest rates.">
           <Text fontSize="xs" color="gray.500">
-            ({utils.basisPointsToPercent(item.basisPoints)},{" "}
-            {utils.basisPointsToPercent(creatorBasisPoints)})
+            ({apy.lender}, {apy.creator})
           </Text>
         </Tooltip>
       </Td>
       <Td isNumeric>{ltv}</Td>
       <Td isNumeric>
         <Box>
-          <Text mb="1">
-            {item.amount ? utils.formatHexAmount(item.amount) : null}
-          </Text>
-          <FloorPrice>{utils.formatHexAmount(floorPrice)}</FloorPrice>
+          <Text mb="1">{amount}</Text>
+          <FloorPrice>{floorPrice}</FloorPrice>
         </Box>
       </Td>
     </Tr>
   );
 };
-
-function getLTV(floorPrice: string, amount: string | null) {
-  if (amount) {
-    try {
-      return (
-        (
-          (utils.hexToNumber(amount) / utils.hexToNumber(floorPrice)) *
-          100
-        ).toFixed(2) + "%"
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  }
-}
