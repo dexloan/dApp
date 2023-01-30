@@ -542,7 +542,7 @@ async function createLoan(
     data: {
       ...mapLoanEntry(data),
       address: loanPda.toBase58(),
-      uri: metadata.data.uri,
+      uri: utils.trimNullChars(metadata.data.uri),
       Collection: {
         connect: {
           address: collectionPda.toBase58(),
