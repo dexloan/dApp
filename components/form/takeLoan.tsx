@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Box,
@@ -17,6 +17,8 @@ import {
   Th,
   Thead,
   Tr,
+  CircularProgress,
+  Spinner,
 } from "@chakra-ui/react";
 
 import {
@@ -90,19 +92,23 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
     basisPoints: groupedOffer.basisPoints,
   });
 
-  const renderedRows = offersQuery.data?.map((item) => (
-    <Tr key={item.address}>
-      <Td>{item.lender}</Td>
-      <Td isNumeric>
-        <Button
-          disabled={walletAddress === item.lender}
-          onClick={() => onSelect(item)}
-        >
-          Take
-        </Button>
-      </Td>
-    </Tr>
-  ));
+  const renderedRows = useMemo(
+    () =>
+      offersQuery.data?.map((item) => (
+        <Tr key={item.address}>
+          <Td>{item.lender}</Td>
+          <Td isNumeric>
+            <Button
+              disabled={walletAddress === item.lender}
+              onClick={() => onSelect(item)}
+            >
+              Take
+            </Button>
+          </Td>
+        </Tr>
+      )),
+    [offersQuery.data, walletAddress, onSelect]
+  );
 
   return (
     <>
@@ -133,7 +139,20 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
                   <Th>Lender</Th>
                 </Tr>
               </Thead>
-              <Tbody>{renderedRows}</Tbody>
+              <Tbody>
+                {offersQuery.isLoading ? (
+                  <Box
+                    display="flex"
+                    width="100%"
+                    justifyContent="center"
+                    pb="6"
+                  >
+                    <Spinner size="sm" />
+                  </Box>
+                ) : (
+                  renderedRows
+                )}
+              </Tbody>
             </Table>
           </TableContainer>
         </Box>

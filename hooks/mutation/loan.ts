@@ -12,7 +12,12 @@ import toast from "react-hot-toast";
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
 import * as utils from "../../common/utils";
-import { CollectionJson, LoanJson, LoanOfferJson } from "../../common/types";
+import {
+  CollectionJson,
+  LoanJson,
+  LoanOfferJson,
+  GroupedLoanOfferJson,
+} from "../../common/types";
 import { fetchLoanOffers } from "../query";
 import {
   findCollectionAddress,
@@ -186,9 +191,84 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      async onSuccess() {
-        await utils.wait(1000);
-        await queryClient.invalidateQueries(["loan_offers"]);
+      async onSuccess(newOffers, variables) {
+        if (anchorWallet) {
+          const collection: CollectionJson = await fetch(
+            `${
+              process.env.NEXT_PUBLIC_HOST
+            }/api/collections/mint/${variables.collectionMint.toBase58()}`
+          ).then((res) => res.json());
+
+          const newLoanOffers: LoanOfferJson[] = newOffers.map(
+            ([address, id]) => ({
+              address: address.toBase58(),
+              offerId: id,
+              amount: utils.toHexString(variables.options.amount),
+              duration: utils.toHexString(variables.options.duration),
+              basisPoints: variables.options.basisPoints,
+              lender: anchorWallet.publicKey.toBase58(),
+              ltv: null,
+              threshold: null,
+              collectionAddress: variables.collection.toBase58(),
+              Collection: collection,
+            })
+          );
+
+          const groupedOffer: GroupedLoanOfferJson = {
+            _count: newOffers.length,
+            amount: utils.toHexString(variables.options.amount),
+            duration: utils.toHexString(variables.options.duration),
+            basisPoints: variables.options.basisPoints,
+            Collection: collection,
+          };
+
+          const queryCache = queryClient.getQueryCache();
+          const queries = queryCache.findAll(["loan_offers", "grouped"], {
+            exact: false,
+          });
+
+          queries
+            .map((query) => query.queryKey)
+            .forEach((key) => {
+              if (
+                key[1] &&
+                typeof key[1] === "object" &&
+                "collection" in key[1] &&
+                key[1].collection !== variables.collection
+              ) {
+                return;
+              }
+
+              queryClient.setQueryData<GroupedLoanOfferJson[]>(
+                key,
+                (groupedOffers = []) => {
+                  let shouldAppend = true;
+
+                  const updated = groupedOffers.map((o) => {
+                    if (
+                      o.amount === groupedOffer.amount &&
+                      o.duration === groupedOffer.duration &&
+                      o.basisPoints === groupedOffer.basisPoints &&
+                      groupedOffer.Collection.address === o.Collection.address
+                    ) {
+                      shouldAppend = false;
+                      return {
+                        ...o,
+                        _count: o._count + newOffers.length,
+                      };
+                    }
+                    return o;
+                  });
+
+                  if (shouldAppend) {
+                    updated.push(groupedOffer);
+                  }
+
+                  return updated;
+                }
+              );
+            });
+        }
         toast.success("Loan offer(s) created");
         onSuccess();
       },

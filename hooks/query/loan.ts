@@ -155,7 +155,7 @@ export function useGroupedLoanOffersQuery(filters: LoanOfferFilters = {}) {
 export function fetchLoanOffers(
   filters: LoanOfferFilters
 ): Promise<LoanOfferJson[]> {
-  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loans/offers`);
+  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loan/offers`);
 
   appendQueryParams(url, filters);
 

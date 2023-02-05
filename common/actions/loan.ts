@@ -75,6 +75,7 @@ export async function offerLoan(
   },
   ids: number[]
 ) {
+  const newOffers: [anchor.web3.PublicKey, number][] = [];
   const tx = new anchor.web3.Transaction();
 
   for (const id of ids) {
@@ -106,9 +107,12 @@ export async function offerLoan(
       .instruction();
 
     tx.add(ix);
+    newOffers.push([loanOffer, id]);
   }
 
   await submitTransaction(connection, wallet, tx);
+
+  return newOffers;
 }
 
 export async function closeOffer(
