@@ -144,6 +144,7 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
   onRequestClose,
 }) => {
   const apy = useAPY(loan);
+  const amount = useAmount(loan);
   const interestDue = useInterestDue(loan);
   const totalDue = useTotalDue(loan);
 
@@ -156,7 +157,7 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
         <>
           <Text mb="4">
             <Badge colorScheme="green" borderRadius="md" fontSize="md" mr="2">
-              {loan.amount}
+              {amount}
             </Badge>
             <Badge borderRadius="md" fontSize="md" mr="2">
               {apy.total} APY

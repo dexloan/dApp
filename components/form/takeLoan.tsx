@@ -39,18 +39,26 @@ export const TakeLoanModal = ({
   groupedOffer,
   onRequestClose,
 }: TakeLoanModalProps) => {
-  const [selected, setSelected] = useState<LoanOfferJson | null>(null);
+  const [selected, setSelected] = useState<NftResult | null>(null);
+  const [selectedBid, setSelectedBid] = useState<LoanOfferJson | null>(null);
 
   function renderBody() {
-    if (selected) {
-      return <TakeLoanOffer offer={selected} onRequestClose={onRequestClose} />;
+    if (selectedBid) {
+      return (
+        <TakeLoanOffer
+          offer={selectedBid}
+          selected={selected}
+          onSelect={setSelected}
+          onRequestClose={onRequestClose}
+        />
+      );
     }
 
     if (groupedOffer) {
       return (
         <OffersList
           groupedOffer={groupedOffer}
-          onSelect={(offer) => setSelected(offer)}
+          onSelect={(offer) => setSelectedBid(offer)}
         />
       );
     }
@@ -163,11 +171,17 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
 
 interface TakeLoanOfferProps {
   offer: LoanOfferJson;
+  selected: NftResult | null;
+  onSelect: (nft: NftResult | null) => void;
   onRequestClose: () => void;
 }
 
-const TakeLoanOffer = ({ offer, onRequestClose }: TakeLoanOfferProps) => {
-  const [selected, setSelected] = useState<NftResult | null>(null);
+const TakeLoanOffer = ({
+  offer,
+  selected,
+  onSelect,
+  onRequestClose,
+}: TakeLoanOfferProps) => {
   const mutation = useTakeLoanMutation(onRequestClose);
 
   function onSubmit() {
@@ -202,7 +216,7 @@ const TakeLoanOffer = ({ offer, onRequestClose }: TakeLoanOfferProps) => {
             <Button
               isFullWidth
               disabled={mutation.isLoading}
-              onClick={() => setSelected(null)}
+              onClick={() => onSelect(null)}
             >
               Cancel
             </Button>
@@ -225,7 +239,7 @@ const TakeLoanOffer = ({ offer, onRequestClose }: TakeLoanOfferProps) => {
       <SelectNftForm
         listingType="loan"
         collection={offer.Collection}
-        onSelect={setSelected}
+        onSelect={onSelect}
       />
     </ModalBody>
   );
