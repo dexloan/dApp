@@ -1,12 +1,14 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
+import {
+  Metadata,
+  PROGRAM_ID as METADATA_PROGRAM_ID,
+} from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
 import { SIGNER } from "../constants";
 import { RentalData, LoanOfferJson } from "../types";
-import { LoanOffer } from "../model";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
 
@@ -266,7 +268,20 @@ export async function repayLoan(
     mint,
     wallet.publicKey
   );
+  const [metadataPda] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
+  const metadata = await Metadata.fromAccountAddress(connection, metadataPda);
+
+  const remainingAccounts = [];
+  const creatorAccounts = metadata.data.creators?.map((creator) => ({
+    pubkey: creator.address,
+    isSigner: false,
+    isWritable: true,
+  }));
+
+  if (creatorAccounts?.length) {
+    remainingAccounts.push(...creatorAccounts);
+  }
 
   const transaction = await program.methods
     .repayLoan()
@@ -275,6 +290,7 @@ export async function repayLoan(
       loan,
       tokenManager,
       mint,
+      metadata: metadataPda,
       edition,
       borrower: wallet.publicKey,
       depositTokenAccount: borrowerTokenAccount,
@@ -284,6 +300,7 @@ export async function repayLoan(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       signer: SIGNER,
     })
+    .remainingAccounts(remainingAccounts)
     .transaction();
 
   await submitTransaction(connection, wallet, transaction);

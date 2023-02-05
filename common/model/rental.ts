@@ -37,6 +37,7 @@ export class Rental implements RentalArgs {
   }
 
   public getFullAmount(days: number) {
+    // @ts-expect-error
     return utils.formatAmount(this.data.amount.mul(new BN(days)));
   }
 
@@ -59,10 +60,12 @@ export class Rental implements RentalArgs {
   }
 
   get amount() {
+    // @ts-expect-error
     return utils.formatAmount(this.data.amount);
   }
 
   get withdrawlAmount() {
+    // @ts-expect-error
     return utils.formatAmount(this.calculateWithdrawlAmount());
   }
 

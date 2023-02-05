@@ -19,18 +19,13 @@ import {
   Tr,
 } from "@chakra-ui/react";
 
-import * as utils from "../../common/utils";
 import {
   GroupedLoanOfferJson,
   LoanOfferJson,
   NftResult,
 } from "../../common/types";
 import { useLoanOffersQuery } from "../../hooks/query";
-import {
-  useCloseLoanOfferMutation,
-  useTakeLoanMutation,
-} from "../../hooks/mutation/loan";
-import { MutationDialog } from "../dialog";
+import { useTakeLoanMutation } from "../../hooks/mutation/loan";
 import { ModalProps, SelectNftForm, MintDetails, LoanForecast } from "./common";
 
 interface TakeLoanModalProps extends ModalProps {

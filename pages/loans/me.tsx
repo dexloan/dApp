@@ -57,6 +57,7 @@ const MyLoans = ({ heading, placeholder, filters }: MyLoansProps) => {
   const router = useRouter();
   const [sortState, sortBy] = useLoanSortState();
   const myLoansQuery = useLoansQuery(filters);
+  console.log("myLoansQuery: ", myLoansQuery);
 
   return (
     <ListingsTable<LoanSortCols, LoanJson>

@@ -1,4 +1,3 @@
-import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import {
   Box,

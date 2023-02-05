@@ -48,7 +48,7 @@ export const Activity = ({ mint }: ActivityProps) => {
       default:
         return (
           <Text fontWeight="medium" fontSize="sm">
-            {utils.formatAmount(BigInt(activity.lamports.toString("hex")))}
+            {utils.formatAmount(BigInt("0x" + activity.lamports.toString("hex")))}
           </Text>
         );
     }

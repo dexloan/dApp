@@ -9,9 +9,10 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import { CallOption, Rental } from "../../common/model";
+import { Rental } from "../../common/model";
 import { LoanJson } from "../../common/types";
 import {
+  useAmount,
   useAPY,
   useDueDate,
   useInterestDue,
@@ -85,6 +86,7 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
   onRequestClose,
 }) => {
   const apy = useAPY(loan);
+  const amount = useAmount(loan);
   const interestDue = useInterestDue(loan);
   const dueDate = useDueDate({ loan });
 
@@ -97,7 +99,7 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
         <>
           <Text mb="4">
             <Badge fontSize="md" colorScheme="green">
-              {loan.amount}
+              {amount}
             </Badge>{" "}
             <Badge fontSize="md" colorScheme="teal">
               {interestDue}

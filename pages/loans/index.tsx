@@ -22,6 +22,8 @@ const Loans: NextPage = () => {
     sortOrder: sortState[1],
   });
 
+  console.log("loansQuery: ", loansQuery);
+
   return (
     <>
       <LoanLayout setCollections={setCollections}>

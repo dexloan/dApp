@@ -4,15 +4,21 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { LoanState } from "@prisma/client";
 import { useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
 import * as query from "../../common/query";
-import { LoanJson, LoanOfferJson, NftResult } from "../../common/types";
-import { getNftByOwnerCacheKey, fetchLoanOffers } from "../query";
-import { wait } from "../../common/utils";
-import { findLoanAddress } from "../../common/query";
+import * as utils from "../../common/utils";
+import { CollectionJson, LoanJson, LoanOfferJson } from "../../common/types";
+import { fetchLoanOffers } from "../query";
+import {
+  findCollectionAddress,
+  findLoanAddress,
+  findMetadataAddress,
+} from "../../common/query";
 
 export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -51,13 +57,67 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
       },
       async onSuccess(_, variables) {
         if (anchorWallet) {
-          await wait(1000);
           const loanPda = await findLoanAddress(
             variables.mint,
             anchorWallet?.publicKey
           );
-          await queryClient.invalidateQueries(["loans"]);
-          await queryClient.invalidateQueries(["loan", loanPda.toBase58()]);
+          const collectionPda = await findCollectionAddress(variables.mint);
+          const [metdata] = await findMetadataAddress(variables.mint);
+
+          const collection: CollectionJson = await fetch(
+            `${
+              process.env.NEXT_PUBLIC_HOST
+            }/api/collections/mint/${variables.collectionMint.toBase58()}`
+          ).then((res) => res.json());
+
+          const metadata = await Metadata.fromAccountAddress(
+            connection,
+            metdata
+          );
+
+          const newLoan: LoanJson = {
+            address: loanPda.toBase58(),
+            amount: utils.toHexString(variables.options.amount),
+            outstanding: utils.toHexString(variables.options.amount),
+            basisPoints: variables.options.basisPoints,
+            creatorBasisPoints: collection.loanBasisPoints,
+            duration: utils.toHexString(variables.options.duration),
+            state: LoanState.Listed,
+            borrower: anchorWallet.publicKey.toBase58(),
+            mint: variables.mint.toBase58(),
+            collectionAddress: variables.collectionMint.toBase58(),
+            installments: 1,
+            currentInstallment: 0,
+            uri: metadata.data.uri,
+            tokenMint: null,
+            threshold: null,
+            noticeIssued: null,
+            startDate: null,
+            lender: null,
+            Collection: collection,
+          };
+
+          const queryCache = queryClient.getQueryCache();
+          const queries = queryCache.findAll(["loans"], { exact: false });
+
+          queries
+            .map((query) => query.queryKey)
+            .forEach((key) => {
+              if (
+                key[1] &&
+                typeof key[1] === "object" &&
+                "collection" in key[1] &&
+                key[1].collection !== collectionPda.toBase58()
+              ) {
+                return;
+              }
+
+              queryClient.setQueryData<LoanJson[]>(key, (loans = []) => {
+                return [...loans, newLoan];
+              });
+            });
+
+          queryClient.setQueriesData(["loan", loanPda.toBase58()], newLoan);
         }
         toast.success("Listing created");
         onSuccess();
@@ -127,7 +187,7 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess() {
-        await wait(1000);
+        await utils.wait(1000);
         await queryClient.invalidateQueries(["loan_offers"]);
         toast.success("Loan offer(s) created");
         onSuccess();
@@ -160,7 +220,7 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess() {
-        await wait(1000);
+        await utils.wait(1000);
         queryClient.invalidateQueries(["loan_offers"]);
         toast.success("Loan taken");
         onSuccess();
@@ -219,7 +279,7 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        await wait(1000);
+        await utils.wait(1000);
         const mint = new anchor.web3.PublicKey(variables.mint);
         const borrower = new anchor.web3.PublicKey(variables.borrower);
         const loadPda = await query.findLoanAddress(mint, borrower);
@@ -266,12 +326,22 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        await wait(1000);
         const mint = new anchor.web3.PublicKey(variables.mint);
         const borrower = new anchor.web3.PublicKey(variables.borrower);
         const loadPda = await query.findLoanAddress(mint, borrower);
-        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
-        await queryClient.invalidateQueries(["loans"]);
+
+        await queryClient.setQueryData<LoanJson[]>(
+          ["loans", loadPda.toBase58()],
+          (loans = []) => loans.filter((l) => l.address !== loadPda.toBase58())
+        );
+        await queryClient.setQueryData<LoanJson | undefined>(
+          ["loan", loadPda.toBase58()],
+          (loan) => {
+            if (loan) {
+              return { ...loan, state: LoanState.Cancelled };
+            }
+          }
+        );
         toast.success("Loan closed");
         onSuccess();
       },
@@ -367,13 +437,27 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        await wait(1000);
         const mint = new anchor.web3.PublicKey(variables.mint);
         const borrower = new anchor.web3.PublicKey(variables.borrower);
         const loadPda = await query.findLoanAddress(mint, borrower);
-        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
+
         await queryClient.invalidateQueries(["loans"]);
-        toast.success("Loan repaid. Your NFT has been unlocked.");
+        await queryClient.setQueryData<LoanJson | undefined>(
+          ["loan", loadPda.toBase58()],
+          (data) => {
+            if (data) {
+              return {
+                ...data,
+                outstanding: BigInt(0).toString(16),
+                state: LoanState.Repaid,
+              };
+            }
+          }
+        );
+
+        toast.success("Loan repaid. Your NFT has been unlocked.", {
+          duration: 5000,
+        });
         onSuccess();
       },
     }

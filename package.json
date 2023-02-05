@@ -6,7 +6,8 @@
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync": "ts-node ./scripts/sync.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "1.8.8",

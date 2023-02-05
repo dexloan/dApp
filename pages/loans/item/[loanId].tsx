@@ -11,6 +11,7 @@ import {
   TagLeftIcon,
   TagLabel,
   Text,
+  Spinner,
 } from "@chakra-ui/react";
 import { LoanState } from "@prisma/client";
 import type { NextPage } from "next";
@@ -63,6 +64,20 @@ const LoanPage: NextPage<LoanProps> = () => {
   const metadataQuery = useMetadataFileQuery(loanQueryResult.data?.uri);
   const loan = loanQueryResult.data;
   const jsonMetadata = metadataQuery.data;
+
+  if (loanQueryResult.isLoading || metadataQuery.isLoading) {
+    return (
+      <Box
+        display="flex"
+        w="100%"
+        paddingTop="20%"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Spinner size="sm" />
+      </Box>
+    );
+  }
 
   if (loanQueryResult.error || !loan || !jsonMetadata) {
     return (
@@ -393,12 +408,6 @@ const RepayButton = ({ loan }: RepayButtonProps) => {
       setVisible(true);
     }
   }
-
-  useEffect(() => {
-    if (mutation.isSuccess) {
-      router.replace("/manage");
-    }
-  }, [router, mutation.isSuccess]);
 
   return (
     <>

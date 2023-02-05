@@ -31,8 +31,7 @@ model Collection {
 }
 
 model Loan {
-  id                 Int        @unique @default(autoincrement())
-  address            String
+  address            String @id @unique
   state              LoanState
   borrower           String
   lender             String?
@@ -51,8 +50,6 @@ model Loan {
   currentInstallment Int
   Collection         Collection @relation(fields: [collectionAddress], references: [address])
   uri                String
-
-  @@id([id, address])
 }
 
 model LoanOffer {
@@ -69,8 +66,7 @@ model LoanOffer {
 }
 
 model CallOption {
-  id                 Int             @unique @default(autoincrement())
-  address            String
+  address            String @id @unique
   state              CallOptionState
   amount             BigInt
   creatorBasisPoints Int
@@ -83,8 +79,6 @@ model CallOption {
   collectionAddress  String
   Collection         Collection      @relation(fields: [collectionAddress], references: [address])
   uri                String
-
-  @@id([id, address])
 }
 
 model CallOptionBid {
