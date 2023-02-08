@@ -3,9 +3,8 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
-import { CollectionData, LoanData, LoanJson, LoanOfferData } from "../types";
-import { getProgram, getProvider } from "../provider";
-import { fetchMetadata, fetchMetadataAccounts } from "./common";
+import { LoanData, LoanOfferData } from "../types";
+import { DexloanListings } from "../idl";
 
 /**
  * KEYS
@@ -68,4 +67,24 @@ export async function findLoanOfferVaultAddress(
   );
 
   return vaultAddress;
+}
+
+export async function fetchLoan(
+  program: anchor.Program<DexloanListings>,
+  loanPda: anchor.web3.PublicKey
+) {
+  return utils.asyncRetry<LoanData>(async () => {
+    return (await program.account.loan.fetch(loanPda)) as LoanData;
+  });
+}
+
+export async function fetchLoanOffer(
+  program: anchor.Program<DexloanListings>,
+  loanOfferPda: anchor.web3.PublicKey
+) {
+  return utils.asyncRetry<LoanOfferData>(async () => {
+    return (await program.account.loanOffer.fetch(
+      loanOfferPda
+    )) as LoanOfferData;
+  });
 }

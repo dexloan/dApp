@@ -5,9 +5,9 @@ import { snakeCase } from "snake-case";
 import { sha256 } from "js-sha256";
 import base58 from "bs58";
 
-import { IDL } from "../../common/idl";
 import * as utils from "../../common/utils";
-import * as helpers from "../../common/helpers";
+import * as query from "../../common/query";
+import { IDL } from "../../common/idl";
 import { getProgram, getProvider } from "../../common/provider";
 import prisma from "../../common/lib/prisma";
 import { LoanData } from "../../common/types";
@@ -69,7 +69,7 @@ export default async function handler(
 
             const [data, metadata] = await Promise.all([
               program.account.collection.fetch(collectionPda),
-              helpers.getMetadata(connection, collectionMint),
+              query.fetchMetadata(connection, collectionMint),
             ]);
 
             const collection: Collection = {
@@ -143,7 +143,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[mintAccountIndex]]
             );
 
-            await helpers.upsertLoan(program, loanPda, mint);
+            await upsertLoan(loanPda, mint);
 
             break;
           }
@@ -157,7 +157,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[loanAccountIndex]]
             );
 
-            await helpers.closeLoan(loanPda);
+            await closeLoan(loanPda);
 
             break;
           }
@@ -176,7 +176,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
 
-            await helpers.createLoanOffer(program, loanOfferPda, collectionPda);
+            await createLoanOffer(loanOfferPda, collectionPda);
 
             break;
           }
@@ -202,8 +202,8 @@ export default async function handler(
             );
 
             await Promise.all([
-              helpers.deleteLoanOffer(loanOfferPda),
-              helpers.upsertLoan(program, loanPda, mint),
+              deleteLoanOffer(loanOfferPda),
+              upsertLoan(loanPda, mint),
             ]);
 
             break;
@@ -217,7 +217,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[loanOfferAccountIndex]]
             );
 
-            await helpers.deleteLoanOffer(loanOfferPda);
+            await deleteLoanOffer(loanOfferPda);
 
             break;
           }
@@ -236,25 +236,14 @@ export default async function handler(
             const mintAccountIndex = ixAccounts.findIndex(
               (a) => a.name === "mint"
             );
-            const collectionAccountIndex = ixAccounts.findIndex(
-              (a) => a.name === "collection"
-            );
             const callOptionPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[callOptionAccountIndex]]
             );
             const mint = new web3.PublicKey(
               message.accountKeys[ix.accounts[mintAccountIndex]]
             );
-            const collectionPda = new web3.PublicKey(
-              message.accountKeys[ix.accounts[collectionAccountIndex]]
-            );
 
-            await helpers.upsertCallOption(
-              program,
-              callOptionPda,
-              mint,
-              collectionPda
-            );
+            await upsertCallOption(callOptionPda, mint);
 
             break;
           }
@@ -267,7 +256,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[callOptionAccountIndex]]
             );
 
-            await helpers.closeCallOption(callOptionPda);
+            await closeCallOption(callOptionPda);
 
             break;
           }
@@ -286,11 +275,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[collectionAccountIndex]]
             );
 
-            await helpers.createCallOptionBid(
-              program,
-              callOptionBidPda,
-              collectionPda
-            );
+            await createCallOptionBid(callOptionBidPda, collectionPda);
 
             break;
           }
@@ -305,9 +290,6 @@ export default async function handler(
             const mintAccountIndex = ixAccounts.findIndex(
               (a) => a.name === "mint"
             );
-            const collectionAccountIndex = ixAccounts.findIndex(
-              (a) => a.name === "collection"
-            );
             const callOptionPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[callOptionAccountIndex]]
             );
@@ -317,18 +299,10 @@ export default async function handler(
             const callOptionBidPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[callOptionBidAccountIndex]]
             );
-            const collectionPda = new web3.PublicKey(
-              message.accountKeys[ix.accounts[collectionAccountIndex]]
-            );
 
             await Promise.all([
-              helpers.deleteCallOptionBid(callOptionBidPda),
-              helpers.upsertCallOption(
-                program,
-                callOptionPda,
-                mint,
-                collectionPda
-              ),
+              deleteCallOptionBid(callOptionBidPda),
+              upsertCallOption(callOptionPda, mint),
             ]);
 
             break;
@@ -342,7 +316,7 @@ export default async function handler(
               message.accountKeys[ix.accounts[callOptionBidAccountIndex]]
             );
 
-            await helpers.deleteCallOptionBid(callOptionBidPda);
+            await deleteCallOptionBid(callOptionBidPda);
 
             break;
           }
@@ -363,4 +337,183 @@ function genIxIdentifier(ixName: string) {
   const name = snakeCase(ixName);
   const preimage = `${namespace}:${name}`;
   return base58.encode(sha256.digest(preimage).slice(0, 8));
+}
+
+export async function upsertLoan(
+  loanPda: web3.PublicKey,
+  mint: web3.PublicKey
+) {
+  const [data, metadata] = await Promise.all([
+    query.fetchLoan(program, loanPda),
+    query.fetchMetadata(program.provider.connection, mint),
+  ]);
+
+  if (!data) {
+    throw new Error("loan not found");
+  }
+
+  if (!metadata?.data.uri) {
+    throw new Error("metadata uri not found");
+  }
+
+  if (!metadata.collection) {
+    throw new Error("collection not found");
+  }
+
+  const collectionPda = await query.findCollectionAddress(
+    metadata.collection?.key
+  );
+
+  const entry = {
+    ...query.mapLoanEntry(data),
+    uri: utils.trimNullChars(metadata.data.uri),
+    Collection: {
+      connect: {
+        address: collectionPda.toBase58(),
+      },
+    },
+  };
+
+  return prisma.loan.upsert({
+    where: {
+      address: loanPda.toBase58(),
+    },
+    update: {
+      ...entry,
+    },
+    create: {
+      address: loanPda.toBase58(),
+      ...entry,
+    },
+  });
+}
+
+async function closeLoan(loanPda: web3.PublicKey) {
+  await prisma.loan.delete({
+    where: {
+      address: loanPda.toBase58(),
+    },
+  });
+}
+
+async function createLoanOffer(
+  loanOfferPda: web3.PublicKey,
+  collectionPda: web3.PublicKey
+) {
+  const data = await query.fetchLoanOffer(program, loanOfferPda);
+
+  await prisma.loanOffer.create({
+    data: {
+      address: loanOfferPda.toBase58(),
+      offerId: data.id,
+      lender: data.lender.toBase58(),
+      amount: data.amount ? utils.toBigInt(data.amount) : null,
+      basisPoints: data.basisPoints,
+      duration: utils.toBigInt(data.duration),
+      ltv: data.ltv,
+      threshold: data.threshold,
+      Collection: {
+        connect: {
+          address: collectionPda.toBase58(),
+        },
+      },
+    },
+  });
+}
+
+async function deleteLoanOffer(loanOfferPda: web3.PublicKey) {
+  await prisma.loanOffer.delete({
+    where: {
+      address: loanOfferPda.toBase58(),
+    },
+  });
+}
+
+async function upsertCallOption(
+  callOptionPda: web3.PublicKey,
+  mint: web3.PublicKey
+) {
+  const [data, metadata] = await Promise.all([
+    query.fetchCallOption(program, callOptionPda),
+    query.fetchMetadata(program.provider.connection, mint),
+  ]);
+
+  if (!data) {
+    throw new Error("call option not found");
+  }
+
+  if (!metadata?.data.uri) {
+    throw new Error("metadata uri not found");
+  }
+
+  if (!metadata.collection) {
+    throw new Error("collection not found");
+  }
+
+  const collectionPda = await query.findCollectionAddress(
+    metadata.collection?.key
+  );
+
+  const entry = {
+    ...query.mapCallOptionEntry(data),
+    uri: utils.trimNullChars(metadata.data.uri),
+    Collection: {
+      connect: {
+        address: collectionPda.toBase58(),
+      },
+    },
+  };
+
+  await prisma.callOption.upsert({
+    where: {
+      address: callOptionPda.toBase58(),
+    },
+    update: {
+      ...entry,
+    },
+    create: {
+      address: callOptionPda.toBase58(),
+      ...entry,
+    },
+  });
+}
+
+async function closeCallOption(callOptionPda: web3.PublicKey) {
+  await prisma.callOption.delete({
+    where: {
+      address: callOptionPda.toBase58(),
+    },
+  });
+}
+
+async function createCallOptionBid(
+  callOptionBidPda: web3.PublicKey,
+  collectionPda: web3.PublicKey
+) {
+  console.log("fetching call option bid", callOptionBidPda.toBase58());
+  const data = await query.fetchCallOptionBid(program, callOptionBidPda);
+
+  await prisma.callOptionBid.create({
+    data: {
+      address: callOptionBidPda.toBase58(),
+      bidId: data.id,
+      buyer: data.buyer.toBase58(),
+      amount: utils.toBigInt(data.amount),
+      expiry: utils.toBigInt(data.expiry),
+      strikePrice: utils.toBigInt(data.strikePrice),
+      Collection: {
+        connect: {
+          address: collectionPda.toBase58(),
+        },
+      },
+    },
+  });
+}
+
+async function deleteCallOptionBid(callOptionBidPda: web3.PublicKey) {
+  await prisma.callOptionBid.delete({
+    where: {
+      address: callOptionBidPda.toBase58(),
+    },
+  });
 }

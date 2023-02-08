@@ -32,9 +32,17 @@ export async function findMetadataAddress(mint: anchor.web3.PublicKey) {
 export async function fetchMetadata(
   connection: anchor.web3.Connection,
   mint: anchor.web3.PublicKey
-): Promise<Metadata> {
-  const [metadataAddress] = await findMetadataAddress(mint);
-  return Metadata.fromAccountAddress(connection, metadataAddress);
+) {
+  const [metadataPda] = await findMetadataAddress(mint);
+
+  // Sometimes collection mints don't have metadata
+  let metadata = null;
+
+  try {
+    metadata = await Metadata.fromAccountAddress(connection, metadataPda);
+  } catch {}
+
+  return metadata;
 }
 
 export async function fetchMetadataAccounts(
@@ -95,6 +103,10 @@ export async function fetchNft(
     splToken.getAccount(connection, largestTokenAccounts.value[0].address),
     fetchMetadata(connection, mint),
   ]);
+
+  if (metadata === null) {
+    throw new Error("No metadata found for mint");
+  }
 
   let tokenManager = null;
 

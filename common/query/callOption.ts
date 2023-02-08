@@ -3,8 +3,7 @@ import * as anchor from "@project-serum/anchor";
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { CallOptionData, CallOptionBidData } from "../types";
-import { getProgram, getProvider } from "../provider";
-import { fetchMetadata, fetchMetadataAccounts } from "./common";
+import { DexloanListings } from "../idl";
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,
@@ -45,4 +44,26 @@ export async function findCallOptionBidTreasury(
   );
 
   return vaultAddress;
+}
+
+export async function fetchCallOption(
+  program: anchor.Program<DexloanListings>,
+  callOptionPda: anchor.web3.PublicKey
+) {
+  return utils.asyncRetry<CallOptionData>(async () => {
+    return (await program.account.callOption.fetch(
+      callOptionPda
+    )) as CallOptionData;
+  });
+}
+
+export async function fetchCallOptionBid(
+  program: anchor.Program<DexloanListings>,
+  callOptionBidPda: anchor.web3.PublicKey
+) {
+  return utils.asyncRetry<CallOptionBidData>(async () => {
+    return (await program.account.callOptionBid.fetch(
+      callOptionBidPda
+    )) as CallOptionBidData;
+  });
 }
