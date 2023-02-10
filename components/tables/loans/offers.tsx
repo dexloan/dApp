@@ -7,7 +7,7 @@ import { useState } from "react";
 import { GroupedLoanOfferJson } from "../../../common/types";
 import { Col, ColumnHeader, LTVHeader, ListingsTable } from "../../table";
 import { OfferLoanModal, TakeLoanModal } from "../../form";
-import { LoanRow, LoanSortCols, useLoanSortState } from "./common";
+import { LoanRow, LoanSortCols, LoanSortState } from "./common";
 
 export const OFFER_COLS: Readonly<Col<LoanSortCols>[]> = [
   { name: "collection", label: "Collection" },
@@ -21,14 +21,21 @@ interface LoanOffersProps {
   heading: string;
   isLoading: boolean;
   offers?: GroupedLoanOfferJson[];
+  sortState: LoanSortState;
+  onSort: (col: LoanSortCols) => void;
 }
 
-export const LoanOffers = ({ heading, offers, isLoading }: LoanOffersProps) => {
+export const LoanOffers = ({
+  heading,
+  offers,
+  isLoading,
+  sortState,
+  onSort,
+}: LoanOffersProps) => {
   const wallet = useWallet();
   const modal = useWalletModal();
   const [offerModal, setOfferModal] = useState<boolean>(false);
   const [offer, setOffer] = useState<GroupedLoanOfferJson | null>(null);
-  const [sortState, onSort] = useLoanSortState();
 
   return (
     <>
@@ -53,8 +60,10 @@ export const LoanOffers = ({ heading, offers, isLoading }: LoanOffersProps) => {
             return <Th key={col.name}>{col.label}</Th>;
           }
 
+          let label: React.ReactNode = col.label;
+
           if (col.name === "ltv") {
-            return <LTVHeader />;
+            label = <LTVHeader />;
           }
 
           return (
@@ -64,7 +73,7 @@ export const LoanOffers = ({ heading, offers, isLoading }: LoanOffersProps) => {
               direction={sortState[0] === col.name ? sortState[1] : undefined}
               onClick={() => onSort(col.name)}
             >
-              {col.label}
+              {label}
             </ColumnHeader>
           );
         }}

@@ -17,6 +17,12 @@ export default async function handler(
     sortOrder = "desc",
   } = req.query;
 
+  let sortProp = orderBy as string;
+
+  if (orderBy === "ltv") {
+    sortProp = "amount / Collection.floorPrice";
+  }
+
   const result = await prisma.loan.findMany({
     where: {
       state: typeof state === "string" ? (state as LoanState) : undefined,
@@ -30,7 +36,7 @@ export default async function handler(
       Collection: true,
     },
     orderBy: {
-      [orderBy as string]: sortOrder,
+      [sortProp]: sortOrder,
     },
   });
 

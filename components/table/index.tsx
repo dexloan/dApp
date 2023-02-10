@@ -13,16 +13,16 @@ import {
   Text,
   Skeleton,
   Spinner,
-} from '@chakra-ui/react';
-import React, { useState, useMemo } from 'react';
-import { IoCaretDown, IoCaretUp, IoInformationCircle } from 'react-icons/io5';
-import Image from 'next/image';
+} from "@chakra-ui/react";
+import React, { useState, useMemo } from "react";
+import { IoCaretDown, IoCaretUp, IoInformationCircle } from "react-icons/io5";
+import Image from "next/image";
 
-import { CollectionJson, SortDirection } from '../../common/types';
-import { useMetadataFileQuery, useMetadataQuery } from '../../hooks/query';
+import { CollectionJson, SortDirection } from "../../common/types";
+import { useMetadataFileQuery, useMetadataQuery } from "../../hooks/query";
 
 interface ColumnHeaderProps {
-  children: string;
+  children: React.ReactNode;
   direction?: SortDirection;
   isNumeric?: boolean;
   onClick: () => void;
@@ -40,10 +40,10 @@ export const ColumnHeader = ({
         display="flex"
         alignItems="center"
         cursor="pointer"
-        justifyContent={isNumeric ? 'flex-end' : 'flex-start'}
+        justifyContent={isNumeric ? "flex-end" : "flex-start"}
         onClick={onClick}
       >
-        <Box textAlign={isNumeric ? 'right' : undefined}>{children}</Box>
+        <Box textAlign={isNumeric ? "right" : undefined}>{children}</Box>
         <Box
           display="flex"
           flexDirection="column"
@@ -54,13 +54,13 @@ export const ColumnHeader = ({
             as={IoCaretUp}
             position="relative"
             top="2px"
-            color={direction === 'desc' ? 'orange.300' : undefined}
+            color={direction === "desc" ? "orange.300" : undefined}
           />
           <Icon
             as={IoCaretDown}
             position="relative"
             bottom="2px"
-            color={direction === 'asc' ? 'orange.300' : undefined}
+            color={direction === "asc" ? "orange.300" : undefined}
           />
         </Box>
       </Box>
@@ -70,16 +70,11 @@ export const ColumnHeader = ({
 
 export const LTVHeader = () => {
   return (
-    <Th isNumeric>
-      <Tooltip label="Amount relative to current floor price">
-        <Box display="flex" alignItems="center" justifyContent="flex-end">
-          LTV
-          <Box as="span" ml="2">
-            <IoInformationCircle size={12} />
-          </Box>
-        </Box>
-      </Tooltip>
-    </Th>
+    <Tooltip label="Amount relative to current floor price">
+      <Box display="flex" alignItems="center" justifyContent="flex-end">
+        LTV
+      </Box>
+    </Tooltip>
   );
 };
 
@@ -150,7 +145,7 @@ interface EmptyMessageProps {
 }
 
 export const EmptyMessage = ({
-  children = 'No listings currently',
+  children = "No listings currently",
 }: EmptyMessageProps) => {
   return (
     <Box w="100%" p="6" mb="6" display="flex" justifyContent="center">
@@ -213,7 +208,7 @@ export const ListingsTable = <SortCols, ItemType>({
           borderColor="gray.800"
           width="100%"
         >
-          <Table size="sm" sx={{ tableLayout: 'fixed' }}>
+          <Table size="sm" sx={{ tableLayout: "fixed" }}>
             <Thead>
               <Tr>{renderedCols}</Tr>
             </Thead>

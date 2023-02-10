@@ -47,8 +47,10 @@ export const LoanListings = ({
           return <Th key={col.name}>{col.label}</Th>;
         }
 
+        let label: React.ReactNode = col.label;
+
         if (col.name === "ltv") {
-          return <LTVHeader key={col.name} />;
+          label = <LTVHeader />;
         }
 
         return (
@@ -58,7 +60,7 @@ export const LoanListings = ({
             direction={sortState[0] === col.name ? sortState[1] : undefined}
             onClick={() => onSort(col.name)}
           >
-            {col.label}
+            {label}
           </ColumnHeader>
         );
       }}
