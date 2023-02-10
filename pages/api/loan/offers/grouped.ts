@@ -14,11 +14,10 @@ export default async function handler(
     sortOrder = "desc",
   } = req.query;
 
-  let sortProp = Prisma.raw(orderBy as string);
-
-  if (orderBy === "ltv") {
-    sortProp = Prisma.sql`amount_floorPrice_ratio`;
-  }
+  const sortProp =
+    orderBy === "ltv"
+      ? Prisma.sql`amount_floorPrice_ratio`
+      : Prisma.sql`${orderBy as string}`;
 
   const where = collectionAddress
     ? Prisma.sql`WHERE "collectionAddress" IN (${
@@ -26,7 +25,7 @@ export default async function handler(
           ? Prisma.join(
               collectionAddress.map((collection) => `'${collection}'`)
             )
-          : Prisma.raw(`'${collectionAddress}'`)
+          : Prisma.sql`${collectionAddress}`
       })`
     : Prisma.empty;
 
