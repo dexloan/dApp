@@ -62,7 +62,7 @@ export const CallOptionListings = ({
         <OptionRow
           key={item.address}
           option={item}
-          onClick={() => router.push(`/options/${item.address}`)}
+          onClick={() => router.push(`/options/item/${item.address}`)}
         />
       )}
     />
