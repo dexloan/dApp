@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Box,
@@ -17,7 +17,6 @@ import {
   Th,
   Thead,
   Tr,
-  CircularProgress,
   Spinner,
 } from "@chakra-ui/react";
 
@@ -41,6 +40,13 @@ export const TakeLoanModal = ({
 }: TakeLoanModalProps) => {
   const [selected, setSelected] = useState<NftResult | null>(null);
   const [selectedBid, setSelectedBid] = useState<LoanOfferJson | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setSelected(null);
+      setSelectedBid(null);
+    }
+  }, [open]);
 
   function renderBody() {
     if (selectedBid) {
@@ -66,6 +72,18 @@ export const TakeLoanModal = ({
     return null;
   }
 
+  function renderHeader() {
+    if (selected) {
+      return "Confirm loan";
+    }
+
+    if (selectedBid) {
+      return "Select an NFT for collateral";
+    }
+
+    return "Select an offer";
+  }
+
   return (
     <Modal
       isCentered
@@ -77,7 +95,7 @@ export const TakeLoanModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize="xl" fontWeight="black">
-          Loan Offers
+          {renderHeader()}
         </ModalHeader>
         {renderBody()}
       </ModalContent>
