@@ -11,6 +11,7 @@ import { CallOptionBidJson, RentalData } from "../types";
 import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
+import { fetchMetadata } from "../query";
 
 export async function bidCallOption(
   connection: anchor.web3.Connection,
@@ -231,8 +232,7 @@ export async function exerciseCallOption(
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
   buyerTokenAccount: anchor.web3.PublicKey,
-  seller: anchor.web3.PublicKey,
-  metadata: Metadata
+  seller: anchor.web3.PublicKey
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
@@ -244,8 +244,16 @@ export async function exerciseCallOption(
   const [metadataAddress] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
 
-  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
-    .address;
+  const [metadata, tokenAccount] = await Promise.all([
+    fetchMetadata(connection, metadataAddress),
+    connection
+      .getTokenLargestAccounts(mint)
+      .then((result) => result.value[0].address),
+  ]);
+
+  if (metadata === null) {
+    throw new Error("Metadata not found");
+  }
 
   const creatorAccounts = metadata.data.creators?.map((creator) => ({
     pubkey: creator.address,

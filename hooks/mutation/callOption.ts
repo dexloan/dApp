@@ -17,11 +17,7 @@ import {
   CallOptionStateEnum,
   NftResult,
 } from "../../common/types";
-import {
-  getCallOptionCacheKey,
-  getNftByOwnerCacheKey,
-  fetchCallOptionBids,
-} from "../query";
+import { fetchCallOptionBids } from "../query";
 
 export interface BidCallOptionMutationVariables {
   collection: anchor.web3.PublicKey;
@@ -293,7 +289,6 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
 interface ExerciseCallOptionVariables {
   mint: anchor.web3.PublicKey;
   seller: anchor.web3.PublicKey;
-  metadata: Metadata;
 }
 
 export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
@@ -303,7 +298,7 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, ExerciseCallOptionVariables>(
-    async ({ mint, seller, metadata }) => {
+    async ({ mint, seller }) => {
       if (anchorWallet && wallet.publicKey) {
         const buyerTokenAccount = await actions.getOrCreateTokenAccount(
           connection,
@@ -316,8 +311,7 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
           anchorWallet,
           mint,
           buyerTokenAccount,
-          seller,
-          metadata
+          seller
         );
       }
       throw new Error("Not ready");

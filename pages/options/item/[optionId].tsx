@@ -125,13 +125,13 @@ CallOptionPage.getInitialProps = async (ctx) => {
         ctx.query.optionId as string
       );
 
-      const loan = await queryClient.fetchQuery(
+      const callOption = await queryClient.fetchQuery(
         ["call_option", callOptionPda.toBase58()],
         () => fetchCallOption(callOptionPda.toBase58())
       );
-
-      await queryClient.prefetchQuery(["metadata_file", loan.uri], () =>
-        fetch(loan.uri).then((res) => res.json())
+      console.log(callOption);
+      await queryClient.prefetchQuery(["metadata_file", callOption.uri], () =>
+        fetch(callOption.uri).then((res) => res.json())
       );
 
       return {
@@ -370,7 +370,12 @@ const BuyButton = ({ callOption }: BuyButtonProps) => {
         loading={mutation.isLoading}
         callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(callOption)}
+        onConfirm={() =>
+          mutation.mutate({
+            mint: new anchor.web3.PublicKey(callOption.mint),
+            seller: new anchor.web3.PublicKey(callOption.seller),
+          })
+        }
       />
     </>
   );
@@ -381,12 +386,13 @@ interface CloseButtonProps {
 }
 
 const CloseButton = ({ callOption }: CloseButtonProps) => {
-  const [dialog, setDialog] = useState(false);
-  const mutation = useCloseCallOptionMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
 
+  const [dialog, setDialog] = useState(false);
   const isExpired = useIsExpired(callOption);
+
+  const mutation = useCloseCallOptionMutation(() => setDialog(false));
 
   async function onCancel() {
     if (anchorWallet) {
@@ -406,7 +412,12 @@ const CloseButton = ({ callOption }: CloseButtonProps) => {
         loading={mutation.isLoading}
         callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(callOption)}
+        onConfirm={() =>
+          mutation.mutate({
+            mint: new anchor.web3.PublicKey(callOption.mint),
+            seller: new anchor.web3.PublicKey(callOption.seller),
+          })
+        }
       />
     </>
   );
@@ -447,7 +458,12 @@ const ExerciseButton = ({ callOption }: ExerciseButtonProps) => {
         loading={mutation.isLoading}
         callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(callOption)}
+        onConfirm={() =>
+          mutation.mutate({
+            mint: new anchor.web3.PublicKey(callOption.mint),
+            seller: new anchor.web3.PublicKey(callOption.seller),
+          })
+        }
       />
     </>
   );

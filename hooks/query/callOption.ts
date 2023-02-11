@@ -83,7 +83,7 @@ function appendQueryParams(url: URL, params: CallOptionFilters) {
 
 export function fetchCallOption(address: string): Promise<CallOptionJson> {
   return fetch(
-    `${process.env.NEXT_PUBLIC_HOST}/api/option/item/${address}`
+    `${process.env.NEXT_PUBLIC_HOST}/api/call_option/item/${address}`
   ).then((res) => res.json());
 }
 

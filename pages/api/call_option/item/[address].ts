@@ -9,7 +9,7 @@ export default async function handler(
 ) {
   const { address } = req.query;
 
-  const result = await prisma.loan.findUnique({
+  const result = await prisma.callOption.findUnique({
     where: {
       address: address as string,
     },
@@ -17,6 +17,6 @@ export default async function handler(
       Collection: true,
     },
   });
-
+  console.log("result: ", result);
   res.json(utils.parseBigInts(result));
 }
