@@ -4,7 +4,6 @@ import dayjs from "../../common/lib/dayjs";
 
 const SECONDS_PER_YEAR = 31_536_000;
 const LATE_REPAYMENT_FEE_BASIS_POINTS = 500;
-const LAMPORTS_PER_SOL = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
 
 export function isSystemProgram(pubkey: anchor.web3.PublicKey) {
   return pubkey.equals(anchor.web3.SystemProgram.programId);
@@ -21,6 +20,18 @@ export function toDays(seconds: number): number {
 export function formatHexDuration(duration: string): string {
   const days = toDays(hexToNumber(duration));
   return `${days} ${days === 1 ? "day" : "days"}`;
+}
+
+export function formatHexTimestamp(
+  ts: string,
+  showTime: boolean = false
+): string {
+  const date = dayjs.unix(hexToNumber(ts)).tz("America/New_York");
+
+  return (
+    date.format("MMM D, YYYY") +
+    (showTime ? ` at ${date.format("h:mm A z")}` : "")
+  );
 }
 
 export function formatDuration(duration: anchor.BN): string {

@@ -107,7 +107,7 @@ export function fetchLoan(address: string): Promise<LoanJson> {
   );
 }
 
-export function useLoanQuery(loanPda: string | undefined) {
+export function useLoanQuery(loanPda?: string) {
   return useQuery(
     ["loan", loanPda],
     () => {

@@ -49,7 +49,6 @@ import {
   RepossessDialog,
 } from "../../../components/dialog";
 import { NftLayout } from "../../../components/layout";
-import { EllipsisProgress } from "../../../components/progress";
 import { DocumentHead } from "../../../components/document";
 import { Detail } from "../../../components/detail";
 import { LoanJson } from "../../../common/types";

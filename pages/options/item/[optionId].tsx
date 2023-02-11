@@ -2,7 +2,6 @@ import * as anchor from "@project-serum/anchor";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
-  Badge,
   Button,
   Container,
   Heading,
@@ -12,24 +11,27 @@ import {
   TagLeftIcon,
   TagLabel,
   Text,
+  Spinner,
 } from "@chakra-ui/react";
 import { CallOptionState } from "@prisma/client";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList, IoCheckmark } from "react-icons/io5";
 
-import * as utils from "../../../common/utils";
-import { CallOption } from "../../../common/model";
-import { fetchCallOption } from "../../../common/query";
 import {
-  getCallOptionCacheKey,
-  getMetadataFileCacheKey,
+  fetchCallOption,
   useCallOptionQuery,
   useMetadataFileQuery,
 } from "../../../hooks/query";
-import { useFloorPrice } from "../../../hooks/render";
+import {
+  useAmount,
+  useFloorPrice,
+  useStrikePrice,
+  useExpiry,
+  useIsExpired,
+} from "../../../hooks/render";
 import {
   useBuyCallOptionMutation,
   useCloseCallOptionMutation,
@@ -41,59 +43,73 @@ import {
   CloseCallOptionDialog,
 } from "../../../components/dialog";
 import { Detail } from "../../../components/detail";
-import { EllipsisProgress } from "../../../components/progress";
 import { NftLayout } from "../../../components/layout";
 import { DocumentHead } from "../../../components/document";
+import { CallOptionJson } from "../../../common/types";
 
 interface CallOptionProps {
   dehydratedState: DehydratedState | undefined;
 }
 
 const CallOptionPage: NextPage<CallOptionProps> = () => {
-  const callOptionAddress = usePageParam();
-  const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
-  const metadataQuery = useMetadataFileQuery(
-    callOptionQueryResult.data?.metadata.data.uri
-  );
+  const callOptionPda = usePageParam();
+  const callOptionQueryResult = useCallOptionQuery(callOptionPda);
+  const metadataQuery = useMetadataFileQuery(callOptionQueryResult.data?.uri);
+  const callOption = callOptionQueryResult.data;
   const jsonMetadata = metadataQuery.data;
 
-  const callOption = useMemo(() => {
-    if (callOptionQueryResult.data) {
-      return CallOption.fromJSON(callOptionQueryResult.data);
-    }
-  }, [callOptionQueryResult.data]);
+  const amount = useAmount(callOption);
+  const strikePrice = useStrikePrice(callOption);
+  const expiry = useExpiry(callOption);
 
-  if (callOptionQueryResult.error instanceof Error) {
+  if (callOptionQueryResult.isLoading || metadataQuery.isLoading) {
     return (
-      <Container maxW="container.lg">
+      <Box
+        display="flex"
+        w="100%"
+        paddingTop="20%"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Spinner size="sm" />
+      </Box>
+    );
+  }
+
+  if (callOptionQueryResult.error || !callOption || !jsonMetadata) {
+    return (
+      <Container maxW="container.md">
         <Box mt="2">
           <Flex direction="column" alignItems="center">
             <Heading size="xl" fontWeight="black" mt="6" mb="6">
               404 Error
             </Heading>
-            <Text fontSize="lg">{callOptionQueryResult.error.message}</Text>
+            <Text fontSize="lg">
+              {callOptionQueryResult.error instanceof Error
+                ? callOptionQueryResult.error.message
+                : `Option with address ${callOptionPda} not found`}
+            </Text>
           </Flex>
         </Box>
       </Container>
     );
   }
 
-  if (!callOption || !jsonMetadata) {
-    return null;
-  }
-
   return (
     <>
       <DocumentHead
-        title={callOption.metadata.data.name}
+        title={jsonMetadata.name}
         description={`Call Option with strike price ${callOption.strikePrice} expiring ${callOption.expiry}`}
         image={jsonMetadata.image}
-        imageAlt={callOption.metadata.data.name}
-        url={`option/${callOption.publicKey.toBase58()}`}
+        imageAlt={jsonMetadata.name}
+        url={`option/${callOptionPda}`}
         twitterLabels={[
-          { label: "Strke Price", value: callOption.strikePrice },
-          { label: "Premium", value: callOption.cost },
-          { label: "Expiry", value: callOption.expiry },
+          {
+            label: "Strke Price",
+            value: strikePrice,
+          },
+          { label: "Premium", value: amount },
+          { label: "Expiry", value: expiry },
         ]}
       />
       <CallOptionLayout />
@@ -105,23 +121,17 @@ CallOptionPage.getInitialProps = async (ctx) => {
   if (typeof window === "undefined") {
     try {
       const queryClient = new QueryClient();
-      const connection = new anchor.web3.Connection(
-        process.env.BACKEND_RPC_ENDPOINT as string
-      );
-      const callOptionAddress = new anchor.web3.PublicKey(
+      const callOptionPda = new anchor.web3.PublicKey(
         ctx.query.optionId as string
       );
 
-      const callOption = await queryClient.fetchQuery(
-        getCallOptionCacheKey(callOptionAddress),
-        () => fetchCallOption(connection, callOptionAddress)
+      const loan = await queryClient.fetchQuery(
+        ["call_option", callOptionPda.toBase58()],
+        () => fetchCallOption(callOptionPda.toBase58())
       );
-      await queryClient.prefetchQuery(
-        getMetadataFileCacheKey(callOption.metadata.data.uri),
-        () =>
-          fetch(callOption.metadata.data.uri).then((response) => {
-            return response.json().then((data) => data);
-          })
+
+      await queryClient.prefetchQuery(["metadata_file", loan.uri], () =>
+        fetch(loan.uri).then((res) => res.json())
       );
 
       return {
@@ -139,45 +149,40 @@ CallOptionPage.getInitialProps = async (ctx) => {
 
 function usePageParam() {
   const router = useRouter();
-  return useMemo(
-    () => new anchor.web3.PublicKey(router.query.optionId as string),
-    [router]
-  );
+  return router.query.optionId as string | undefined;
 }
 
 const CallOptionLayout = () => {
   const anchorWallet = useAnchorWallet();
 
-  const callOptionAddress = usePageParam();
-  const callOptionQueryResult = useCallOptionQuery(callOptionAddress);
+  const callOptionPda = usePageParam();
+  const callOptionQuery = useCallOptionQuery(callOptionPda);
+  const metadataQuery = useMetadataFileQuery(callOptionQuery.data?.uri);
+  const callOption = callOptionQuery.data;
+  const jsonMetadata = metadataQuery.data;
 
-  const symbol = callOptionQueryResult.data?.metadata?.data.symbol;
-  const floorPrice = useFloorPrice(symbol);
-
-  const callOption = useMemo(() => {
-    if (callOptionQueryResult.data) {
-      return CallOption.fromJSON(callOptionQueryResult.data);
-    }
-  }, [callOptionQueryResult.data]);
-
-  const floorValue = useMemo(() => {
-    if (floorPrice) {
-      return utils.formatAmount(new anchor.BN(floorPrice));
-    }
-    return <EllipsisProgress />;
-  }, [floorPrice]);
+  const isBuyer =
+    anchorWallet && anchorWallet.publicKey.toBase58() === callOption?.buyer;
+  const isSeller =
+    anchorWallet && anchorWallet.publicKey.toBase58() === callOption?.seller;
+  const amount = useAmount(callOption);
+  const strikePrice = useStrikePrice(callOption);
+  const expiry = useExpiry(callOption);
+  const expiryLongFormat = useExpiry(callOption, true);
+  const isExpired = useIsExpired(callOption);
+  const floorPrice = useFloorPrice(callOption);
 
   function renderListedButton() {
-    if (callOption && callOption.isSeller(anchorWallet)) {
+    if (callOption && isSeller) {
       return <CloseButton callOption={callOption} />;
-    } else if (callOption && !callOption.expired) {
+    } else if (callOption && !isExpired) {
       return <BuyButton callOption={callOption} />;
     }
     return null;
   }
 
   function renderCloseAccountButton() {
-    if (callOption && callOption.isSeller(anchorWallet)) {
+    if (callOption && isSeller) {
       // TODO is this needed?
       return <CloseButton callOption={callOption} />;
     }
@@ -188,24 +193,26 @@ const CallOptionLayout = () => {
   function renderActiveButton() {
     if (!callOption) return null;
 
-    if (!callOption.expired && callOption.isBuyer(anchorWallet)) {
+    if (!isExpired && isBuyer) {
       return <ExerciseButton callOption={callOption} />;
     }
 
-    if (callOption.expired) {
+    if (isExpired) {
       return renderCloseAccountButton();
     }
+
+    return null;
   }
 
   function renderByState() {
     if (callOption === undefined) return null;
-    console.log("=========> ", callOption.state);
+
     switch (callOption.state) {
       case CallOptionState.Listed:
         return (
           <>
             <Box display="flex" pb="4">
-              {callOption?.expired ? (
+              {isExpired ? (
                 <Tag colorScheme="red" ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Expired</TagLabel>
@@ -225,13 +232,13 @@ const CallOptionLayout = () => {
               }
             >
               <Text>
-                {callOption?.expired
+                {isExpired
                   ? `This call option has now expired.${
-                      callOption?.isSeller(anchorWallet)
+                      isSeller
                         ? " You may close the account to unlock the NFT."
                         : ""
                     }`
-                  : `This NFT will remain locked until expiry on ${callOption.expiryLongFormat}, unless exercised.`}
+                  : `This NFT will remain locked until expiry on ${expiryLongFormat}, unless exercised.`}
               </Text>
             </Detail>
           </>
@@ -241,7 +248,7 @@ const CallOptionLayout = () => {
         return (
           <>
             <Box display="flex" pb="4">
-              {callOption?.expired ? (
+              {isExpired ? (
                 <Tag colorScheme="red" ml="2">
                   <TagLeftIcon boxSize="12px" as={IoAlert} />
                   <TagLabel>Expired</TagLabel>
@@ -261,15 +268,15 @@ const CallOptionLayout = () => {
               }
             >
               <Text>
-                {callOption?.expired
+                {isExpired
                   ? `This call option has now expired.${
-                      callOption?.isSeller(anchorWallet)
+                      isSeller
                         ? " You may close the account to unlock the NFT."
                         : ""
                     }`
-                  : callOption.isBuyer(anchorWallet)
-                  ? `You may excersie this call option until expiry on ${callOption.expiryLongFormat}.`
-                  : `This NFT will remain locked until expiry on ${callOption.expiryLongFormat}, unless exercised.`}
+                  : isBuyer
+                  ? `You may excersie this call option until expiry on ${expiryLongFormat}.`
+                  : `This NFT will remain locked until expiry on ${expiryLongFormat}, unless exercised.`}
               </Text>
             </Detail>
           </>
@@ -293,7 +300,7 @@ const CallOptionLayout = () => {
             >
               <Text>
                 Listing has ended.{" "}
-                {callOption.isBuyer(anchorWallet)
+                {isBuyer
                   ? "You exercised the call the option."
                   : "The call option was exercised by the buyer."}
               </Text>
@@ -317,16 +324,16 @@ const CallOptionLayout = () => {
 
   return (
     <NftLayout
-      metadata={callOption?.metadata}
+      metadataJson={jsonMetadata}
       stats={
         callOption
           ? [
               [
-                { label: "Cost", value: callOption.cost },
-                { label: "Expiry", value: callOption.expiry },
-                { label: "Strike Price", value: callOption.strikePrice },
+                { label: "Cost", value: amount },
+                { label: "Expiry", value: expiry },
+                { label: "Strike Price", value: strikePrice },
               ],
-              [{ label: "Floor Value", value: floorValue }],
+              [{ label: "Floor Value", value: floorPrice }],
             ]
           : undefined
       }
@@ -336,7 +343,7 @@ const CallOptionLayout = () => {
 };
 
 interface BuyButtonProps {
-  callOption: CallOption;
+  callOption: CallOptionJson;
 }
 
 const BuyButton = ({ callOption }: BuyButtonProps) => {
@@ -363,14 +370,14 @@ const BuyButton = ({ callOption }: BuyButtonProps) => {
         loading={mutation.isLoading}
         callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(callOption.data)}
+        onConfirm={() => mutation.mutate(callOption)}
       />
     </>
   );
 };
 
 interface CloseButtonProps {
-  callOption: CallOption;
+  callOption: CallOptionJson;
 }
 
 const CloseButton = ({ callOption }: CloseButtonProps) => {
@@ -378,6 +385,8 @@ const CloseButton = ({ callOption }: CloseButtonProps) => {
   const mutation = useCloseCallOptionMutation(() => setDialog(false));
   const anchorWallet = useAnchorWallet();
   const { setVisible } = useWalletModal();
+
+  const isExpired = useIsExpired(callOption);
 
   async function onCancel() {
     if (anchorWallet) {
@@ -390,21 +399,21 @@ const CloseButton = ({ callOption }: CloseButtonProps) => {
   return (
     <>
       <Button variant="primary" w="100%" onClick={onCancel}>
-        {callOption.expired ? "Close Account" : "Close Option"}
+        {isExpired ? "Close Account" : "Close Option"}
       </Button>
       <CloseCallOptionDialog
         open={dialog}
         loading={mutation.isLoading}
         callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() => mutation.mutate(callOption.data)}
+        onConfirm={() => mutation.mutate(callOption)}
       />
     </>
   );
 };
 
 interface ExerciseButtonProps {
-  callOption: CallOption;
+  callOption: CallOptionJson;
 }
 
 const ExerciseButton = ({ callOption }: ExerciseButtonProps) => {
@@ -438,9 +447,7 @@ const ExerciseButton = ({ callOption }: ExerciseButtonProps) => {
         loading={mutation.isLoading}
         callOption={callOption}
         onRequestClose={() => setDialog(false)}
-        onConfirm={() =>
-          mutation.mutate({ ...callOption.data, metadata: callOption.metadata })
-        }
+        onConfirm={() => mutation.mutate(callOption)}
       />
     </>
   );

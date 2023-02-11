@@ -1,11 +1,14 @@
 import { useMemo } from "react";
 
-import * as utils from "../../common/utils";
-import {
+import type {
+  CallOptionJson,
+  CallOptionBidJson,
+  GroupedCallOptionBidJson,
   GroupedLoanOfferJson,
   LoanJson,
   LoanOfferJson,
 } from "../../common/types";
+import * as utils from "../../common/utils";
 import { EllipsisProgress } from "../../components/progress";
 
 export function useLTV(loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson) {
@@ -25,15 +28,22 @@ export function useLTV(loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson) {
   }, [loan]);
 }
 
-export function useIsExpired(loan?: LoanJson) {
+export function useIsExpired(item?: LoanJson | CallOptionJson) {
   return useMemo(() => {
-    if (loan?.startDate) {
+    if (item && "startDate" in item && item.startDate) {
       const now = BigInt(Math.floor(Date.now() / 1000));
-      const expiresAt = BigInt(loan.startDate) + BigInt(loan.duration);
+      const expiresAt = BigInt(item.startDate) + BigInt(item.duration);
       return now > expiresAt;
     }
+
+    if (item && "expiry" in item && item.expiry) {
+      const now = BigInt(Math.floor(Date.now() / 1000));
+      const expiresAt = BigInt(item.expiry);
+      return now > expiresAt;
+    }
+
     return false;
-  }, [loan?.duration, loan?.startDate]);
+  }, [item]);
 }
 
 export function useAmpuntOnMaturity(
@@ -169,15 +179,33 @@ export function useAPY(loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson) {
 }
 
 export function useAmount(
-  loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson
+  item?:
+    | LoanJson
+    | LoanOfferJson
+    | GroupedLoanOfferJson
+    | CallOptionJson
+    | CallOptionBidJson
+    | GroupedCallOptionBidJson
 ) {
   return useMemo(() => {
-    if (loan?.amount) {
-      return utils.formatHexAmount(loan.amount);
+    if (item?.amount) {
+      return utils.formatHexAmount(item.amount);
     }
 
-    return null;
-  }, [loan]);
+    return "";
+  }, [item]);
+}
+
+export function useStrikePrice(
+  callOption?: CallOptionJson | CallOptionBidJson | GroupedCallOptionBidJson
+) {
+  return useMemo(() => {
+    if (callOption?.strikePrice) {
+      return utils.formatHexAmount(callOption.strikePrice);
+    }
+
+    return "";
+  }, [callOption]);
 }
 
 export function useDuration(
@@ -188,20 +216,39 @@ export function useDuration(
       return utils.formatHexDuration(loan.duration);
     }
 
-    return <EllipsisProgress />;
+    return "";
   }, [loan]);
 }
 
-export function useFloorPrice(
-  loan?: LoanJson | LoanOfferJson | GroupedLoanOfferJson
+export function useExpiry(
+  callOption?: CallOptionJson | CallOptionBidJson | GroupedCallOptionBidJson,
+  showTime?: boolean
 ) {
   return useMemo(() => {
-    const floorPrice = loan?.Collection.floorPrice;
+    if (callOption?.expiry) {
+      return utils.formatHexTimestamp(callOption.expiry, showTime);
+    }
+
+    return "";
+  }, [callOption, showTime]);
+}
+
+export function useFloorPrice(
+  item?:
+    | LoanJson
+    | LoanOfferJson
+    | GroupedLoanOfferJson
+    | CallOptionJson
+    | CallOptionBidJson
+    | GroupedCallOptionBidJson
+) {
+  return useMemo(() => {
+    const floorPrice = item?.Collection.floorPrice;
 
     if (floorPrice) {
       return utils.formatHexAmount(floorPrice);
     }
 
     return null;
-  }, [loan]);
+  }, [item]);
 }

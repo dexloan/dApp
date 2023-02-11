@@ -81,6 +81,22 @@ function appendQueryParams(url: URL, params: CallOptionFilters) {
   }
 }
 
+export function fetchCallOption(address: string): Promise<CallOptionJson> {
+  return fetch(
+    `${process.env.NEXT_PUBLIC_HOST}/api/option/item/${address}`
+  ).then((res) => res.json());
+}
+
+export function useCallOptionQuery(callOptionPda?: string) {
+  return useQuery(
+    ["call_option", callOptionPda],
+    () => {
+      if (callOptionPda) return fetchCallOption(callOptionPda);
+    },
+    { enabled: Boolean(callOptionPda) }
+  );
+}
+
 export function fetchCallOptions(
   filters: CallOptionFilters
 ): Promise<CallOptionJson[]> {
@@ -154,22 +170,3 @@ export const useCallOptionAddress = (
 
   return address;
 };
-
-export const getCallOptionCacheKey = (
-  callOptionAddress: anchor.web3.PublicKey | undefined
-) => ["callOption", callOptionAddress?.toBase58()];
-
-export function useCallOptionQuery(
-  callOptionAddress: anchor.web3.PublicKey | undefined
-) {
-  const { connection } = useConnection();
-
-  return useQuery(
-    getCallOptionCacheKey(callOptionAddress),
-    () => {
-      if (callOptionAddress)
-        return query.fetchCallOption(connection, callOptionAddress);
-    },
-    { enabled: Boolean(callOptionAddress) }
-  );
-}

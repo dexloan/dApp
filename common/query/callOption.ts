@@ -45,25 +45,3 @@ export async function findCallOptionBidTreasury(
 
   return vaultAddress;
 }
-
-export async function fetchCallOption(
-  program: anchor.Program<DexloanListings>,
-  callOptionPda: anchor.web3.PublicKey
-) {
-  return utils.asyncRetry<CallOptionData>(async () => {
-    return (await program.account.callOption.fetch(
-      callOptionPda
-    )) as CallOptionData;
-  });
-}
-
-export async function fetchCallOptionBid(
-  program: anchor.Program<DexloanListings>,
-  callOptionBidPda: anchor.web3.PublicKey
-) {
-  return utils.asyncRetry<CallOptionBidData>(async () => {
-    return (await program.account.callOptionBid.fetch(
-      callOptionBidPda
-    )) as CallOptionBidData;
-  });
-}
