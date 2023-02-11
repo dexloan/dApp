@@ -238,7 +238,7 @@ const CallOptionLayout = () => {
                         ? " You may close the account to unlock the NFT."
                         : ""
                     }`
-                  : `This NFT will remain locked until expiry on ${expiryLongFormat}, unless exercised.`}
+                  : `Option available for sale. This NFT will remain locked until expiry on ${expiryLongFormat}, unless exercised by the option holder.`}
               </Text>
             </Detail>
           </>
