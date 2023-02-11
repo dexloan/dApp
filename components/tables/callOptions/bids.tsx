@@ -14,7 +14,7 @@ import {
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { GroupedCallOptionBidJson } from "../../../common/types";
 
-const BID_COLS: Readonly<Col<CallOptionSortCols>[]> = [
+export const BID_COLS: Readonly<Col<CallOptionSortCols>[]> = [
   { name: "collection", label: "Collection" },
   { name: "expiry", label: "Expiry" },
   { name: "cost", label: "Cost", isNumeric: true },
