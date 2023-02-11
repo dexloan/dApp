@@ -36,10 +36,12 @@ export default async function handler(
       },
     }),
   ]);
+
   const collectionMap = collections.reduce((acc, collection) => {
     acc[collection.address] = collection;
     return acc;
   }, {} as Record<string, Collection>);
+
   const result = offers.map(({ collectionAddress, ...offer }) => {
     return {
       ...offer,

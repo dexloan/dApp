@@ -42,6 +42,10 @@ export async function fetchRental(
 
   const metadata = await fetchMetadata(connection, hireAccount.mint);
 
+  if (metadata === null) {
+    throw new Error("metadata account not found");
+  }
+
   return new Rental(hireAccount as RentalData, metadata, address).pretty();
 }
 

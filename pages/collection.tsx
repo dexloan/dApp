@@ -10,30 +10,21 @@ import {
   FormHelperText,
   Input,
 } from "@chakra-ui/react";
-import { useConnection } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { CollectionJson } from "../common/types";
 import { useMetadataQuery } from "../hooks/query";
 import {
   useInitCollectionMutation,
   useCloseCollectionMutation,
 } from "../hooks/mutation";
+import { useCollectionsQuery } from "../hooks/query";
 import { Card, CardList } from "../components/card";
-import { fetchMultipleCollections } from "../common/query";
 
 const Collection: NextPage = () => {
-  // const collectionsQuery = useCollectionsQuery();
-  const { connection } = useConnection();
-  const [collections, setCollections] = useState<any[]>([]);
+  const collectionsQuery = useCollectionsQuery();
   const initMutation = useInitCollectionMutation();
   const closeMutation = useCloseCollectionMutation();
-
-  useEffect(() => {
-    fetchMultipleCollections(connection).then((collections) => {
-      setCollections(collections);
-    });
-  }, [connection]);
 
   const {
     control,
@@ -53,14 +44,14 @@ const Collection: NextPage = () => {
         Collections
       </Heading>
       <CardList>
-        {collections.map((collection) => (
+        {collectionsQuery.data?.map((collection) => (
           <CollectionCard
-            key={collection.publicKey}
-            collection={collection.data}
+            key={collection.address}
+            collection={collection}
             isLoading={closeMutation.isLoading}
             onClose={() => {
               closeMutation.mutate({
-                mint: new anchor.web3.PublicKey(collection.data.mint),
+                mint: new anchor.web3.PublicKey(collection.mint),
               });
             }}
           />
@@ -108,7 +99,7 @@ const Collection: NextPage = () => {
 };
 
 interface CollectionCardProps {
-  collection: any;
+  collection: CollectionJson;
   isLoading: boolean;
   onClose: () => void;
 }

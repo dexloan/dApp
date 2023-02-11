@@ -6,7 +6,11 @@ import { LISTINGS_PROGRAM_ID } from "./constants";
 export function getProgram(
   provider: anchor.AnchorProvider
 ): anchor.Program<DexloanListings> {
-  return new anchor.Program(IDL, LISTINGS_PROGRAM_ID, provider);
+  return new anchor.Program<DexloanListings>(
+    IDL,
+    LISTINGS_PROGRAM_ID,
+    provider
+  );
 }
 
 export function getProvider(
