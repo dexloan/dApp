@@ -4,7 +4,6 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { LoanState } from "@prisma/client";
 import { useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
@@ -20,6 +19,7 @@ import {
 } from "../../common/types";
 import { fetchLoanOffers } from "../query";
 import {
+  fetchMetadata,
   findCollectionAddress,
   findLoanAddress,
   findMetadataAddress,
@@ -67,18 +67,16 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
             anchorWallet?.publicKey
           );
           const collectionPda = await findCollectionAddress(variables.mint);
-          const [metdata] = await findMetadataAddress(variables.mint);
+          const [metdataPda] = await findMetadataAddress(variables.mint);
 
-          const collection: CollectionJson = await fetch(
-            `${
-              process.env.NEXT_PUBLIC_HOST
-            }/api/collections/mint/${variables.collectionMint.toBase58()}`
-          ).then((res) => res.json());
-
-          const metadata = await Metadata.fromAccountAddress(
-            connection,
-            metdata
-          );
+          const [metadata, collection] = await Promise.all([
+            fetchMetadata(connection, metdataPda),
+            fetch(
+              `${
+                process.env.NEXT_PUBLIC_HOST
+              }/api/collections/mint/${variables.collectionMint.toBase58()}`
+            ).then((res) => res.json() as Promise<CollectionJson>),
+          ]);
 
           const newLoan: LoanJson = {
             address: loanPda.toBase58(),
@@ -93,7 +91,7 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
             collectionAddress: variables.collectionMint.toBase58(),
             installments: 1,
             currentInstallment: 0,
-            uri: metadata.data.uri,
+            uri: metadata?.data.uri ?? "",
             tokenMint: null,
             threshold: null,
             noticeIssued: null,
@@ -328,8 +326,20 @@ export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      async onSuccess() {
-        queryClient.invalidateQueries(["loan_offers"]);
+      async onSuccess(_, variables) {
+        const queryCache = queryClient.getQueryCache();
+        const queries = queryCache.findAll(["loan_offers"], {
+          exact: false,
+        });
+
+        queries.forEach((query) => {
+          queryClient.setQueryData<LoanJson[]>(
+            query.queryKey,
+            (loanOffers = []) =>
+              loanOffers.filter((o) => o.address !== variables.address)
+          );
+        });
+
         toast.success("Offer closed");
         onSuccess();
       },
@@ -408,14 +418,21 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
       async onSuccess(_, variables) {
         const mint = new anchor.web3.PublicKey(variables.mint);
         const borrower = new anchor.web3.PublicKey(variables.borrower);
-        const loadPda = await query.findLoanAddress(mint, borrower);
+        const loanPda = await query.findLoanAddress(mint, borrower);
 
-        await queryClient.setQueryData<LoanJson[]>(
-          ["loans", loadPda.toBase58()],
-          (loans = []) => loans.filter((l) => l.address !== loadPda.toBase58())
-        );
-        await queryClient.setQueryData<LoanJson | undefined>(
-          ["loan", loadPda.toBase58()],
+        const queryCache = queryClient.getQueryCache();
+        const queries = queryCache.findAll(["loans"], {
+          exact: false,
+        });
+
+        queries.forEach((query) => {
+          queryClient.setQueryData<LoanJson[]>(query.queryKey, (loans = []) =>
+            loans.filter((o) => o.address !== loanPda.toBase58())
+          );
+        });
+
+        queryClient.setQueryData<LoanJson | undefined>(
+          ["loan", loanPda.toBase58()],
           (loan) => {
             if (loan) {
               return { ...loan, state: LoanState.Cancelled };
