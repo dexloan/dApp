@@ -10,7 +10,7 @@ import * as query from "../../common/query";
 import { IDL } from "../../common/idl";
 import { getProgram, getProvider } from "../../common/provider";
 import prisma from "../../common/lib/prisma";
-import { LoanData } from "../../common/types";
+import { CallOptionBidData, LoanData } from "../../common/types";
 
 const ixIds = IDL.instructions.map((ix) => {
   return {
@@ -250,7 +250,7 @@ export default async function handler(
 
           case "closeCallOption": {
             const callOptionAccountIndex = ixAccounts.findIndex(
-              (a) => a.name === "loan"
+              (a) => a.name === "callOption"
             );
             const callOptionPda = new web3.PublicKey(
               message.accountKeys[ix.accounts[callOptionAccountIndex]]
@@ -490,8 +490,9 @@ async function createCallOptionBid(
   callOptionBidPda: web3.PublicKey,
   collectionPda: web3.PublicKey
 ) {
-  console.log("fetching call option bid", callOptionBidPda.toBase58());
-  const data = await query.fetchCallOptionBid(program, callOptionBidPda);
+  const data = (await program.account.callOptionBid.fetch(
+    callOptionBidPda
+  )) as CallOptionBidData;
 
   await prisma.callOptionBid.create({
     data: {
