@@ -59,10 +59,11 @@ export const OptionRow = ({ subtitle, option, onClick }: OptionRowProps) => {
   const strikePrice = useStrikePrice(option);
   const expiry = useExpiry(option);
   const floorPrice = useFloorPrice(option);
-  const duration = useMemo(
-    () => utils.formatHexDuration(option.expiry),
-    [option]
-  );
+  const duration = useMemo(() => {
+    const timeUntilExpiry =
+      BigInt(option.expiry) - BigInt(Math.round(Date.now() / 1000));
+    return utils.formatHexDuration("0x" + timeUntilExpiry.toString(16));
+  }, [option]);
 
   return (
     <Tr

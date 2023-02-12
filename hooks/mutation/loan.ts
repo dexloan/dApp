@@ -17,13 +17,13 @@ import {
   LoanOfferJson,
   GroupedLoanOfferJson,
 } from "../../common/types";
-import { fetchLoanOffers, LoanOfferFilters } from "../query";
 import {
   fetchMetadata,
   findCollectionAddress,
   findLoanAddress,
   findMetadataAddress,
 } from "../../common/query";
+import { fetchLoanOffers, LoanOfferFilters } from "../query";
 
 export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
