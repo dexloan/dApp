@@ -1,15 +1,20 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Text, Tr, Td } from "@chakra-ui/react";
 
-import * as utils from "../../../common/utils";
-import dayjs from "../../../common/lib/dayjs";
-import { NFTCellNew } from "../../table";
-import { FloorPrice } from "../../floorPrice";
-import {
+import type {
   CallOptionBidJson,
   CallOptionJson,
   GroupedCallOptionBidJson,
 } from "../../../common/types";
+import * as utils from "../../../common/utils";
+import { NFTCellNew } from "../../table";
+import { FloorPrice } from "../../floorPrice";
+import {
+  useAmount,
+  useExpiry,
+  useStrikePrice,
+  useFloorPrice,
+} from "../../../hooks/render";
 
 export type CallOptionSortCols =
   | "collection"
@@ -50,6 +55,15 @@ interface OptionRowProps {
 }
 
 export const OptionRow = ({ subtitle, option, onClick }: OptionRowProps) => {
+  const amount = useAmount(option);
+  const strikePrice = useStrikePrice(option);
+  const expiry = useExpiry(option);
+  const floorPrice = useFloorPrice(option);
+  const duration = useMemo(
+    () => utils.formatHexDuration(option.expiry),
+    [option]
+  );
+
   return (
     <Tr
       cursor="pointer"
@@ -62,19 +76,15 @@ export const OptionRow = ({ subtitle, option, onClick }: OptionRowProps) => {
         collection={option.Collection}
       />
       <Td>
-        <Text mb="1">
-          {dayjs.unix(utils.hexToNumber(option.expiry)).format("DD/MM/YYYY")}
-        </Text>
+        <Text mb="1">{expiry}</Text>
         <Text fontSize="xs" color="gray.500">
-          {utils.formatHexDuration(option.expiry)}
+          {duration}
         </Text>
       </Td>
-      <Td isNumeric>{utils.formatHexAmount(option.amount)}</Td>
+      <Td isNumeric>{amount}</Td>
       <Td isNumeric>
-        <Text mb="1">{utils.formatHexAmount(option.strikePrice)}</Text>
-        <FloorPrice>
-          {utils.formatHexAmount(option.Collection.floorPrice)}
-        </FloorPrice>
+        <Text mb="1">{strikePrice}</Text>
+        <FloorPrice>{floorPrice}</FloorPrice>
       </Td>
     </Tr>
   );

@@ -248,7 +248,9 @@ export const useAskCallOptionMutation = (onSuccess: () => void) => {
           };
 
           const queryCache = queryClient.getQueryCache();
-          const queries = queryCache.findAll(["call_option"], { exact: false });
+          const queries = queryCache.findAll(["call_options"], {
+            exact: false,
+          });
 
           queries
             .map((query) => query.queryKey)

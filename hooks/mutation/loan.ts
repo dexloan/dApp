@@ -17,7 +17,7 @@ import {
   LoanOfferJson,
   GroupedLoanOfferJson,
 } from "../../common/types";
-import { fetchLoanOffers } from "../query";
+import { fetchLoanOffers, LoanOfferFilters } from "../query";
 import {
   fetchMetadata,
   findCollectionAddress,
@@ -197,14 +197,18 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
             }/api/collections/mint/${variables.collectionMint.toBase58()}`
           ).then((res) => res.json());
 
+          const amount = utils.toHexString(variables.options.amount);
+          const duration = utils.toHexString(variables.options.duration);
+          const basisPoints = variables.options.basisPoints;
+          const lender = anchorWallet.publicKey.toBase58();
           const newLoanOffers: LoanOfferJson[] = newOffers.map(
             ([address, id]) => ({
               address: address.toBase58(),
               offerId: id,
-              amount: utils.toHexString(variables.options.amount),
-              duration: utils.toHexString(variables.options.duration),
-              basisPoints: variables.options.basisPoints,
-              lender: anchorWallet.publicKey.toBase58(),
+              amount,
+              duration,
+              lender,
+              basisPoints,
               ltv: null,
               threshold: null,
               collectionAddress: variables.collection.toBase58(),
@@ -221,51 +225,75 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
           };
 
           const queryCache = queryClient.getQueryCache();
-          const queries = queryCache.findAll(["loan_offers", "grouped"], {
+          const groupedQueries = queryCache.findAll(
+            ["loan_offers", "grouped"],
+            {
+              exact: false,
+            }
+          );
+          groupedQueries.forEach((query) => {
+            console.log("query: ", query);
+            debugger;
+            if (
+              query.queryKey[2] &&
+              typeof query.queryKey[2] === "object" &&
+              "collection" in query.queryKey[2] &&
+              query.queryKey[2].collection !== variables.collection
+            ) {
+              return;
+            }
+
+            queryClient.setQueryData<GroupedLoanOfferJson[]>(
+              query.queryKey,
+              (groupedOffers = []) => {
+                let shouldAppend = true;
+
+                const updated = groupedOffers.map((o) => {
+                  if (
+                    o.amount === groupedOffer.amount &&
+                    o.duration === groupedOffer.duration &&
+                    o.basisPoints === groupedOffer.basisPoints &&
+                    o.Collection.address === groupedOffer.Collection.address
+                  ) {
+                    shouldAppend = false;
+                    return {
+                      ...o,
+                      _count: o._count + newOffers.length,
+                    };
+                  }
+                  return o;
+                });
+
+                if (shouldAppend) {
+                  updated.push(groupedOffer);
+                }
+
+                return updated;
+              }
+            );
+          });
+          const offerQueries = queryCache.findAll(["loan_offers", "all"], {
             exact: false,
           });
+          offerQueries.forEach((query) => {
+            const filters = query.queryKey[2] as LoanOfferFilters | undefined;
 
-          queries
-            .map((query) => query.queryKey)
-            .forEach((key) => {
-              if (
-                key[1] &&
-                typeof key[1] === "object" &&
-                "collection" in key[1] &&
-                key[1].collection !== variables.collection
-              ) {
-                return;
-              }
+            if (!filters) return;
 
-              queryClient.setQueryData<GroupedLoanOfferJson[]>(
-                key,
-                (groupedOffers = []) => {
-                  let shouldAppend = true;
-
-                  const updated = groupedOffers.map((o) => {
-                    if (
-                      o.amount === groupedOffer.amount &&
-                      o.duration === groupedOffer.duration &&
-                      o.basisPoints === groupedOffer.basisPoints &&
-                      groupedOffer.Collection.address === o.Collection.address
-                    ) {
-                      shouldAppend = false;
-                      return {
-                        ...o,
-                        _count: o._count + newOffers.length,
-                      };
-                    }
-                    return o;
-                  });
-
-                  if (shouldAppend) {
-                    updated.push(groupedOffer);
-                  }
-
-                  return updated;
+            if (
+              filters.collections?.includes(groupedOffer.Collection.address) &&
+              filters.amount === amount &&
+              filters.duration === duration &&
+              filters.basisPoints === basisPoints
+            ) {
+              queryClient.setQueryData<LoanOfferJson[]>(
+                query.queryKey,
+                (offers = []) => {
+                  return [...offers, ...newLoanOffers];
                 }
               );
-            });
+            }
+          });
         }
         toast.success("Loan offer(s) created");
         onSuccess();
@@ -297,9 +325,46 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      async onSuccess() {
-        await utils.wait(1000);
-        queryClient.invalidateQueries(["loan_offers"]);
+      async onSuccess(_, variables) {
+        const queryCache = queryClient.getQueryCache();
+        const groupedQueries = queryCache.findAll(["loan_offers", "grouped"], {
+          exact: false,
+        });
+        groupedQueries.forEach((query) => {
+          queryClient.setQueryData<GroupedLoanOfferJson[]>(
+            query.queryKey,
+            (groupedOffers = []) => {
+              return groupedOffers.map((o) => {
+                if (
+                  o.amount === variables.offer.amount &&
+                  o.duration === variables.offer.duration &&
+                  o.basisPoints === variables.offer.basisPoints &&
+                  o.Collection.address === variables.offer.Collection.address
+                ) {
+                  return {
+                    ...o,
+                    _count: o._count - 1,
+                  };
+                }
+                return o;
+              });
+            }
+          );
+        });
+        const offerQueries = queryCache.findAll(["loan_offers", "all"], {
+          exact: false,
+        });
+        offerQueries.forEach((query) => {
+          queryClient.setQueryData<LoanOfferJson[]>(
+            query.queryKey,
+            (offers = []) => {
+              return offers.filter(
+                (o) => o.address !== variables.offer.address
+              );
+            }
+          );
+        });
+
         toast.success("Loan taken");
         onSuccess();
       },
@@ -328,7 +393,7 @@ export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
     {
       async onSuccess(_, variables) {
         const queryCache = queryClient.getQueryCache();
-        const queries = queryCache.findAll(["loan_offers"], {
+        const queries = queryCache.findAll(["loan_offers", "all"], {
           exact: false,
         });
 

@@ -163,7 +163,11 @@ export function fetchLoanOffers(
 }
 
 export function useLoanOffersQuery(filters: LoanOfferFilters = {}) {
-  return useQuery(["loan_offers", filters], () => fetchLoanOffers(filters), {
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(
+    ["loan_offers", "all", filters],
+    () => fetchLoanOffers(filters),
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 }
