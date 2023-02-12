@@ -434,12 +434,36 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        await utils.wait(1000);
-        const mint = new anchor.web3.PublicKey(variables.mint);
-        const borrower = new anchor.web3.PublicKey(variables.borrower);
-        const loadPda = await query.findLoanAddress(mint, borrower);
-        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
-        await queryClient.invalidateQueries(["loans"]);
+        if (anchorWallet?.publicKey) {
+          const mint = new anchor.web3.PublicKey(variables.mint);
+          const borrower = new anchor.web3.PublicKey(variables.borrower);
+          const loadPda = await query.findLoanAddress(mint, borrower);
+
+          const queryCache = queryClient.getQueryCache();
+          const queries = queryCache.findAll(["loans"], { exact: false });
+
+          queries.forEach((query) => {
+            queryClient.setQueryData<LoanJson[]>(query.queryKey, (loans = []) =>
+              loans.filter((o) => o.address !== variables.address)
+            );
+          });
+
+          queryClient.setQueryData<LoanJson>(
+            ["loan", loadPda.toBase58()],
+            (data) => {
+              if (data) {
+                return {
+                  ...data,
+                  lender: anchorWallet.publicKey.toBase58(),
+                  startDate: utils.toHexString(Math.round(Date.now() / 1000)),
+                  state: LoanState.Active,
+                };
+              }
+              throw new Error("Loan not found");
+            }
+          );
+        }
+
         toast.success("Loan given");
         onSuccess();
       },
