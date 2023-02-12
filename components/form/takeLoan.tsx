@@ -26,7 +26,10 @@ import {
   NftResult,
 } from "../../common/types";
 import { useLoanOffersQuery } from "../../hooks/query";
-import { useTakeLoanMutation } from "../../hooks/mutation/loan";
+import {
+  useCloseLoanOfferMutation,
+  useTakeLoanMutation,
+} from "../../hooks/mutation/loan";
 import { ModalProps, SelectNftForm, MintDetails, LoanForecast } from "./common";
 
 interface TakeLoanModalProps extends ModalProps {
@@ -118,6 +121,8 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
     basisPoints: groupedOffer.basisPoints,
   });
 
+  const closeMutation = useCloseLoanOfferMutation(() => {});
+
   const renderedRows = useMemo(
     () =>
       offersQuery.data?.map((item) => (
@@ -125,15 +130,26 @@ const OffersList = ({ groupedOffer, onSelect }: OffersListProps) => {
           <Td>{item.lender}</Td>
           <Td isNumeric>
             <Button
-              disabled={walletAddress === item.lender}
-              onClick={() => onSelect(item)}
+              isLoading={
+                closeMutation.variables?.address === item.address &&
+                closeMutation.isLoading
+              }
+              disabled={
+                closeMutation.variables?.address !== item.address &&
+                closeMutation.isLoading
+              }
+              onClick={
+                walletAddress === item.lender
+                  ? () => closeMutation.mutate(item)
+                  : () => onSelect(item)
+              }
             >
-              Take
+              {walletAddress === item.lender ? "Close" : "Take"}
             </Button>
           </Td>
         </Tr>
       )),
-    [offersQuery.data, walletAddress, onSelect]
+    [offersQuery.data, closeMutation, walletAddress, onSelect]
   );
 
   return (
