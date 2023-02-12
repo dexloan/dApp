@@ -393,15 +393,44 @@ export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
     {
       async onSuccess(_, variables) {
         const queryCache = queryClient.getQueryCache();
-        const queries = queryCache.findAll(["loan_offers", "all"], {
+        const offerQueries = queryCache.findAll(["loan_offers", "all"], {
           exact: false,
         });
-
-        queries.forEach((query) => {
+        offerQueries.forEach((query) => {
           queryClient.setQueryData<LoanJson[]>(
             query.queryKey,
             (loanOffers = []) =>
               loanOffers.filter((o) => o.address !== variables.address)
+          );
+        });
+        const groupedQueries = queryCache.findAll(["loan_offers", "grouped"], {
+          exact: false,
+        });
+        groupedQueries.forEach((query) => {
+          queryClient.setQueryData<GroupedLoanOfferJson[]>(
+            query.queryKey,
+            (groupedOffers = []) => {
+              return groupedOffers
+                .map((o) => {
+                  if (
+                    o.amount === variables.amount &&
+                    o.duration === variables.duration &&
+                    o.basisPoints === variables.basisPoints &&
+                    o.Collection.address === variables.Collection.address
+                  ) {
+                    if (o._count === 1) {
+                      return null;
+                    }
+
+                    return {
+                      ...o,
+                      _count: o._count - 1,
+                    };
+                  }
+                  return o;
+                })
+                .filter(utils.notNull);
+            }
           );
         });
 
