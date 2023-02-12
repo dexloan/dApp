@@ -5,7 +5,7 @@ import {
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
 import { LoanState } from "@prisma/client";
-import { useMutation, useQueryClient } from "react-query";
+import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 
 import * as actions from "../../common/actions";
@@ -191,11 +191,12 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
       },
       async onSuccess(newOffers, variables) {
         if (anchorWallet) {
-          const collection: CollectionJson = await fetch(
-            `${
-              process.env.NEXT_PUBLIC_HOST
-            }/api/collections/mint/${variables.collectionMint.toBase58()}`
-          ).then((res) => res.json());
+          const collection = queryClient.getQueryData<CollectionJson>([
+            "collection",
+            variables.collection.toBase58,
+          ]);
+
+          if (!collection) return;
 
           const amount = utils.toHexString(variables.options.amount);
           const duration = utils.toHexString(variables.options.duration);
@@ -232,8 +233,6 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
             }
           );
           groupedQueries.forEach((query) => {
-            console.log("query: ", query);
-            debugger;
             if (
               query.queryKey[2] &&
               typeof query.queryKey[2] === "object" &&
@@ -326,44 +325,8 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const queryCache = queryClient.getQueryCache();
-        const groupedQueries = queryCache.findAll(["loan_offers", "grouped"], {
-          exact: false,
-        });
-        groupedQueries.forEach((query) => {
-          queryClient.setQueryData<GroupedLoanOfferJson[]>(
-            query.queryKey,
-            (groupedOffers = []) => {
-              return groupedOffers.map((o) => {
-                if (
-                  o.amount === variables.offer.amount &&
-                  o.duration === variables.offer.duration &&
-                  o.basisPoints === variables.offer.basisPoints &&
-                  o.Collection.address === variables.offer.Collection.address
-                ) {
-                  return {
-                    ...o,
-                    _count: o._count - 1,
-                  };
-                }
-                return o;
-              });
-            }
-          );
-        });
-        const offerQueries = queryCache.findAll(["loan_offers", "all"], {
-          exact: false,
-        });
-        offerQueries.forEach((query) => {
-          queryClient.setQueryData<LoanOfferJson[]>(
-            query.queryKey,
-            (offers = []) => {
-              return offers.filter(
-                (o) => o.address !== variables.offer.address
-              );
-            }
-          );
-        });
+        removeLoanOffer(queryClient, variables.offer);
+        removeOfferFromGroupedLoanOffers(queryClient, variables.offer);
 
         toast.success("Loan taken");
         onSuccess();
@@ -392,48 +355,8 @@ export const useCloseLoanOfferMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const queryCache = queryClient.getQueryCache();
-        const offerQueries = queryCache.findAll(["loan_offers", "all"], {
-          exact: false,
-        });
-        offerQueries.forEach((query) => {
-          queryClient.setQueryData<LoanJson[]>(
-            query.queryKey,
-            (loanOffers = []) =>
-              loanOffers.filter((o) => o.address !== variables.address)
-          );
-        });
-        const groupedQueries = queryCache.findAll(["loan_offers", "grouped"], {
-          exact: false,
-        });
-        groupedQueries.forEach((query) => {
-          queryClient.setQueryData<GroupedLoanOfferJson[]>(
-            query.queryKey,
-            (groupedOffers = []) => {
-              return groupedOffers
-                .map((o) => {
-                  if (
-                    o.amount === variables.amount &&
-                    o.duration === variables.duration &&
-                    o.basisPoints === variables.basisPoints &&
-                    o.Collection.address === variables.Collection.address
-                  ) {
-                    if (o._count === 1) {
-                      return null;
-                    }
-
-                    return {
-                      ...o,
-                      _count: o._count - 1,
-                    };
-                  }
-                  return o;
-                })
-                .filter(utils.notNull);
-            }
-          );
-        });
-
+        removeLoanOffer(queryClient, variables);
+        removeOfferFromGroupedLoanOffers(queryClient, variables);
         toast.success("Offer closed");
         onSuccess();
       },
@@ -466,31 +389,14 @@ export const useGiveLoanMutation = (onSuccess: () => void) => {
         if (anchorWallet?.publicKey) {
           const mint = new anchor.web3.PublicKey(variables.mint);
           const borrower = new anchor.web3.PublicKey(variables.borrower);
-          const loadPda = await query.findLoanAddress(mint, borrower);
+          const loanPda = await query.findLoanAddress(mint, borrower);
 
-          const queryCache = queryClient.getQueryCache();
-          const queries = queryCache.findAll(["loans"], { exact: false });
-
-          queries.forEach((query) => {
-            queryClient.setQueryData<LoanJson[]>(query.queryKey, (loans = []) =>
-              loans.filter((o) => o.address !== variables.address)
-            );
+          removeLoanFromList(queryClient, loanPda.toBase58());
+          updateLoan(queryClient, loanPda.toBase58(), {
+            lender: anchorWallet.publicKey.toBase58(),
+            startDate: utils.toHexString(Math.round(Date.now() / 1000)),
+            state: LoanState.Active,
           });
-
-          queryClient.setQueryData<LoanJson>(
-            ["loan", loadPda.toBase58()],
-            (data) => {
-              if (data) {
-                return {
-                  ...data,
-                  lender: anchorWallet.publicKey.toBase58(),
-                  startDate: utils.toHexString(Math.round(Date.now() / 1000)),
-                  state: LoanState.Active,
-                };
-              }
-              throw new Error("Loan not found");
-            }
-          );
         }
 
         toast.success("Loan given");
@@ -538,25 +444,11 @@ export const useCloseLoanMutation = (onSuccess: () => void) => {
         const borrower = new anchor.web3.PublicKey(variables.borrower);
         const loanPda = await query.findLoanAddress(mint, borrower);
 
-        const queryCache = queryClient.getQueryCache();
-        const queries = queryCache.findAll(["loans"], {
-          exact: false,
+        removeLoanFromList(queryClient, loanPda.toBase58());
+        updateLoan(queryClient, loanPda.toBase58(), {
+          state: LoanState.Cancelled,
         });
 
-        queries.forEach((query) => {
-          queryClient.setQueryData<LoanJson[]>(query.queryKey, (loans = []) =>
-            loans.filter((o) => o.address !== loanPda.toBase58())
-          );
-        });
-
-        queryClient.setQueryData<LoanJson | undefined>(
-          ["loan", loanPda.toBase58()],
-          (loan) => {
-            if (loan) {
-              return { ...loan, state: LoanState.Cancelled };
-            }
-          }
-        );
         toast.success("Loan closed");
         onSuccess();
       },
@@ -607,10 +499,16 @@ export const useRepossessMutation = (onSuccess: () => void) => {
       async onSuccess(_, variables) {
         const mint = new anchor.web3.PublicKey(variables.mint);
         const borrower = new anchor.web3.PublicKey(variables.borrower);
-        const loadPda = await query.findLoanAddress(mint, borrower);
-        await queryClient.invalidateQueries(["loan", loadPda.toBase58()]);
-        await queryClient.invalidateQueries(["loans"]);
-        toast.success("NFT repossessed.");
+        const loanPda = await query.findLoanAddress(mint, borrower);
+
+        removeLoanFromList(queryClient, loanPda.toBase58());
+        updateLoan(queryClient, loanPda.toBase58(), {
+          state: LoanState.Defaulted,
+        });
+
+        toast.success("NFT repossessed.", {
+          duration: 5000,
+        });
         onSuccess();
       },
     }
@@ -657,18 +555,11 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
         const loadPda = await query.findLoanAddress(mint, borrower);
 
         await queryClient.invalidateQueries(["loans"]);
-        await queryClient.setQueryData<LoanJson | undefined>(
-          ["loan", loadPda.toBase58()],
-          (data) => {
-            if (data) {
-              return {
-                ...data,
-                outstanding: BigInt(0).toString(16),
-                state: LoanState.Repaid,
-              };
-            }
-          }
-        );
+
+        updateLoan(queryClient, loadPda.toBase58(), {
+          outstanding: BigInt(0).toString(16),
+          state: LoanState.Repaid,
+        });
 
         toast.success("Loan repaid. Your NFT has been unlocked.", {
           duration: 5000,
@@ -678,3 +569,80 @@ export const useRepayLoanMutation = (onSuccess: () => void) => {
     }
   );
 };
+
+function removeLoanOffer(queryClient: QueryClient, loanOffer: LoanOfferJson) {
+  const queryCache = queryClient.getQueryCache();
+  const offerQueries = queryCache.findAll(["loan_offers", "all"], {
+    exact: false,
+  });
+  offerQueries.forEach((query) => {
+    queryClient.setQueryData<LoanJson[]>(query.queryKey, (loanOffers = []) =>
+      loanOffers.filter((o) => o.address !== loanOffer.address)
+    );
+  });
+}
+
+function removeOfferFromGroupedLoanOffers(
+  queryClient: QueryClient,
+  loanOffer: LoanOfferJson
+) {
+  const queryCache = queryClient.getQueryCache();
+  const groupedQueries = queryCache.findAll(["loan_offers", "grouped"], {
+    exact: false,
+  });
+  groupedQueries.forEach((query) => {
+    queryClient.setQueryData<GroupedLoanOfferJson[]>(
+      query.queryKey,
+      (groupedOffers = []) => {
+        return groupedOffers
+          .map((o) => {
+            if (
+              o.amount === loanOffer.amount &&
+              o.duration === loanOffer.duration &&
+              o.basisPoints === loanOffer.basisPoints &&
+              o.Collection.address === loanOffer.Collection.address
+            ) {
+              if (o._count === 1) {
+                return null;
+              }
+
+              return {
+                ...o,
+                _count: o._count - 1,
+              };
+            }
+            return o;
+          })
+          .filter(utils.notNull);
+      }
+    );
+  });
+}
+
+function updateLoan(
+  queryClient: QueryClient,
+  key: string,
+  update: Partial<LoanJson>
+) {
+  queryClient.setQueryData<LoanJson | undefined>(["loan", key], (data) => {
+    if (data) {
+      return {
+        ...data,
+        ...update,
+      };
+    }
+  });
+}
+
+function removeLoanFromList(queryClient: QueryClient, key: string) {
+  const queryCache = queryClient.getQueryCache();
+  const queries = queryCache.findAll(["loans"], {
+    exact: false,
+  });
+
+  queries.forEach((query) => {
+    queryClient.setQueryData<LoanJson[]>(query.queryKey, (loans = []) =>
+      loans.filter((o) => o.address !== key)
+    );
+  });
+}
