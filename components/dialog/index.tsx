@@ -10,13 +10,16 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { Rental } from "../../common/model";
-import { LoanJson } from "../../common/types";
+import { CallOptionJson, LoanJson } from "../../common/types";
+import { useMetadataFileQuery } from "../../hooks/query";
 import {
   useAmount,
   useAPY,
   useDueDate,
+  useExpiry,
   useInterestDue,
   useTotalDue,
+  useStrikePrice,
 } from "../../hooks/render";
 
 interface MutationDialogProps {
@@ -226,7 +229,7 @@ interface CallOptionDialogProps
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  callOption: CallOption;
+  callOption: CallOptionJson;
 }
 
 export const BuyCallOptionDialog = ({
@@ -236,6 +239,11 @@ export const BuyCallOptionDialog = ({
   onConfirm,
   onRequestClose,
 }: CallOptionDialogProps) => {
+  const queryResult = useMetadataFileQuery(callOption.uri);
+  const amount = useAmount(callOption);
+  const strikePrice = useStrikePrice(callOption);
+  const expiryLongFormat = useExpiry(callOption, true);
+
   return (
     <MutationDialog
       open={open}
@@ -245,21 +253,18 @@ export const BuyCallOptionDialog = ({
         <>
           <Text mb="4">
             <Badge colorScheme="green" borderRadius="md" fontSize="md" mr="2">
-              {callOption.strikePrice}
+              {strikePrice}
             </Badge>
             <Badge borderRadius="md" fontSize="md" mr="2">
-              {callOption.cost}
+              {amount}
             </Badge>
           </Text>
-          <Text mb="4">
-            Option will expire on {callOption.expiryLongFormat}
-          </Text>
+          <Text mb="4">Option will expire on {expiryLongFormat}</Text>
           <Text mb="4" fontSize="sm">
-            This option gives you the right to purchase{" "}
-            {callOption.metadata.data.name} at the price of{" "}
-            <strong>{callOption.strikePrice}</strong> anytime before the expiry
-            time. The cost to purchase this option is{" "}
-            <strong>{callOption.cost}</strong>.
+            This option gives you the right to purchase {queryResult.data.name}{" "}
+            at the price of <strong>{strikePrice}</strong> anytime before the
+            expiry time. The cost to purchase this option is{" "}
+            <strong>{amount}</strong>.
           </Text>
         </>
       }
@@ -276,6 +281,9 @@ export const ExerciseDialog = ({
   onConfirm,
   onRequestClose,
 }: CallOptionDialogProps) => {
+  const queryResult = useMetadataFileQuery(callOption.uri);
+  const strikePrice = useAmount(callOption);
+
   return (
     <MutationDialog
       open={open}
@@ -283,8 +291,8 @@ export const ExerciseDialog = ({
       header="Exercise call option"
       content={
         <Text>
-          Exercise option to buy {callOption.metadata.data.name} for{" "}
-          <strong>{callOption.strikePrice}</strong>?
+          Exercise option to buy {queryResult.data.name} for{" "}
+          <strong>{strikePrice}</strong>?
         </Text>
       }
       onConfirm={onConfirm}
@@ -308,7 +316,7 @@ export const CloseCallOptionDialog = ({
       content={
         <Text>
           Close call option listing
-          {callOption.hasBuyer ? " and recover NFT from escrow" : ""}?
+          {callOption.buyer ? " and recover NFT from escrow" : ""}?
         </Text>
       }
       onConfirm={onConfirm}

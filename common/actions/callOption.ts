@@ -198,14 +198,29 @@ export async function buyCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  seller: anchor.web3.PublicKey
+  seller: anchor.web3.PublicKey,
+  collectionMint: anchor.web3.PublicKey
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
   const [edition] = await query.findEditionAddress(mint);
+  const [metadataPda] = await query.findMetadataAddress(mint);
   const callOption = await query.findCallOptionAddress(mint, seller);
+  const collection = await query.findCollectionAddress(collectionMint);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
+
+  const metadata = await fetchMetadata(connection, mint);
+
+  if (!metadata) {
+    throw new Error("Metadata not found");
+  }
+
+  const creatorAccounts = metadata.data.creators?.map((creator) => ({
+    pubkey: creator.address,
+    isSigner: false,
+    isWritable: true,
+  }));
 
   const transaction = await program.methods
     .buyCallOption()
@@ -214,7 +229,9 @@ export async function buyCallOption(
       tokenManager,
       mint,
       edition,
+      collection,
       seller,
+      metadata: metadataPda,
       buyer: wallet.publicKey,
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
@@ -222,6 +239,7 @@ export async function buyCallOption(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       signer: SIGNER,
     })
+    .remainingAccounts(creatorAccounts ?? [])
     .transaction();
 
   await submitTransaction(connection, wallet, transaction);

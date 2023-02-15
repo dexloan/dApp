@@ -356,17 +356,24 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
 interface BuyCallOptionVariables {
   mint: anchor.web3.PublicKey;
   seller: anchor.web3.PublicKey;
+  collectionMint: anchor.web3.PublicKey;
 }
 
 export const useBuyCallOptionMutation = (onSuccess: () => void) => {
-  const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet();
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, BuyCallOptionVariables>(
-    async ({ mint, seller }) => {
+    async ({ mint, seller, collectionMint }) => {
       if (anchorWallet) {
-        return actions.buyCallOption(connection, anchorWallet, mint, seller);
+        return actions.buyCallOption(
+          connection,
+          anchorWallet,
+          mint,
+          seller,
+          collectionMint
+        );
       }
       throw new Error("Not ready");
     },

@@ -324,6 +324,7 @@ const CallOptionLayout = () => {
 
   return (
     <NftLayout
+      collection={callOption?.Collection}
       metadataJson={jsonMetadata}
       stats={
         callOption
@@ -374,6 +375,9 @@ const BuyButton = ({ callOption }: BuyButtonProps) => {
           mutation.mutate({
             mint: new anchor.web3.PublicKey(callOption.mint),
             seller: new anchor.web3.PublicKey(callOption.seller),
+            collectionMint: new anchor.web3.PublicKey(
+              callOption.Collection.mint
+            ),
           })
         }
       />
