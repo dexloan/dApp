@@ -172,10 +172,10 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
               }
             );
           });
-          const offerQueries = queryCache.findAll(["call_option_bids", "all"], {
+          const bidQueries = queryCache.findAll(["call_option_bids", "all"], {
             exact: false,
           });
-          offerQueries.forEach((query) => {
+          bidQueries.forEach((query) => {
             const filters = query.queryKey[2] as CallOptionFilters | undefined;
 
             if (!filters) return;
@@ -227,8 +227,9 @@ export const useSellCallOptionMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      async onSuccess() {
-        await queryClient.invalidateQueries(["call_option_bids"]);
+      async onSuccess(_, variables) {
+        removeCallOptionBid(queryClient, variables.bid);
+        removeBidFromGroupedCallOptionBids(queryClient, variables.bid);
         toast.success("Loan taken");
         onSuccess();
       },
@@ -256,18 +257,8 @@ export const useCloseCallOptionBidMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const queryCache = queryClient.getQueryCache();
-        const queries = queryCache.findAll(["call_option_bids"], {
-          exact: false,
-        });
-
-        queries.forEach((query) => {
-          queryClient.setQueryData<CallOptionJson[]>(
-            query.queryKey,
-            (callOptionBids = []) =>
-              callOptionBids.filter((o) => o.address !== variables.address)
-          );
-        });
+        removeCallOptionBid(queryClient, variables);
+        removeBidFromGroupedCallOptionBids(queryClient, variables);
 
         toast.success("Call option bid closed");
         onSuccess();
@@ -562,6 +553,58 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
     }
   );
 };
+
+function removeCallOptionBid(
+  queryClient: QueryClient,
+  callOptionBid: CallOptionBidJson
+) {
+  const queryCache = queryClient.getQueryCache();
+  const bidQueries = queryCache.findAll(["call_option_bids", "all"], {
+    exact: false,
+  });
+  bidQueries.forEach((query) => {
+    queryClient.setQueryData<CallOptionBidJson[]>(query.queryKey, (bids = []) =>
+      bids.filter((b) => b.address !== callOptionBid.address)
+    );
+  });
+}
+
+function removeBidFromGroupedCallOptionBids(
+  queryClient: QueryClient,
+  callOptionBid: CallOptionBidJson
+) {
+  const queryCache = queryClient.getQueryCache();
+  const groupedQueries = queryCache.findAll(["call_option_bids", "grouped"], {
+    exact: false,
+  });
+  groupedQueries.forEach((query) => {
+    queryClient.setQueryData<GroupedCallOptionBidJson[]>(
+      query.queryKey,
+      (groupedBids = []) => {
+        return groupedBids
+          .map((o) => {
+            if (
+              o.amount === callOptionBid.amount &&
+              o.strikePrice === callOptionBid.strikePrice &&
+              o.expiry === callOptionBid.expiry &&
+              o.Collection.address === callOptionBid.Collection.address
+            ) {
+              if (o._count === 1) {
+                return null;
+              }
+
+              return {
+                ...o,
+                _count: o._count - 1,
+              };
+            }
+            return o;
+          })
+          .filter(utils.notNull);
+      }
+    );
+  });
+}
 
 function updateCallOption(
   queryClient: QueryClient,
