@@ -4,7 +4,6 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { QueryClient, useMutation, useQueryClient } from "react-query";
 import toast from "react-hot-toast";
 import { CallOptionState } from "@prisma/client";
@@ -15,20 +14,22 @@ import * as query from "../../common/query";
 import {
   CallOptionJson,
   CallOptionBidJson,
-  CallOptionStateEnum,
-  NftResult,
   CollectionJson,
+  GroupedCallOptionBidJson,
 } from "../../common/types";
-import { fetchCallOptionBids } from "../query";
 import {
   fetchMetadata,
   findCallOptionAddress,
   findCollectionAddress,
   findMetadataAddress,
 } from "../../common/query";
+import {
+  CallOptionFilters,
+  fetchCallOptionBids,
+  fetchCollection,
+} from "../query";
 
 export interface BidCallOptionMutationVariables {
-  collection: anchor.web3.PublicKey;
   collectionMint: anchor.web3.PublicKey;
   options: {
     count: number;
@@ -61,9 +62,12 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
   return useMutation(
     async (variables: BidCallOptionMutationVariables) => {
       if (anchorWallet) {
+        const collection = await query.findCollectionAddress(
+          variables.collectionMint
+        );
         const currentOffers = await fetchCallOptionBids({
           buyer: anchorWallet.publicKey.toBase58(),
-          collections: [variables.collection.toBase58()],
+          collections: [collection.toBase58()],
         });
         const ids = pickOfferIds(currentOffers, variables.options.count);
         console.log("current offers: ", currentOffers);
@@ -72,7 +76,6 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
         return actions.bidCallOption(
           connection,
           anchorWallet,
-          variables.collection,
           variables.collectionMint,
           variables.options,
           ids
@@ -87,7 +90,112 @@ export const useBidCallOptionMutation = (onSuccess: () => void) => {
           toast.error("Error: " + err.message);
         }
       },
-      async onSuccess() {
+      async onSuccess(newBids, variables) {
+        if (anchorWallet) {
+          const collectionPda = await findCollectionAddress(
+            variables.collectionMint
+          );
+          const collection = await queryClient.fetchQuery<CollectionJson>(
+            ["collection", variables.collectionMint.toBase58()],
+            () => fetchCollection(variables.collectionMint.toBase58())
+          );
+
+          const amount = utils.toHexString(variables.options.amount);
+          const strikePrice = utils.toHexString(variables.options.strikePrice);
+          const expiry = utils.toHexString(variables.options.expiry);
+          const buyer = anchorWallet.publicKey.toBase58();
+          const callOptionBids: CallOptionBidJson[] = newBids.map(
+            ([address, id]) => ({
+              address: address.toBase58(),
+              bidId: id,
+              amount,
+              strikePrice,
+              expiry,
+              buyer,
+              ltv: null,
+              collectionAddress: collection.address,
+              Collection: collection,
+            })
+          );
+
+          const groupedOffer: GroupedCallOptionBidJson = {
+            _count: callOptionBids.length,
+            amount,
+            strikePrice,
+            expiry,
+            Collection: collection,
+          };
+
+          const queryCache = queryClient.getQueryCache();
+          const groupedQueries = queryCache.findAll(
+            ["call_option_bids", "grouped"],
+            {
+              exact: false,
+            }
+          );
+          groupedQueries.forEach((query) => {
+            if (
+              query.queryKey[2] &&
+              typeof query.queryKey[2] === "object" &&
+              "collection" in query.queryKey[2] &&
+              query.queryKey[2].collection !== collectionPda.toBase58()
+            ) {
+              return;
+            }
+
+            queryClient.setQueryData<GroupedCallOptionBidJson[]>(
+              query.queryKey,
+              (groupedOffers = []) => {
+                let shouldAppend = true;
+
+                const updated = groupedOffers.map((o) => {
+                  if (
+                    o.amount === groupedOffer.amount &&
+                    o.strikePrice === groupedOffer.strikePrice &&
+                    o.expiry === groupedOffer.expiry &&
+                    o.Collection.address === groupedOffer.Collection.address
+                  ) {
+                    shouldAppend = false;
+                    return {
+                      ...o,
+                      _count: o._count + callOptionBids.length,
+                    };
+                  }
+                  return o;
+                });
+
+                if (shouldAppend) {
+                  updated.push(groupedOffer);
+                }
+
+                return updated;
+              }
+            );
+          });
+          const offerQueries = queryCache.findAll(["call_option_bids", "all"], {
+            exact: false,
+          });
+          offerQueries.forEach((query) => {
+            const filters = query.queryKey[2] as CallOptionFilters | undefined;
+
+            if (!filters) return;
+
+            if (
+              filters.collections?.includes(groupedOffer.Collection.address) &&
+              filters.amount === amount &&
+              filters.strikePrice === strikePrice &&
+              filters.expiry === expiry
+            ) {
+              queryClient.setQueryData<CallOptionBidJson[]>(
+                query.queryKey,
+                (bids = []) => {
+                  return [...bids, ...callOptionBids];
+                }
+              );
+            }
+          });
+        }
+
         await queryClient.invalidateQueries(["call_option_bids"]);
         toast.success("Call option bid(s) created");
         onSuccess();
@@ -379,13 +487,19 @@ export const useBuyCallOptionMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const callOptionPda = await query.findCallOptionAddress(
-          variables.mint,
-          variables.seller
-        );
-        await queryClient.invalidateQueries(["call_option", callOptionPda]);
-        await queryClient.invalidateQueries(["call_options"]);
-        toast.success("Call option bought");
+        if (anchorWallet?.publicKey) {
+          const callOptionPda = await query.findCallOptionAddress(
+            variables.mint,
+            variables.seller
+          );
+
+          removeCallOptionFromList(queryClient, callOptionPda.toBase58());
+          updateCallOption(queryClient, callOptionPda.toBase58(), {
+            buyer: anchorWallet.publicKey.toBase58(),
+            state: CallOptionState.Active,
+          });
+        }
+        toast.success("Call option purchased");
         onSuccess();
       },
       onError(err) {
@@ -448,3 +562,34 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
     }
   );
 };
+
+function updateCallOption(
+  queryClient: QueryClient,
+  key: string,
+  update: Partial<CallOptionJson>
+) {
+  queryClient.setQueryData<CallOptionJson | undefined>(
+    ["call_option", key],
+    (data) => {
+      if (data) {
+        return {
+          ...data,
+          ...update,
+        };
+      }
+    }
+  );
+}
+
+function removeCallOptionFromList(queryClient: QueryClient, key: string) {
+  const queryCache = queryClient.getQueryCache();
+  const queries = queryCache.findAll(["loans"], {
+    exact: false,
+  });
+
+  queries.forEach((query) => {
+    queryClient.setQueryData<CallOptionJson[]>(query.queryKey, (options = []) =>
+      options.filter((o) => o.address !== key)
+    );
+  });
+}

@@ -34,7 +34,7 @@ import {
   useTokenManagerQuery,
   useMetadataFileQuery,
   useMetadataQuery,
-  useCollectionByMintQuery,
+  useCollectionQuery,
 } from "../../hooks/query";
 import { Card, CardList } from "../card";
 import { VerifiedCollection } from "../collection";
@@ -418,7 +418,7 @@ const Collection = ({
   listingType,
   onSelectItem,
 }: CollectionProps) => {
-  const collectionQuery = useCollectionByMintQuery(mint);
+  const collectionQuery = useCollectionQuery(mint);
   const floorPrice = useMemo(() => {
     if (collectionQuery.data) {
       return utils.formatHexAmount(collectionQuery.data.floorPrice);

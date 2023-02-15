@@ -1,10 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import {
-  Metadata,
-  PROGRAM_ID as METADATA_PROGRAM_ID,
-} from "@metaplex-foundation/mpl-token-metadata";
+import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
 import { CallOptionBidJson, RentalData } from "../types";
@@ -16,7 +13,6 @@ import { fetchMetadata } from "../query";
 export async function bidCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
-  collection: anchor.web3.PublicKey,
   collectionMint: anchor.web3.PublicKey,
   options: {
     amount: number;
@@ -25,6 +21,7 @@ export async function bidCallOption(
   },
   ids: number[]
 ) {
+  const newBids: [anchor.web3.PublicKey, number][] = [];
   const amount = new anchor.BN(options.amount);
   const strikePrice = new anchor.BN(options.strikePrice);
   const expiry = new anchor.BN(options.expiry);
@@ -33,6 +30,7 @@ export async function bidCallOption(
   const program = getProgram(provider);
 
   const tx = new anchor.web3.Transaction();
+  const collection = await query.findCollectionAddress(collectionMint);
 
   for (const id of ids) {
     const callOptionBid = await query.findCallOptionBidAddress(
@@ -56,9 +54,12 @@ export async function bidCallOption(
       .instruction();
 
     tx.add(ix);
+    newBids.push([callOptionBid, id]);
   }
 
   await submitTransaction(connection, wallet, tx);
+
+  return newBids;
 }
 export async function closeBid(
   connection: anchor.web3.Connection,

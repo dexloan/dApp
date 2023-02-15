@@ -23,7 +23,7 @@ import {
   findLoanAddress,
   findMetadataAddress,
 } from "../../common/query";
-import { fetchLoanOffers, LoanOfferFilters } from "../query";
+import { fetchLoanOffers, fetchCollection, LoanOfferFilters } from "../query";
 
 export interface AskLoanMutationVariables {
   mint: anchor.web3.PublicKey;
@@ -66,17 +66,19 @@ export const useAskLoanMutation = (onSuccess: () => void) => {
             variables.mint,
             anchorWallet?.publicKey
           );
-          const collectionPda = await findCollectionAddress(variables.mint);
+          const collectionPda = await findCollectionAddress(
+            variables.collectionMint
+          );
           const [metdataPda] = await findMetadataAddress(variables.mint);
 
-          const [metadata, collection] = await Promise.all([
-            fetchMetadata(connection, metdataPda),
-            fetch(
-              `${
-                process.env.NEXT_PUBLIC_HOST
-              }/api/collections/mint/${variables.collectionMint.toBase58()}`
-            ).then((res) => res.json() as Promise<CollectionJson>),
-          ]);
+          const metadata = await queryClient.fetchQuery(
+            ["metadata", metdataPda.toBase58()],
+            () => fetchMetadata(connection, metdataPda)
+          );
+          const collection = await queryClient.fetchQuery(
+            ["collection", variables.collectionMint.toBase58()],
+            () => fetchCollection(variables.collectionMint.toBase58())
+          );
 
           const newLoan: LoanJson = {
             address: loanPda.toBase58(),
@@ -168,8 +170,6 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
           collections: [variables.collection.toBase58()],
         });
         const ids = pickOfferIds(currentOffers, variables.options.count);
-        console.log("current offers: ", currentOffers);
-        console.log("next offers: ", ids);
 
         return actions.offerLoan(
           connection,
@@ -191,12 +191,10 @@ export const useOfferLoanMutation = (onSuccess: () => void) => {
       },
       async onSuccess(newOffers, variables) {
         if (anchorWallet) {
-          const collection = queryClient.getQueryData<CollectionJson>([
-            "collection",
-            variables.collection.toBase58,
-          ]);
-
-          if (!collection) return;
+          const collection = await queryClient.fetchQuery<CollectionJson>(
+            ["collection", variables.collectionMint.toBase58],
+            () => fetchCollection(variables.collectionMint.toBase58())
+          );
 
           const amount = utils.toHexString(variables.options.amount);
           const duration = utils.toHexString(variables.options.duration);
@@ -324,10 +322,9 @@ export const useTakeLoanMutation = (onSuccess: () => void) => {
       throw new Error("Not ready");
     },
     {
-      async onSuccess(_, variables) {
+      onSuccess(_, variables) {
         removeLoanOffer(queryClient, variables.offer);
         removeOfferFromGroupedLoanOffers(queryClient, variables.offer);
-
         toast.success("Loan taken");
         onSuccess();
       },

@@ -25,7 +25,7 @@ import {
   AskCallOptionMutationVariables,
   useAskCallOptionMutation,
 } from "../../hooks/mutation";
-import { useCollectionByMintQuery } from "../../hooks/query";
+import { useCollectionQuery } from "../../hooks/query";
 import {
   CallOptionFormFields,
   SelectNftForm,
@@ -130,7 +130,7 @@ const AskCallOptionForm = ({
   });
 
   const expiryOptions = useExpiryOptions();
-  const collectionQuery = useCollectionByMintQuery(
+  const collectionQuery = useCollectionQuery(
     selected?.metadata.collection?.key.toBase58()
   );
 

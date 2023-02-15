@@ -4,10 +4,8 @@ import {
   useAnchorWallet,
   useConnection,
 } from "@solana/wallet-adapter-react";
-import { useMemo } from "react";
 import { useQuery, useQueryClient } from "react-query";
 
-import * as utils from "../../common/utils";
 import {
   fetchMetadata,
   fetchNft,
@@ -17,13 +15,11 @@ import {
 } from "../../common/query";
 import { NftResult } from "../../common/types";
 
-export const getMetadataCacheKey = (mint?: String) => ["metadata", mint];
-
 export function useMetadataQuery(mint?: string) {
   const { connection } = useConnection();
 
   return useQuery(
-    getMetadataCacheKey(mint),
+    ["metadata", mint],
     () => {
       if (!mint) {
         throw new Error("Mint not defined");
@@ -41,23 +37,19 @@ export function useMetadataQuery(mint?: string) {
   );
 }
 
-export const getNFTCacheKey = (mint: anchor.web3.PublicKey) => [
-  "nft",
-  mint.toBase58(),
-];
-
 export function useNft(mint: anchor.web3.PublicKey) {
   const { connection } = useConnection();
   const queryClient = useQueryClient();
   const anchorWallet = useAnchorWallet();
 
   return useQuery(
-    getNFTCacheKey(mint),
+    ["nft", mint.toBase58()],
     () => {
       if (anchorWallet?.publicKey) {
-        const walletNFTs = queryClient.getQueryData<NftResult[]>(
-          getNftByOwnerCacheKey(anchorWallet?.publicKey)
-        );
+        const walletNFTs = queryClient.getQueryData<NftResult[]>([
+          "wallet_nfts",
+          anchorWallet.publicKey.toBase58(),
+        ]);
 
         if (walletNFTs) {
           const nft = walletNFTs.find((data) =>
@@ -80,15 +72,11 @@ export function useNft(mint: anchor.web3.PublicKey) {
   );
 }
 
-export const getNftByOwnerCacheKey = (
-  walletAddress: anchor.web3.PublicKey | undefined
-) => ["wallet_nfts", walletAddress?.toBase58()];
-
 export function useNftByOwnerQuery(wallet?: AnchorWallet) {
   const { connection } = useConnection();
 
   return useQuery(
-    getNftByOwnerCacheKey(wallet?.publicKey),
+    ["wallet_nfts", wallet?.publicKey?.toBase58()],
     () => {
       if (wallet) {
         return fetchNfts(connection, wallet.publicKey);

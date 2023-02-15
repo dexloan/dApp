@@ -19,7 +19,7 @@ import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 
 import * as utils from "../../common/utils";
 import { NftResult } from "../../common/types";
-import { useCollectionByMintQuery } from "../../hooks/query";
+import { useCollectionQuery } from "../../hooks/query";
 import {
   AskLoanMutationVariables,
   useAskLoanMutation,
@@ -112,7 +112,7 @@ const AskLoanForm = ({
     defaultValues,
   });
 
-  const collectionQuery = useCollectionByMintQuery(
+  const collectionQuery = useCollectionQuery(
     selected?.metadata.collection?.key.toBase58()
   );
   const floorPrice = useMemo(() => {
