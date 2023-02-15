@@ -259,7 +259,6 @@ export const useCloseCallOptionBidMutation = (onSuccess: () => void) => {
       async onSuccess(_, variables) {
         removeCallOptionBid(queryClient, variables);
         removeBidFromGroupedCallOptionBids(queryClient, variables);
-
         toast.success("Call option bid closed");
         onSuccess();
       },
@@ -309,10 +308,6 @@ export const useAskCallOptionMutation = (onSuccess: () => void) => {
         }
       },
       async onSuccess(_, variables) {
-        await queryClient.invalidateQueries(["call_options"]);
-        toast.success("Call Option Ask created");
-        onSuccess();
-
         if (anchorWallet) {
           const callOptionPda = await findCallOptionAddress(
             variables.mint,
@@ -321,14 +316,14 @@ export const useAskCallOptionMutation = (onSuccess: () => void) => {
           const collectionPda = await findCollectionAddress(variables.mint);
           const [metdataPda] = await findMetadataAddress(variables.mint);
 
-          const [metadata, collection] = await Promise.all([
-            fetchMetadata(connection, metdataPda),
-            fetch(
-              `${
-                process.env.NEXT_PUBLIC_HOST
-              }/api/collections/mint/${variables.collectionMint.toBase58()}`
-            ).then((res) => res.json() as Promise<CollectionJson>),
-          ]);
+          const metadata = await queryClient.fetchQuery(
+            ["metadata", metdataPda.toBase58()],
+            () => fetchMetadata(connection, metdataPda)
+          );
+          const collection = await queryClient.fetchQuery(
+            ["collection", variables.collectionMint.toBase58()],
+            () => fetchCollection(variables.collectionMint.toBase58())
+          );
 
           const newCallOption: CallOptionJson = {
             address: callOptionPda.toBase58(),
@@ -376,6 +371,8 @@ export const useAskCallOptionMutation = (onSuccess: () => void) => {
             newCallOption
           );
         }
+        toast.success("Listing created");
+        onSuccess();
       },
     }
   );
@@ -412,33 +409,14 @@ export const useCloseCallOptionMutation = (onSuccess: () => void) => {
     },
     {
       async onSuccess(_, variables) {
-        const callOptionPda = await query.findCallOptionAddress(
+        const callOptionPda = await findCallOptionAddress(
           variables.mint,
           variables.seller
         );
-
-        const queryCache = queryClient.getQueryCache();
-        const queries = queryCache.findAll(["call_options"], {
-          exact: false,
+        removeCallOptionFromList(queryClient, callOptionPda.toBase58());
+        updateCallOption(queryClient, callOptionPda.toBase58(), {
+          state: CallOptionState.Cancelled,
         });
-
-        queries.forEach((query) => {
-          queryClient.setQueryData<CallOptionJson[]>(
-            query.queryKey,
-            (callOptions = []) =>
-              callOptions.filter((o) => o.address !== callOptionPda.toBase58())
-          );
-        });
-
-        await queryClient.setQueryData<CallOptionJson | undefined>(
-          ["call_option", callOptionPda.toBase58()],
-          (loan) => {
-            if (loan) {
-              return { ...loan, state: CallOptionState.Cancelled };
-            }
-          }
-        );
-
         toast.success("Call Option closed");
         onSuccess();
       },
