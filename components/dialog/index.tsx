@@ -282,7 +282,7 @@ export const ExerciseDialog = ({
   onRequestClose,
 }: CallOptionDialogProps) => {
   const queryResult = useMetadataFileQuery(callOption.uri);
-  const strikePrice = useAmount(callOption);
+  const strikePrice = useStrikePrice(callOption);
 
   return (
     <MutationDialog

@@ -264,7 +264,7 @@ export async function exerciseCallOption(
   const [edition] = await query.findEditionAddress(mint);
 
   const [metadata, tokenAccount] = await Promise.all([
-    fetchMetadata(connection, metadataAddress),
+    fetchMetadata(connection, mint),
     connection
       .getTokenLargestAccounts(mint)
       .then((result) => result.value[0].address),

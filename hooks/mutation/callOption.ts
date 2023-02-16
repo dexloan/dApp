@@ -524,7 +524,9 @@ export const useExerciseCallOptionMutation = (onSuccess: () => void) => {
           variables.seller
         );
         await queryClient.invalidateQueries(["call_option", callOptionPda]);
-        await queryClient.invalidateQueries(["call_options"]);
+        updateCallOption(queryClient, callOptionPda.toBase58(), {
+          state: CallOptionState.Exercised,
+        });
         toast.success("Option exercised");
         onSuccess();
       },
