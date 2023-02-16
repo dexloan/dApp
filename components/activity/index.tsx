@@ -2,8 +2,9 @@ import * as anchor from "@project-serum/anchor";
 import * as borsh from "@project-serum/borsh";
 import { Box, Flex, Heading, Spinner, Text } from "@chakra-ui/react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import bs58 from "bs58";
 import { useQuery } from "react-query";
+import bs58 from "bs58";
+
 import * as utils from "../../common/utils";
 import { fetchParsedTransactions } from "../../common/query";
 
@@ -13,7 +14,14 @@ interface ActivityProps {
 
 interface Activity {
   key: string;
-  type: "mint" | "sale" | "listing" | "repay" | "loan" | "repossess";
+  type:
+    | "mint"
+    | "sale"
+    | "listing"
+    | "repay"
+    | "loan"
+    | "repossess"
+    | "exercise";
   blockTime: number | null | undefined;
   lamports: anchor.BN;
 }
@@ -36,6 +44,8 @@ export const Activity = ({ mint }: ActivityProps) => {
     { enabled: Boolean(mint), refetchOnWindowFocus: false }
   );
 
+  console.log("activityQuery: ", activityQuery);
+
   function renderRightCol(activity: Activity) {
     switch (activity.type) {
       case "repossess":
@@ -48,7 +58,9 @@ export const Activity = ({ mint }: ActivityProps) => {
       default:
         return (
           <Text fontWeight="medium" fontSize="sm">
-            {utils.formatAmount(BigInt("0x" + activity.lamports.toString("hex")))}
+            {utils.formatAmount(
+              BigInt("0x" + activity.lamports.toString("hex"))
+            )}
           </Text>
         );
     }
@@ -68,6 +80,8 @@ export const Activity = ({ mint }: ActivityProps) => {
         return "Repaid Loan";
       case "repossess":
         return "Repossessed";
+      case "exercise":
+        return "Exercised";
     }
   }
 
@@ -217,6 +231,19 @@ function mapTransaction(
         return {
           key: txn.transaction.signatures[0],
           type: "repossess",
+          blockTime: txn.blockTime,
+          lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
+            new anchor.BN(txn.meta.postBalances[0])
+          ),
+        };
+      }
+    }
+
+    if (txn.meta.logMessages.some((log) => log.includes("Exercise"))) {
+      if ("data" in txn.transaction.message.instructions[0]) {
+        return {
+          key: txn.transaction.signatures[0],
+          type: "exercise",
           blockTime: txn.blockTime,
           lamports: new anchor.BN(txn.meta.preBalances[0]).sub(
             new anchor.BN(txn.meta.postBalances[0])

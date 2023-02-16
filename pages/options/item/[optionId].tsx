@@ -324,6 +324,7 @@ const CallOptionLayout = () => {
 
   return (
     <NftLayout
+      mint={callOption?.mint}
       collection={callOption?.Collection}
       metadataJson={jsonMetadata}
       stats={
