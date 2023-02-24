@@ -14,6 +14,7 @@ import {
   useExpiry,
   useStrikePrice,
   useFloorPrice,
+  useDaysUntilExpiry,
 } from "../../../hooks/render";
 
 export type CallOptionSortCols =
@@ -58,12 +59,8 @@ export const OptionRow = ({ subtitle, option, onClick }: OptionRowProps) => {
   const amount = useAmount(option);
   const strikePrice = useStrikePrice(option);
   const expiry = useExpiry(option);
+  const duration = useDaysUntilExpiry(option);
   const floorPrice = useFloorPrice(option);
-  const duration = useMemo(() => {
-    const timeUntilExpiry =
-      BigInt(option.expiry) - BigInt(Math.round(Date.now() / 1000));
-    return utils.formatHexDuration("0x" + timeUntilExpiry.toString(16));
-  }, [option]);
 
   return (
     <Tr

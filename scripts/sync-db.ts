@@ -144,22 +144,31 @@ async function main() {
   for (const loanOffer of loanOffers) {
     const address = loanOffer.publicKey.toBase58();
     const data = loanOffer.account as LoanOfferData;
-
-    await prisma.loanOffer.create({
-      data: {
-        address,
-        offerId: data.id,
-        lender: data.lender.toBase58(),
-        amount: data.amount ? utils.toBigInt(data.amount) : null,
-        basisPoints: data.basisPoints,
-        duration: utils.toBigInt(data.duration),
-        ltv: data.ltv,
-        threshold: data.threshold,
-        Collection: {
-          connect: {
-            address: data.collection.toBase58(),
-          },
+    const entry = {
+      offerId: data.id,
+      lender: data.lender.toBase58(),
+      amount: data.amount ? utils.toBigInt(data.amount) : null,
+      basisPoints: data.basisPoints,
+      duration: utils.toBigInt(data.duration),
+      ltv: data.ltv,
+      threshold: data.threshold,
+      Collection: {
+        connect: {
+          address: data.collection.toBase58(),
         },
+      },
+    };
+
+    await prisma.loanOffer.upsert({
+      where: {
+        address,
+      },
+      update: {
+        ...entry,
+      },
+      create: {
+        address,
+        ...entry,
       },
     });
     console.log("synced loan offer: " + address);

@@ -34,9 +34,9 @@ export function formatHexTimestamp(
   );
 }
 
-export function formatDuration(duration: anchor.BN): string {
-  const days = toDays(duration.toNumber());
-  return `${days} ${days === 1 ? "day" : "days"}`;
+export function formatDuration(duration: number): string {
+  const dur = dayjs.duration(duration, "seconds");
+  return dur.humanize();
 }
 
 export function formatBasisPoints(basisPoints: number): string {
@@ -47,24 +47,6 @@ export function formatBasisPoints(basisPoints: number): string {
   }
 
   return percent + "%";
-}
-
-export function hasExpired(startDate: anchor.BN, duration: anchor.BN): boolean {
-  return Date.now() / 1000 > startDate.add(duration).toNumber();
-}
-
-export function formatDueDate(
-  startDate: anchor.BN,
-  duration: anchor.BN,
-  showTime: boolean = true
-) {
-  const date = dayjs
-    .unix(startDate.add(duration).toNumber())
-    .tz("America/New_York");
-  return (
-    date.format("MMM D, YYYY") +
-    (showTime ? ` at ${date.format("h:mm A z")}` : "")
-  );
 }
 
 export function formatBlockTime(blockTime: number) {

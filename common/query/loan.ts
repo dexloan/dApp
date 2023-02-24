@@ -4,7 +4,7 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { LoanData, LoanOfferData } from "../types";
-import { DexloanListings } from "../idl";
+import { OndaListings } from "../idl";
 
 /**
  * KEYS
@@ -70,7 +70,7 @@ export async function findLoanOfferVaultAddress(
 }
 
 export async function fetchLoan(
-  program: anchor.Program<DexloanListings>,
+  program: anchor.Program<OndaListings>,
   loanPda: anchor.web3.PublicKey
 ) {
   return utils.asyncRetry<LoanData>(async () => {
@@ -79,7 +79,7 @@ export async function fetchLoan(
 }
 
 export async function fetchLoanOffer(
-  program: anchor.Program<DexloanListings>,
+  program: anchor.Program<OndaListings>,
   loanOfferPda: anchor.web3.PublicKey
 ) {
   return utils.asyncRetry<LoanOfferData>(async () => {

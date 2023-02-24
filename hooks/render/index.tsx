@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { useMemo } from "react";
 
 import type {
@@ -231,6 +232,18 @@ export function useExpiry(
 
     return "";
   }, [callOption, showTime]);
+}
+
+export function useDaysUntilExpiry(
+  callOption?: CallOptionJson | CallOptionBidJson | GroupedCallOptionBidJson
+) {
+  return useMemo(() => {
+    if (callOption?.expiry) {
+      const timeUntilExpiry =
+        BigInt(callOption.expiry) - BigInt(Math.round(Date.now() / 1000));
+      return utils.formatDuration(Number(timeUntilExpiry));
+    }
+  }, [callOption]);
 }
 
 export function useFloorPrice(

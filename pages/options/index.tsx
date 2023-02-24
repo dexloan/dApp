@@ -23,6 +23,8 @@ const CallOptions: NextPage = () => {
     sortOrder: sortState[1],
   });
 
+  console.log(callOptionsQuery);
+
   return (
     <>
       <CallOptionLayout setCollections={setCollections}>

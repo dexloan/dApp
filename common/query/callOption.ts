@@ -3,7 +3,7 @@ import * as anchor from "@project-serum/anchor";
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { CallOptionData, CallOptionBidData } from "../types";
-import { DexloanListings } from "../idl";
+import { OndaListings } from "../idl";
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,
@@ -47,7 +47,7 @@ export async function findCallOptionBidTreasury(
 }
 
 export async function fetchCallOption(
-  program: anchor.Program<DexloanListings>,
+  program: anchor.Program<OndaListings>,
   callOptionPda: anchor.web3.PublicKey
 ) {
   return utils.asyncRetry<CallOptionData>(async () => {
@@ -58,7 +58,7 @@ export async function fetchCallOption(
 }
 
 export async function fetchCallOptionBid(
-  program: anchor.Program<DexloanListings>,
+  program: anchor.Program<OndaListings>,
   callOptionBidPda: anchor.web3.PublicKey
 ) {
   return utils.asyncRetry<CallOptionBidData>(async () => {

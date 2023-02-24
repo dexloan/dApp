@@ -1,6 +1,6 @@
-export type DexloanListings = {
+export type OndaListings = {
   version: "1.0.0";
-  name: "dexloan_listings";
+  name: "onda_listings";
   instructions: [
     {
       name: "offerLoan";
@@ -2331,9 +2331,9 @@ export type DexloanListings = {
   ];
 };
 
-export const IDL: DexloanListings = {
+export const IDL: OndaListings = {
   version: "1.0.0",
-  name: "dexloan_listings",
+  name: "onda_listings",
   instructions: [
     {
       name: "offerLoan",
