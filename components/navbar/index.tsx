@@ -132,7 +132,9 @@ export function Navbar() {
               <Box as="ul" display="flex" listStyleType="none">
                 <NavItem href="/loans">Loans</NavItem>
                 <NavItem href="/options">Call Options</NavItem>
-                <NavItem href="/rentals">Rentals</NavItem>
+                <NavItem disabled href="/rentals">
+                  Rentals
+                </NavItem>
               </Box>
             </Box>
           </Box>
@@ -154,9 +156,10 @@ export function Navbar() {
 interface NavItemProps {
   href: string;
   children: string;
+  disabled?: boolean;
 }
 
-function NavItem({ href, children }: NavItemProps) {
+function NavItem({ href, children, disabled }: NavItemProps) {
   const { asPath } = useRouter();
   const isActive = asPath.includes(href);
 
@@ -167,17 +170,28 @@ function NavItem({ href, children }: NavItemProps) {
           as="a"
           backgroundColor={isActive ? "rgba(255,255,255,0.1)" : "transparent"}
           color={isActive ? "gray.200" : undefined}
-          _hover={{
-            backgroundColor: isActive ? "rgba(255,255,255,0.1)" : "transparent",
-            color: "gray.100",
-          }}
-          _focus={{
-            outline: "none",
-            color: "gray.100",
-          }}
+          _hover={
+            !disabled
+              ? {
+                  backgroundColor: isActive
+                    ? "rgba(255,255,255,0.1)"
+                    : "transparent",
+                  color: "gray.100",
+                }
+              : {}
+          }
+          _focus={
+            !disabled
+              ? {
+                  outline: "none",
+                  color: "gray.100",
+                }
+              : {}
+          }
           cursor="pointer"
           size="sm"
           variant="ghost"
+          disabled={disabled}
         >
           {children}
         </Button>
