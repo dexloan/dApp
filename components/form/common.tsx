@@ -314,13 +314,14 @@ export const SelectNftForm = ({
           const callOption = nft.tokenManager.accounts.callOption as boolean;
           const rental = nft.tokenManager.accounts.rental as boolean;
 
-          if (
+          if (loan === false && callOption === false && rental === false) {
+            return false;
+          } else if (
             (listingType === "loan" || listingType === "callOption") &&
             (loan || callOption)
           ) {
             return false;
-          }
-          if (listingType === "rental" && rental) {
+          } else if (listingType === "rental" && rental) {
             return false;
           }
         }
