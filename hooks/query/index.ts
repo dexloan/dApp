@@ -3,4 +3,3 @@ export * from "./collection";
 export * from "./loan";
 export * from "./rental";
 export * from "./common";
-export * from "./tokenManager";

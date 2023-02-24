@@ -13,10 +13,8 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { IoAlertCircle, IoCheckmark, IoLeaf } from "react-icons/io5";
 
-import { RentalStateEnum } from "../../common/types";
 import { Rental } from "../../common/model";
 import { useMetadataFileQuery } from "../../hooks/query";
-import { useCollectionName } from "../../hooks/render";
 
 interface CardProps {
   children: React.ReactNode;
@@ -111,13 +109,13 @@ interface RentalCardProps {
 export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
   const wallet = useAnchorWallet();
   const isLender = useMemo(() => rental.isLender(wallet), [rental, wallet]);
-  const collection = useCollectionName(rental.metadata);
+  // const collection = useCollectionName(rental.metadata);
 
   function renderStatus() {
     switch (rental.state) {
-      case RentalStateEnum.Listed: {
-        return null;
-      }
+      // case RentalStateEnum.Listed: {
+      //   return null;
+      // }
 
       default: {
         if (rental.expired) {
@@ -210,7 +208,7 @@ export const RentalCard = ({ rental, onRent }: RentalCardProps) => {
             {rental.metadata.data.name}
           </Text>
           <Text fontSize="xs" color="gray.500">
-            {collection}
+            TODO{/* collection */}
           </Text>
         </Box>
         <Box display="flex" letterSpacing="wide" fontSize="xs">

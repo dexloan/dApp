@@ -19,7 +19,6 @@ import { IoAnalytics, IoCalendar, IoPricetag } from "react-icons/io5";
 import * as utils from "../../common/utils";
 import { useCollectionsQuery } from "../../hooks/query";
 import { useOfferLoanMutation } from "../../hooks/mutation/loan";
-import { LoanOfferPretty } from "../../common/model";
 import {
   LoanFormFields,
   ModalProps,
@@ -27,7 +26,7 @@ import {
   LoanForecast,
   MintDetails,
 } from "./common";
-import { CollectionJson } from "../../common/types";
+import { CollectionJson, LoanOfferJson } from "../../common/types";
 
 interface OfferFormFields extends LoanFormFields {
   collection: string;
@@ -223,21 +222,6 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
     </Modal>
   );
 };
-
-function pickIds(offers: LoanOfferPretty[], count: number) {
-  const ids = [];
-  const existingIds = offers.map((o) => o.data.id);
-
-  let id = 0;
-  while (ids.length < count && id <= 255) {
-    if (!existingIds.includes(id)) {
-      ids.push(id);
-    }
-    id++;
-  }
-
-  return ids;
-}
 
 interface OfferListingForecastProps {
   control: Control<OfferFormFields, any>;

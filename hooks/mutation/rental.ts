@@ -18,7 +18,6 @@ import {
   getRentalsCacheKey,
   getRentalsGivenCacheKey,
   getRentalsTakenCacheKey,
-  getNftByOwnerCacheKey,
 } from "../query";
 
 export interface InitRentalMutationVariables {
@@ -58,7 +57,7 @@ export const useInitRentalMutation = (onSuccess: () => void) => {
       },
       async onSuccess(_, variables) {
         queryClient.setQueryData<NftResult[]>(
-          getNftByOwnerCacheKey(anchorWallet?.publicKey),
+          ["wallet_nfts", anchorWallet?.publicKey.toBase58()],
           (data) => {
             if (!data) {
               return [];
@@ -162,7 +161,7 @@ export const useTakeRentalMutation = (onSuccess: () => void) => {
                 ...item,
                 data: {
                   ...item.data,
-                  state: RentalStateEnum.Rentald,
+                  // state: RentalStateEnum.Rentald,
                   borrower: anchorWallet.publicKey.toBase58(),
                   currentStart: Date.now() / 1000,
                   currentExpiry:
@@ -312,7 +311,7 @@ export const useRecoverRentalMutation = (onSuccess: () => void) => {
               if (item.data.mint === variables.mint.toBase58()) {
                 return {
                   ...item,
-                  state: RentalStateEnum.Listed,
+                  // state: RentalStateEnum.Listed,
                 };
               }
 
@@ -326,7 +325,7 @@ export const useRecoverRentalMutation = (onSuccess: () => void) => {
           variables.borrower
         );
 
-        setRentalState(queryClient, loanAddress, RentalStateEnum.Listed);
+        // setRentalState(queryClient, loanAddress, RentalStateEnum.Listed);
 
         onSuccess();
       },
@@ -450,7 +449,7 @@ export function useCloseRentalMutation(onSuccess: () => void) {
             anchorWallet?.publicKey
           );
 
-          setRentalState(queryClient, hireAddress, RentalStateEnum.Cancelled);
+          // setRentalState(queryClient, hireAddress, RentalStateEnum.Cancelled);
         }
 
         toast.success("Call option closed");

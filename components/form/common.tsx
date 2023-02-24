@@ -310,9 +310,16 @@ export const SelectNftForm = ({
       })
       .filter((nft) => {
         if (nft.tokenManager) {
-          const loan = nft.tokenManager.accounts.loan as boolean;
-          const callOption = nft.tokenManager.accounts.callOption as boolean;
-          const rental = nft.tokenManager.accounts.rental as boolean;
+          type TokenManagerAccounts = {
+            loan: boolean;
+            callOption: boolean;
+            rental: boolean;
+          };
+
+          const accounts = nft.tokenManager.accounts as TokenManagerAccounts;
+          const loan = accounts.loan;
+          const callOption = accounts.callOption;
+          const rental = accounts.rental;
 
           if (loan === false && callOption === false && rental === false) {
             return false;

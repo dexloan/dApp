@@ -58,7 +58,7 @@ export const OfferRentalModal = ({
             onSubmit={(vars) => mutation.mutate(vars)}
           />
         ) : (
-          <SelectNftForm onSelect={setSelected} />
+          <SelectNftForm listingType="rental" onSelect={setSelected} />
         )}
       </ModalContent>
     </Modal>

@@ -68,7 +68,6 @@ export const BidCallOptionModal = ({ open, onRequestClose }: ModalProps) => {
         mutation.mutate({
           options,
           collectionMint: new anchor.web3.PublicKey(collection.mint),
-          collection: new anchor.web3.PublicKey(collection.address),
         });
       }
     }

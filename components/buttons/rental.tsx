@@ -11,7 +11,7 @@ import {
   useRentalQuery,
   useNft,
 } from "../../hooks/query";
-import { InitRentalModal } from "../form";
+// import { InitRentalModal } from "../form";
 
 interface RentalButtonProps {
   selected: NftResult | null;
@@ -34,11 +34,11 @@ export const RentalButton = ({
       >
         Rent NFT
       </Button>
-      <InitRentalModal
+      {/* <InitRentalModal
         open={modal}
         selected={selected}
         onRequestClose={() => setModal(false)}
-      />
+      /> */}
     </>
   );
 };
@@ -64,13 +64,13 @@ export const SecondaryRentalButton = ({
     }
   }, [hireQuery.data]);
 
-  if (rental && rental.state !== RentalStateEnum.Cancelled) {
-    return (
-      <NextLink href={`/rental/${hireAddress.data?.toBase58()}`}>
-        <Button w="100%">View Rental</Button>
-      </NextLink>
-    );
-  }
+  // if (rental && rental.state !== RentalStateEnum.Cancelled) {
+  //   return (
+  //     <NextLink href={`/rental/${hireAddress.data?.toBase58()}`}>
+  //       <Button w="100%">View Rental</Button>
+  //     </NextLink>
+  //   );
+  // }
 
   return <RentalButton selected={nftQuery.data ?? null} disabled={disabled} />;
 };
