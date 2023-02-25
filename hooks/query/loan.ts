@@ -102,7 +102,7 @@ export const useLoanAddress = (
 };
 
 export function fetchLoan(address: string): Promise<LoanJson> {
-  return fetch(`${process.env.NEXT_PUBLIC_HOST}/api/loan/item/${address}`).then(
+  return fetch(`${process.env.NEXT_PUBLIC_URL}/api/loan/item/${address}`).then(
     (res) => res.json()
   );
 }
@@ -118,7 +118,7 @@ export function useLoanQuery(loanPda?: string) {
 }
 
 export function fetchLoans(filters: LoanFilters): Promise<LoanJson[]> {
-  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loan/asks`);
+  const url = new URL(`${process.env.NEXT_PUBLIC_URL}/api/loan/asks`);
 
   appendQueryParams(url, filters);
 
@@ -134,9 +134,7 @@ export function useLoansQuery(filters: LoanFilters = {}) {
 export function fetchGroupedLoanOffers(
   filters: LoanOfferFilters
 ): Promise<GroupedLoanOfferJson[]> {
-  const url = new URL(
-    `${process.env.NEXT_PUBLIC_HOST}/api/loan/offers/grouped`
-  );
+  const url = new URL(`${process.env.NEXT_PUBLIC_URL}/api/loan/offers/grouped`);
   appendQueryParams(url, filters);
 
   return fetch(url).then((res) => res.json());
@@ -155,7 +153,7 @@ export function useGroupedLoanOffersQuery(filters: LoanOfferFilters = {}) {
 export function fetchLoanOffers(
   filters: LoanOfferFilters
 ): Promise<LoanOfferJson[]> {
-  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/loan/offers`);
+  const url = new URL(`${process.env.NEXT_PUBLIC_URL}/api/loan/offers`);
 
   appendQueryParams(url, filters);
 

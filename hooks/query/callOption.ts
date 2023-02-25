@@ -83,7 +83,7 @@ function appendQueryParams(url: URL, params: CallOptionFilters) {
 
 export function fetchCallOption(address: string): Promise<CallOptionJson> {
   return fetch(
-    `${process.env.NEXT_PUBLIC_HOST}/api/call_option/item/${address}`
+    `${process.env.NEXT_PUBLIC_URL}/api/call_option/item/${address}`
   ).then((res) => res.json());
 }
 
@@ -100,7 +100,7 @@ export function useCallOptionQuery(callOptionPda?: string) {
 export function fetchCallOptions(
   filters: CallOptionFilters
 ): Promise<CallOptionJson[]> {
-  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/call_option/asks`);
+  const url = new URL(`${process.env.NEXT_PUBLIC_URL}/api/call_option/asks`);
 
   appendQueryParams(url, filters);
 
@@ -116,7 +116,7 @@ export function useCallOptionsQuery(filters: CallOptionFilters = {}) {
 export function fetchCallOptionBids(
   filters: CallOptionBidFilters
 ): Promise<CallOptionBidJson[]> {
-  const url = new URL(`${process.env.NEXT_PUBLIC_HOST}/api/call_option/bids`);
+  const url = new URL(`${process.env.NEXT_PUBLIC_URL}/api/call_option/bids`);
 
   appendQueryParams(url, filters);
 
@@ -137,7 +137,7 @@ export function fetchGroupedCallOptionBids(
   filters: CallOptionBidFilters
 ): Promise<GroupedCallOptionBidJson[]> {
   const url = new URL(
-    `${process.env.NEXT_PUBLIC_HOST}/api/call_option/bids/grouped`
+    `${process.env.NEXT_PUBLIC_URL}/api/call_option/bids/grouped`
   );
   appendQueryParams(url, filters);
 
