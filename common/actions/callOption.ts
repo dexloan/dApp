@@ -1,18 +1,149 @@
 import * as anchor from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import {
-  Metadata,
-  PROGRAM_ID as METADATA_PROGRAM_ID,
-} from "@metaplex-foundation/mpl-token-metadata";
+import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 import * as query from "../query";
-import { HireData } from "../types";
+import { CallOptionBidJson, RentalData } from "../types";
 import { SIGNER } from "../constants";
 import { getProgram, getProvider } from "../provider";
 import { submitTransaction } from "./common";
+import { fetchMetadata } from "../query";
 
-export async function initCallOption(
+export async function bidCallOption(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  collectionMint: anchor.web3.PublicKey,
+  options: {
+    amount: number;
+    strikePrice: number;
+    expiry: number;
+  },
+  ids: number[]
+) {
+  const newBids: [anchor.web3.PublicKey, number][] = [];
+  const amount = new anchor.BN(options.amount);
+  const strikePrice = new anchor.BN(options.strikePrice);
+  const expiry = new anchor.BN(options.expiry);
+
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const tx = new anchor.web3.Transaction();
+  const collection = await query.findCollectionAddress(collectionMint);
+
+  for (const id of ids) {
+    const callOptionBid = await query.findCallOptionBidAddress(
+      collectionMint,
+      wallet.publicKey,
+      id
+    );
+    const callOptionBidVault = await query.findCallOptionBidTreasury(
+      callOptionBid
+    );
+
+    const ix = await program.methods
+      .bidCallOption(amount, strikePrice, expiry, id)
+      .accounts({
+        callOptionBid,
+        collection,
+        escrowPaymentAccount: callOptionBidVault,
+        buyer: wallet.publicKey,
+        signer: SIGNER,
+      })
+      .instruction();
+
+    tx.add(ix);
+    newBids.push([callOptionBid, id]);
+  }
+
+  await submitTransaction(connection, wallet, tx);
+
+  return newBids;
+}
+export async function closeBid(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  bid: CallOptionBidJson
+) {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const callOptionBid = new anchor.web3.PublicKey(bid.address);
+  const collection = new anchor.web3.PublicKey(bid.Collection.address);
+  const escrowPaymentAccount = await query.findCallOptionBidTreasury(
+    callOptionBid
+  );
+
+  const transaction = await program.methods
+    .closeCallOptionBid(bid.bidId)
+    .accounts({
+      signer: SIGNER,
+      buyer: wallet.publicKey,
+      callOptionBid,
+      escrowPaymentAccount,
+      collection,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    })
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
+}
+
+export async function sellCallOption(
+  connection: anchor.web3.Connection,
+  wallet: AnchorWallet,
+  mint: anchor.web3.PublicKey,
+  bid: CallOptionBidJson
+): Promise<void> {
+  const provider = getProvider(connection, wallet);
+  const program = getProgram(provider);
+
+  const buyer = new anchor.web3.PublicKey(bid.buyer);
+  const callOptionBid = new anchor.web3.PublicKey(bid.address);
+  const collection = new anchor.web3.PublicKey(bid.Collection.address);
+
+  const callOption = await query.findCallOptionAddress(mint, wallet.publicKey);
+  const callOptionBidVault = await query.findCallOptionBidTreasury(
+    callOptionBid
+  );
+  const tokenManager = await query.findTokenManagerAddress(
+    mint,
+    wallet.publicKey
+  );
+  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
+    .address;
+  const [metadata] = await query.findMetadataAddress(mint);
+  const [edition] = await query.findEditionAddress(mint);
+
+  const transaction = await program.methods
+    .sellCallOption(bid.bidId)
+    .accounts({
+      callOption,
+      callOptionBid,
+      tokenManager,
+      collection,
+      mint,
+      metadata,
+      edition,
+      buyer,
+      seller: wallet.publicKey,
+      depositTokenAccount: tokenAccount,
+      escrowPaymentAccount: callOptionBidVault,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      metadataProgram: METADATA_PROGRAM_ID,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+      signer: SIGNER,
+    })
+    .transaction();
+
+  await submitTransaction(connection, wallet, transaction);
+}
+
+export async function askCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
@@ -42,7 +173,7 @@ export async function initCallOption(
     .address;
 
   const transaction = await program.methods
-    .initCallOption(amount, strikePrice, expiry)
+    .askCallOption(amount, strikePrice, expiry)
     .accounts({
       callOption,
       collection,
@@ -68,14 +199,29 @@ export async function buyCallOption(
   connection: anchor.web3.Connection,
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
-  seller: anchor.web3.PublicKey
+  seller: anchor.web3.PublicKey,
+  collectionMint: anchor.web3.PublicKey
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
   const [edition] = await query.findEditionAddress(mint);
+  const [metadataPda] = await query.findMetadataAddress(mint);
   const callOption = await query.findCallOptionAddress(mint, seller);
+  const collection = await query.findCollectionAddress(collectionMint);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
+
+  const metadata = await fetchMetadata(connection, mint);
+
+  if (!metadata) {
+    throw new Error("Metadata not found");
+  }
+
+  const creatorAccounts = metadata.data.creators?.map((creator) => ({
+    pubkey: creator.address,
+    isSigner: false,
+    isWritable: true,
+  }));
 
   const transaction = await program.methods
     .buyCallOption()
@@ -84,7 +230,9 @@ export async function buyCallOption(
       tokenManager,
       mint,
       edition,
+      collection,
       seller,
+      metadata: metadataPda,
       buyer: wallet.publicKey,
       metadataProgram: METADATA_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
@@ -92,6 +240,7 @@ export async function buyCallOption(
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       signer: SIGNER,
     })
+    .remainingAccounts(creatorAccounts ?? [])
     .transaction();
 
   await submitTransaction(connection, wallet, transaction);
@@ -102,21 +251,28 @@ export async function exerciseCallOption(
   wallet: AnchorWallet,
   mint: anchor.web3.PublicKey,
   buyerTokenAccount: anchor.web3.PublicKey,
-  seller: anchor.web3.PublicKey,
-  metadata: Metadata
+  seller: anchor.web3.PublicKey
 ) {
   const provider = getProvider(connection, wallet);
   const program = getProgram(provider);
 
   const callOption = await query.findCallOptionAddress(mint, seller);
   const tokenManager = await query.findTokenManagerAddress(mint, seller);
-  const hire = await query.findHireAddress(mint, seller);
-  const hireEscrow = await query.findHireEscrowAddress(mint, seller);
+  const rental = await query.findRentalAddress(mint, seller);
+  const rentalEscrow = await query.findRentalEscrowAddress(mint, seller);
   const [metadataAddress] = await query.findMetadataAddress(mint);
   const [edition] = await query.findEditionAddress(mint);
 
-  const tokenAccount = (await connection.getTokenLargestAccounts(mint)).value[0]
-    .address;
+  const [metadata, tokenAccount] = await Promise.all([
+    fetchMetadata(connection, mint),
+    connection
+      .getTokenLargestAccounts(mint)
+      .then((result) => result.value[0].address),
+  ]);
+
+  if (metadata === null) {
+    throw new Error("Metadata not found");
+  }
 
   const creatorAccounts = metadata.data.creators?.map((creator) => ({
     pubkey: creator.address,
@@ -124,21 +280,21 @@ export async function exerciseCallOption(
     isWritable: true,
   }));
 
-  let hireAccount: HireData | null = null;
+  let hireAccount: RentalData | null = null;
 
   try {
-    hireAccount = (await program.account.hire.fetch(hire)) as HireData;
+    hireAccount = (await program.account.rental.fetch(rental)) as RentalData;
   } catch (err) {
     // account does not exist
   }
 
   if (hireAccount) {
-    const method = program.methods.exerciseCallOptionWithHire().accounts({
+    const method = program.methods.exerciseCallOptionWithRental().accounts({
       buyerTokenAccount,
       callOption,
       tokenManager,
-      hire,
-      hireEscrow,
+      rental,
+      rentalEscrow,
       mint,
       edition,
       seller,

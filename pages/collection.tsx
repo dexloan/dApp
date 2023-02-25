@@ -12,11 +12,13 @@ import {
 } from "@chakra-ui/react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useCollectionsQuery } from "../hooks/query";
+import { CollectionJson } from "../common/types";
+import { useMetadataQuery } from "../hooks/query";
 import {
   useInitCollectionMutation,
   useCloseCollectionMutation,
 } from "../hooks/mutation";
+import { useCollectionsQuery } from "../hooks/query";
 import { Card, CardList } from "../components/card";
 
 const Collection: NextPage = () => {
@@ -43,36 +45,19 @@ const Collection: NextPage = () => {
       </Heading>
       <CardList>
         {collectionsQuery.data?.map((collection) => (
-          <Card
-            key={collection.publicKey.toBase58()}
-            uri={collection.metadata.data.uri}
-            imageAlt={collection.metadata.data.name}
-          >
-            <Box p="4">
-              <Box
-                mt="1"
-                fontWeight="semibold"
-                as="h4"
-                lineHeight="tight"
-                isTruncated
-              >
-                {collection.metadata.data.name}
-              </Box>
-              <Button
-                isLoading={closeMutation.isLoading}
-                onClick={() =>
-                  closeMutation.mutate({
-                    mint: collection.data.mint,
-                  })
-                }
-              >
-                Close
-              </Button>
-            </Box>
-          </Card>
+          <CollectionCard
+            key={collection.address}
+            collection={collection}
+            isLoading={closeMutation.isLoading}
+            onClose={() => {
+              closeMutation.mutate({
+                mint: new anchor.web3.PublicKey(collection.mint),
+              });
+            }}
+          />
         ))}
       </CardList>
-      <Box pb="4" pt="6" pl="6" pr="6" bg="gray.50" borderRadius="md">
+      <Box pb="4" pt="6" pl="6" pr="6" borderRadius="md">
         <form
           onSubmit={handleSubmit((data) => {
             initMutation.mutate({ mint: new anchor.web3.PublicKey(data.mint) });
@@ -103,18 +88,50 @@ const Collection: NextPage = () => {
                 )}
               />
             </Box>
-            <Button
-              colorScheme="green"
-              type="submit"
-              w="100%"
-              isLoading={initMutation.isLoading}
-            >
+            <Button type="submit" w="100%" isLoading={initMutation.isLoading}>
               Confirm
             </Button>
           </FormControl>
         </form>
       </Box>
     </Container>
+  );
+};
+
+interface CollectionCardProps {
+  collection: CollectionJson;
+  isLoading: boolean;
+  onClose: () => void;
+}
+
+const CollectionCard = ({
+  collection,
+  isLoading,
+  onClose,
+}: CollectionCardProps) => {
+  const metadataQuery = useMetadataQuery(collection.mint);
+
+  return (
+    <Card
+      key={collection.address}
+      uri={metadataQuery.data?.data.uri as string}
+      imageAlt={metadataQuery.data?.data.name as string}
+    >
+      <Box p="4">
+        <Box
+          mt="1"
+          fontWeight="semibold"
+          as="h4"
+          lineHeight="tight"
+          isTruncated
+        >
+          {collection.address}
+        </Box>
+        <Button isLoading={isLoading} onClick={onClose}>
+          Close
+        </Button>
+      </Box>
+    </Card>
   );
 };
 

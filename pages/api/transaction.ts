@@ -7,8 +7,6 @@ import { Redis } from "@upstash/redis";
 import nookies from "nookies";
 import jwt from "jsonwebtoken";
 
-import { BACKEND_RPC_ENDPOINT } from "../../common/constants";
-
 const client = new Redis({
   url: process.env.REDIS_URL as string,
   token: process.env.REDIS_TOKEN as string,
@@ -16,7 +14,7 @@ const client = new Redis({
 
 const ratelimit = new Ratelimit({
   redis: client,
-  limiter: Ratelimit.fixedWindow(5, "5 s"),
+  limiter: Ratelimit.fixedWindow(10, "1 m"),
 });
 
 interface TransactionResponse {
@@ -38,33 +36,35 @@ export default async function handler(
     return res.status(429).end();
   }
 
-  const cookies = nookies.get({ req });
-  const token = cookies.auth;
+  // const cookies = nookies.get({ req });
+  // const token = cookies.auth;
 
-  if (!token) {
-    return res.status(401).json({ message: "Not authorized" });
-  }
+  // if (!token) {
+  //   return res.status(401).json({ message: "Not authorized" });
+  // }
 
   const { transaction: serializedTransaction } = JSON.parse(req.body) as {
     transaction: string;
   };
-  const connection = new web3.Connection(BACKEND_RPC_ENDPOINT);
+  const connection = new web3.Connection(
+    process.env.BACKEND_RPC_ENDPOINT as string
+  );
   const buffer = Buffer.from(serializedTransaction, "base64");
   const transaction = web3.Transaction.from(buffer);
 
-  const accounts = transaction.instructions[0].keys;
-  const payload = jwt.verify(token, process.env.AUTH_TOKEN_SECRET as string);
+  // const accounts = transaction.instructions[0].keys;
+  // const payload = jwt.verify(token, process.env.AUTH_TOKEN_SECRET as string);
 
   // @ts-ignore
-  const user = new web3.PublicKey(payload.publicKey);
-  const hasUser = accounts.some(
-    (a) => a.isWritable && a.isSigner && a.pubkey.equals(user)
-  );
-  const isPayer = transaction.feePayer?.equals(user);
+  // const user = new web3.PublicKey(payload.publicKey);
+  // const hasUser = accounts.some(
+  //   (a) => a.isWritable && a.isSigner && a.pubkey.equals(user)
+  // );
+  // const isPayer = transaction.feePayer?.equals(user);
 
-  if (!hasUser || !isPayer) {
-    return res.status(401).json({ message: "Not authorized" });
-  }
+  // if (!hasUser || !isPayer) {
+  //   return res.status(401).json({ message: "Not authorized" });
+  // }
 
   try {
     const signer = await getSigner();

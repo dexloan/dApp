@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Box, Image, LinkBox, LinkOverlay, Text } from "@chakra-ui/react";
 
 interface SolscanLinks {
-  mint?: anchor.web3.PublicKey;
+  mint?: string;
 }
 
 export function ExternalLinks({ mint }: SolscanLinks) {
@@ -25,15 +25,12 @@ export function ExternalLinks({ mint }: SolscanLinks) {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          boxSize="6"
+          boxSize="4"
         >
-          <Image src="/solscan.png" alt="Solscan Logo" h="6" />
+          <Image src="/solscan.png" alt="Solscan Logo" h="4" />
         </Box>
-        <Text size="lg" fontWeight="semibold" pl="2">
-          <LinkOverlay
-            href={`https://solscan.io/token/${mint?.toBase58()}`}
-            isExternal
-          >
+        <Text color="gray.400" size="sm" fontWeight="semibold" pl="2">
+          <LinkOverlay href={`https://solscan.io/token/${mint}`} isExternal>
             View on Solscan
           </LinkOverlay>
         </Text>
@@ -55,13 +52,13 @@ export function ExternalLinks({ mint }: SolscanLinks) {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          boxSize="6"
+          boxSize="4"
         >
-          <Image src="/solana.png" alt="Solana Explorer Logo" h="4" />
+          <Image src="/solana.png" alt="Solana Explorer Logo" h="3" />
         </Box>
-        <Text size="lg" fontWeight="semibold" pl="2">
+        <Text color="gray.400" size="sm" fontWeight="semibold" pl="2">
           <LinkOverlay
-            href={`https://explorer.solana.com/address/${mint?.toBase58()}`}
+            href={`https://explorer.solana.com/address/${mint}`}
             isExternal
           >
             View on Solana Explorer

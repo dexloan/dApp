@@ -11,7 +11,7 @@ const fadeIn = keyframes`
 `;
 
 const Ellipsis = styled.span<{ delay?: number }>`
-  animation: ${fadeIn} 0.5s ease-in-out;
+  animation: ${fadeIn} 1s infinite alternate ease-in-out;
   animation-delay: ${({ delay = 0 }) => delay}ms;
 `;
 

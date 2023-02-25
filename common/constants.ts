@@ -1,20 +1,15 @@
 import * as anchor from "@project-serum/anchor";
 
 export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
-  "GDNxgyEcP6b2FtTtCGrGhmoy5AQEiwuv26hV1CLmL1yu"
+  "F2BTn5cmYkTzo52teXhG6jyLS3y2BujdE56yZaGyvxwC"
 );
-
-export const RPC_ENDPOINT =
-  "https://fragrant-capable-theorem.solana-mainnet.discover.quiknode.pro/";
-
-export const BACKEND_RPC_ENDPOINT = "https://ssc-dao.genesysgo.net/";
 
 export const SECONDS_PER_DAY = new anchor.BN(86_400);
 
 export const SerializedLoanState = {
-  Listed: 0,
-  Active: 1,
-  Defaulted: 2,
+  Listed: 1,
+  Active: 2,
+  Defaulted: 3,
 };
 
 export const SerializedCallOptionState = {

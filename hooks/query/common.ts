@@ -7,29 +7,49 @@ import {
 import { useQuery, useQueryClient } from "react-query";
 
 import {
-  fetchNFT,
-  fetchNFTs,
+  fetchMetadata,
+  fetchNft,
+  fetchNfts,
+  fetchTokenManager,
   fetchTokenAccountAddress,
 } from "../../common/query";
-import { NFTResult } from "../../common/types";
+import { NftResult } from "../../common/types";
 
-export const getNFTCacheKey = (mint: anchor.web3.PublicKey) => [
-  "nft",
-  mint.toBase58(),
-];
+export function useMetadataQuery(mint?: string) {
+  const { connection } = useConnection();
 
-export function useNFT(mint: anchor.web3.PublicKey) {
+  return useQuery(
+    ["metadata", mint],
+    () => {
+      if (!mint) {
+        throw new Error("Mint not defined");
+      }
+
+      return fetchMetadata(connection, new anchor.web3.PublicKey(mint));
+    },
+    {
+      enabled: mint !== undefined,
+      staleTime: Infinity,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+}
+
+export function useNft(mint: anchor.web3.PublicKey) {
   const { connection } = useConnection();
   const queryClient = useQueryClient();
   const anchorWallet = useAnchorWallet();
 
   return useQuery(
-    getNFTCacheKey(mint),
+    ["nft", mint.toBase58()],
     () => {
       if (anchorWallet?.publicKey) {
-        const walletNFTs = queryClient.getQueryData<NFTResult[]>(
-          getNFTByOwnerCacheKey(anchorWallet?.publicKey)
-        );
+        const walletNFTs = queryClient.getQueryData<NftResult[]>([
+          "wallet_nfts",
+          anchorWallet.publicKey.toBase58(),
+        ]);
 
         if (walletNFTs) {
           const nft = walletNFTs.find((data) =>
@@ -40,30 +60,31 @@ export function useNFT(mint: anchor.web3.PublicKey) {
         }
       }
 
-      return fetchNFT(connection, mint);
+      return fetchNft(connection, mint);
     },
     {
+      enabled: Boolean(mint),
+      staleTime: Infinity,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
       refetchOnWindowFocus: false,
     }
   );
 }
 
-export const getNFTByOwnerCacheKey = (
-  walletAddress: anchor.web3.PublicKey | undefined
-) => ["wallet_nfts", walletAddress?.toBase58()];
-
-export function useNFTByOwnerQuery(wallet?: AnchorWallet) {
+export function useNftByOwnerQuery(wallet?: AnchorWallet) {
   const { connection } = useConnection();
 
   return useQuery(
-    getNFTByOwnerCacheKey(wallet?.publicKey),
+    ["wallet_nfts", wallet?.publicKey?.toBase58()],
     () => {
       if (wallet) {
-        return fetchNFTs(connection, wallet.publicKey);
+        return fetchNfts(connection, wallet.publicKey);
       }
     },
     {
       enabled: Boolean(wallet?.publicKey),
+      refetchOnReconnect: false,
       refetchOnWindowFocus: false,
     }
   );
@@ -92,7 +113,7 @@ export const getMetadataFileCacheKey = (uri?: string) => ["metadata_file", uri];
 
 export function useMetadataFileQuery(uri?: string) {
   return useQuery(
-    getMetadataFileCacheKey(uri),
+    ["metadata_file", uri],
     () => {
       if (uri) {
         return fetch(uri).then((response) => {
@@ -107,19 +128,31 @@ export function useMetadataFileQuery(uri?: string) {
   );
 }
 
-export const useFloorPriceQuery = (symbol?: string) => {
+export const useTokenManagerQuery = (
+  mint: anchor.web3.PublicKey,
+  issuer: anchor.web3.PublicKey | null
+) => {
+  const { connection } = useConnection();
+
   return useQuery(
-    ["floorPrice", symbol],
-    async () => {
-      if (symbol) {
-        const response = await fetch(`/api/floor/${symbol}`);
-        return response.json() as Promise<{ floorPrice: number }>;
+    ["tokenManager", mint?.toBase58(), issuer?.toBase58()],
+    () => {
+      if (mint && issuer) {
+        return fetchTokenManager(connection, mint, issuer);
       }
     },
-    {
-      enabled: symbol !== "undefined",
-      staleTime: 1000 * 60 * 60 * 5,
-      refetchOnWindowFocus: false,
-    }
+    { enabled: Boolean(mint && issuer) }
   );
 };
+
+export const useFloorPricesQuery = () => {
+  return useQuery(["floorPrices"], async () => {
+    const response = await fetch(`/api/floor`);
+    return response.json() as Promise<Record<string, number>>;
+  });
+};
+
+async function fetchFloorPrice(symbol: string) {
+  const response = await fetch(`/api/floor/${symbol}`);
+  return response.json() as Promise<{ floorPrice: number }>;
+}

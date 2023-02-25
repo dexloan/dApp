@@ -17,7 +17,14 @@ export async function initCollection(
   const collectionAddress = await query.findCollectionAddress(mint);
 
   const transaction = await program.methods
-    .initCollection()
+    .initCollection({
+      loanEnabled: true,
+      loanBasisPoints: 200,
+      optionEnabled: true,
+      optionBasisPoints: 200,
+      rentalEnabled: true,
+      rentalBasisPoints: 200,
+    })
     .accounts({
       mint,
       collection: collectionAddress,

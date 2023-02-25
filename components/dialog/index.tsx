@@ -9,7 +9,18 @@ import {
   ModalBody,
   Text,
 } from "@chakra-ui/react";
-import { CallOption, Loan, Hire } from "../../common/model";
+import { Rental } from "../../common/model";
+import { CallOptionJson, LoanJson } from "../../common/types";
+import { useMetadataFileQuery } from "../../hooks/query";
+import {
+  useAmount,
+  useAPY,
+  useDueDate,
+  useExpiry,
+  useInterestDue,
+  useTotalDue,
+  useStrikePrice,
+} from "../../hooks/render";
 
 interface MutationDialogProps {
   open: boolean;
@@ -48,7 +59,7 @@ export function MutationDialog({
           <Button
             mr="2"
             isLoading={loading}
-            colorScheme="green"
+            variant="primary"
             onClick={onConfirm}
           >
             Confirm
@@ -67,7 +78,7 @@ interface LoanDialogProps
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  loan: Loan;
+  loan: LoanJson;
 }
 
 export const LoanDialog: React.FC<LoanDialogProps> = ({
@@ -77,6 +88,11 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
   onConfirm,
   onRequestClose,
 }) => {
+  const apy = useAPY(loan);
+  const amount = useAmount(loan);
+  const interestDue = useInterestDue(loan);
+  const dueDate = useDueDate({ loan });
+
   return (
     <MutationDialog
       open={open}
@@ -86,14 +102,14 @@ export const LoanDialog: React.FC<LoanDialogProps> = ({
         <>
           <Text mb="4">
             <Badge fontSize="md" colorScheme="green">
-              {loan.amount}
+              {amount}
             </Badge>{" "}
             <Badge fontSize="md" colorScheme="teal">
-              {loan.interestDue}
+              {interestDue}
             </Badge>{" "}
-            <Badge fontSize="md">{loan.data.basisPoints / 100}% APY</Badge>{" "}
+            <Badge fontSize="md">{apy.total} APY</Badge>{" "}
           </Text>
-          <Text mb="4">Loan will mature on {loan.dueDate}.</Text>
+          <Text mb="4">Loan will mature on {dueDate}.</Text>
           <Text fontSize="sm">
             This loan may be repaid in full at any time. Interest will be
             calculated on a pro-rata basis at the time of repayment. If the
@@ -130,6 +146,11 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
   onConfirm,
   onRequestClose,
 }) => {
+  const apy = useAPY(loan);
+  const amount = useAmount(loan);
+  const interestDue = useInterestDue(loan);
+  const totalDue = useTotalDue(loan);
+
   return (
     <MutationDialog
       open={open}
@@ -139,19 +160,19 @@ export const RepayDialog: React.FC<LoanDialogProps> = ({
         <>
           <Text mb="4">
             <Badge colorScheme="green" borderRadius="md" fontSize="md" mr="2">
-              {loan.amount}
+              {amount}
             </Badge>
             <Badge borderRadius="md" fontSize="md" mr="2">
-              {loan.data.basisPoints / 100}% APY
+              {apy.total} APY
             </Badge>
             <Badge colorScheme="blue" borderRadius="md" fontSize="md">
-              {loan.interestDue}
+              {interestDue}
             </Badge>
           </Text>
           <Text mb="4">
             Repay full loan amount of{" "}
             <Text as="span" fontWeight="semibold">
-              {loan.totalDue}
+              {totalDue}
             </Text>{" "}
             to unlock your NFT.
           </Text>
@@ -208,7 +229,7 @@ interface CallOptionDialogProps
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  callOption: CallOption;
+  callOption: CallOptionJson;
 }
 
 export const BuyCallOptionDialog = ({
@@ -218,6 +239,11 @@ export const BuyCallOptionDialog = ({
   onConfirm,
   onRequestClose,
 }: CallOptionDialogProps) => {
+  const queryResult = useMetadataFileQuery(callOption.uri);
+  const amount = useAmount(callOption);
+  const strikePrice = useStrikePrice(callOption);
+  const expiryLongFormat = useExpiry(callOption, true);
+
   return (
     <MutationDialog
       open={open}
@@ -227,21 +253,18 @@ export const BuyCallOptionDialog = ({
         <>
           <Text mb="4">
             <Badge colorScheme="green" borderRadius="md" fontSize="md" mr="2">
-              {callOption.strikePrice}
+              {strikePrice}
             </Badge>
             <Badge borderRadius="md" fontSize="md" mr="2">
-              {callOption.cost}
+              {amount}
             </Badge>
           </Text>
-          <Text mb="4">
-            Option will expire on {callOption.expiryLongFormat}
-          </Text>
+          <Text mb="4">Option will expire on {expiryLongFormat}</Text>
           <Text mb="4" fontSize="sm">
-            This option gives you the right to purchase{" "}
-            {callOption.metadata.data.name} at the price of{" "}
-            <strong>{callOption.strikePrice}</strong> anytime before the expiry
-            time. The cost to purchase this option is{" "}
-            <strong>{callOption.cost}</strong>.
+            This option gives you the right to purchase {queryResult.data.name}{" "}
+            at the price of <strong>{strikePrice}</strong> anytime before the
+            expiry time. The cost to purchase this option is{" "}
+            <strong>{amount}</strong>.
           </Text>
         </>
       }
@@ -258,6 +281,9 @@ export const ExerciseDialog = ({
   onConfirm,
   onRequestClose,
 }: CallOptionDialogProps) => {
+  const queryResult = useMetadataFileQuery(callOption.uri);
+  const strikePrice = useStrikePrice(callOption);
+
   return (
     <MutationDialog
       open={open}
@@ -265,8 +291,8 @@ export const ExerciseDialog = ({
       header="Exercise call option"
       content={
         <Text>
-          Exercise option to buy {callOption.metadata.data.name} for{" "}
-          <strong>{callOption.strikePrice}</strong>?
+          Exercise option to buy {queryResult.data.name} for{" "}
+          <strong>{strikePrice}</strong>?
         </Text>
       }
       onConfirm={onConfirm}
@@ -290,7 +316,7 @@ export const CloseCallOptionDialog = ({
       content={
         <Text>
           Close call option listing
-          {callOption.hasBuyer ? " and recover NFT from escrow" : ""}?
+          {callOption.buyer ? " and recover NFT from escrow" : ""}?
         </Text>
       }
       onConfirm={onConfirm}
@@ -299,22 +325,22 @@ export const CloseCallOptionDialog = ({
   );
 };
 
-interface HireDialogProps
+interface RentalDialogProps
   extends Pick<
     MutationDialogProps,
     "open" | "loading" | "onConfirm" | "onRequestClose"
   > {
-  hire: Hire;
+  rental: Rental;
 }
 
-export const TakeHireDialog = ({
-  hire,
+export const TakeRentalDialog = ({
+  rental,
   days,
   open,
   loading,
   onConfirm,
   onRequestClose,
-}: HireDialogProps & {
+}: RentalDialogProps & {
   days: number;
 }) => {
   return (
@@ -324,8 +350,8 @@ export const TakeHireDialog = ({
       header="Rental"
       content={
         <Text>
-          Rent {hire.metadata.data.name} for {days} day{days > 1 ? "s" : ""} at
-          a cost of <strong>{hire.getFullAmount(days)}</strong>?
+          Rent {rental.metadata.data.name} for {days} day{days > 1 ? "s" : ""}{" "}
+          at a cost of <strong>{rental.getFullAmount(days)}</strong>?
         </Text>
       }
       onConfirm={onConfirm}
@@ -334,14 +360,14 @@ export const TakeHireDialog = ({
   );
 };
 
-export const ExtendHireDialog = ({
-  hire,
+export const ExtendRentalDialog = ({
+  rental,
   days,
   open,
   loading,
   onConfirm,
   onRequestClose,
-}: HireDialogProps & {
+}: RentalDialogProps & {
   days: number;
 }) => {
   return (
@@ -351,9 +377,9 @@ export const ExtendHireDialog = ({
       header="Extend rental"
       content={
         <Text>
-          Extend rental of <strong>{hire.metadata.data.name}</strong> for {days}{" "}
-          day
-          {days > 1 ? "s" : ""} at a cost of {hire.getFullAmount(days)}?
+          Extend rental of <strong>{rental.metadata.data.name}</strong> for{" "}
+          {days} day
+          {days > 1 ? "s" : ""} at a cost of {rental.getFullAmount(days)}?
         </Text>
       }
       onConfirm={onConfirm}
@@ -362,13 +388,13 @@ export const ExtendHireDialog = ({
   );
 };
 
-export const RecoverHireDialog = ({
-  hire,
+export const RecoverRentalDialog = ({
+  rental,
   open,
   loading,
   onConfirm,
   onRequestClose,
-}: HireDialogProps) => {
+}: RentalDialogProps) => {
   return (
     <MutationDialog
       open={open}
@@ -376,9 +402,9 @@ export const RecoverHireDialog = ({
       header={`Recover NFT`}
       content={
         <Text>
-          The current hire period expired on {hire.currentExpiry}. Do you wish
-          to take back possession of the NFT? The listing will remain active
-          until closed or another user choses to take the hire.
+          The current rental period expired on {rental.currentExpiry}. Do you
+          wish to take back possession of the NFT? The listing will remain
+          active until closed or another user choses to take the rental.
         </Text>
       }
       onConfirm={onConfirm}

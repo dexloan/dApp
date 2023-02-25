@@ -28,32 +28,34 @@ export function Masthead() {
   }, [router, wallet.publicKey]);
 
   return (
-    <Box pt="8" pb="20">
+    <Box
+      display="flex"
+      flexDirection="column"
+      textAlign="center"
+      alignItems="center"
+      py="20"
+    >
       <Heading
         as="h1"
-        size="2xl"
-        color="gray.700"
-        lineHeight="shorter"
+        size="3xl"
+        lineHeight="normal"
         fontWeight="extrabold"
         maxW="16ch"
         mb="6"
       >
-        Do more with your{" "}
-        <Box as="span" color="green.600">
-          non-fungibles
-        </Box>
+        Do more with your non-fungibles
       </Heading>
-      <Text size="md" fontWeight="medium" mb="8" maxW="50ch">
+      <Text
+        fontSize="lg"
+        fontWeight="medium"
+        color="gray.400"
+        mb="8"
+        maxW="50ch"
+      >
         Unlock the value of your NFTs with escrowless finacial contracts and
-        social staking. Borrow and lend. Buy and sell call options.
-        <br />
-        <Badge colorScheme="green">New: NFT rentals now available</Badge>
+        social staking. Borrow and lend. Buy and sell call options. Rent and
+        stake.
       </Text>
-      <Box>
-        <Button colorScheme="green" cursor="pointer" onClick={handleClick}>
-          Get Started Today
-        </Button>
-      </Box>
     </Box>
   );
 }

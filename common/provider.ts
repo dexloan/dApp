@@ -1,12 +1,12 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { DexloanListings, IDL } from "./idl/dexloan";
+import { OndaListings, IDL } from "./idl";
 import { LISTINGS_PROGRAM_ID } from "./constants";
 
 export function getProgram(
   provider: anchor.AnchorProvider
-): anchor.Program<DexloanListings> {
-  return new anchor.Program(IDL, LISTINGS_PROGRAM_ID, provider);
+): anchor.Program<OndaListings> {
+  return new anchor.Program<OndaListings>(IDL, LISTINGS_PROGRAM_ID, provider);
 }
 
 export function getProvider(
