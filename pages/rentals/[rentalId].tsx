@@ -21,7 +21,7 @@ import { dehydrate, DehydratedState, QueryClient } from "react-query";
 import { IoLeaf, IoAlert, IoList } from "react-icons/io5";
 
 import { fetchRental } from "../../common/query";
-import { CallOption, Rental, Loan } from "../../common/model";
+import { Rental } from "../../common/model";
 import {
   getRentalCacheKey,
   getMetadataFileCacheKey,
@@ -279,20 +279,21 @@ const RentalLayout = ({ rental }: RentalLayoutProps) => {
   }
 
   return (
-    <NftLayout
-      metadata={rental?.metadata}
-      stats={
-        rental
-          ? [
-              [
-                { label: "Daily Fee", value: rental.amount },
-                { label: "Available Until", value: rental.expiry },
-              ],
-            ]
-          : undefined
-      }
-      action={renderByState()}
-    />
+    // <NftLayout
+    //   metadata={rental?.metadata}
+    //   stats={
+    //     rental
+    //       ? [
+    //           [
+    //             { label: "Daily Fee", value: rental.amount },
+    //             { label: "Available Until", value: rental.expiry },
+    //           ],
+    //         ]
+    //       : undefined
+    //   }
+    //   action={renderByState()}
+    // />
+    null
   );
 };
 
@@ -342,46 +343,46 @@ const SecondaryButtons = ({ rental }: SecondaryButtonProps) => {
     rental.data.mint,
     anchorWallet?.publicKey
   );
-  const callOptionQuery = useCallOptionQuery(callOptionAddress);
+  // const callOptionQuery = useCallOptionQuery(callOptionAddress);
 
   const loanAddress = useLoanAddress(rental.data.mint, anchorWallet?.publicKey);
-  const loanQuery = useLoanQuery(loanAddress);
+  // const loanQuery = useLoanQuery(loanAddress);
 
-  const loan = useMemo(() => {
-    if (loanQuery.data) {
-      return Loan.fromJSON(loanQuery.data);
-    }
-  }, [loanQuery.data]);
+  // const loan = useMemo(() => {
+  //   if (loanQuery.data) {
+  //     return Loan.fromJSON(loanQuery.data);
+  //   }
+  // }, [loanQuery.data]);
 
-  const callOption = useMemo(() => {
-    if (callOptionQuery.data) {
-      return CallOption.fromJSON(callOptionQuery.data);
-    }
-  }, [callOptionQuery.data]);
+  // const callOption = useMemo(() => {
+  //   if (callOptionQuery.data) {
+  //     return CallOption.fromJSON(callOptionQuery.data);
+  //   }
+  // }, [callOptionQuery.data]);
 
   if (rental.isLender(anchorWallet)) {
-    if (callOption && callOption.state !== CallOptionState.Cancelled) {
-      return (
-        <Box mt="2" mb="2" flex={1}>
-          <NextLink href={`/option/${callOptionAddress?.toBase58()}`}>
-            <Button w="100%">View Call Option</Button>
-          </NextLink>
-        </Box>
-      );
-    }
+    // if (callOption && callOption.state !== CallOptionState.Cancelled) {
+    //   return (
+    //     <Box mt="2" mb="2" flex={1}>
+    //       <NextLink href={`/option/${callOptionAddress?.toBase58()}`}>
+    //         <Button w="100%">View Call Option</Button>
+    //       </NextLink>
+    //     </Box>
+    //   );
+    // }
 
-    if (
-      loan &&
-      loan.state !== LoanState.Cancelled &&
-      loan.state !== LoanState.Repaid
-    )
-      return (
-        <Box mt="2" mb="2" flex={1}>
-          <NextLink href={`/loan/${loanAddress?.toBase58()}`}>
-            <Button w="100%">View Loan</Button>
-          </NextLink>
-        </Box>
-      );
+    // if (
+    //   loan &&
+    //   loan.state !== LoanState.Cancelled &&
+    //   loan.state !== LoanState.Repaid
+    // )
+    //   return (
+    //     <Box mt="2" mb="2" flex={1}>
+    //       <NextLink href={`/loan/${loanAddress?.toBase58()}`}>
+    //         <Button w="100%">View Loan</Button>
+    //       </NextLink>
+    //     </Box>
+    //   );
 
     return (
       <Flex direction="row" gap="2">
