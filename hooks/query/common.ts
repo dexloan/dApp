@@ -84,6 +84,7 @@ export function useNftByOwnerQuery(wallet?: AnchorWallet) {
     },
     {
       enabled: Boolean(wallet?.publicKey),
+      staleTime: 30_000,
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
     }

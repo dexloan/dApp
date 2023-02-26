@@ -211,7 +211,7 @@ export function notNull<T>(value: T | null): value is NonNullable<T> {
 }
 
 export function toHexString(value: bigint | number): string {
-  return "0x" + value.toString(16);
+  return "0x" + BigInt(value).toString(16);
 }
 
 export function parseBigInts(result: any) {

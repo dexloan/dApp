@@ -8,7 +8,8 @@ import {
 import * as utils from "../utils";
 import { getProgram, getProvider } from "../provider";
 import { NftResult } from "../types";
-import { fetchTokenManager } from "./tokenManager";
+import { findCallOptionAddress } from "../query";
+import { fetchTokenManager, findTokenManagerAddress } from "./tokenManager";
 
 export async function findEditionAddress(mint: anchor.web3.PublicKey) {
   return anchor.web3.PublicKey.findProgramAddress(

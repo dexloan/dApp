@@ -434,6 +434,7 @@ const Collection = ({
     (item: NftResult) => {
       return (
         <NftItem
+          key={item.metadata.mint.toBase58()}
           item={item}
           listingType={listingType}
           onSelectItem={() => onSelectItem(item)}
