@@ -5,9 +5,7 @@ import { Masthead } from "../components/masthead";
 const Home: NextPage = () => {
   return (
     <>
-      <Container maxW="container.lg">
-        <Masthead />
-      </Container>
+      <Masthead />
     </>
   );
 };
