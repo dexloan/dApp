@@ -28,6 +28,9 @@ export function Masthead() {
             layout="fill"
             objectFit="cover"
             objectPosition="top"
+            style={{
+              userSelect: "none",
+            }}
             alt="waves"
           />
         </Box>
