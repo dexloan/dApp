@@ -197,7 +197,7 @@ export const OfferLoanModal = ({ open, onRequestClose }: ModalProps) => {
                       label="Number of offers"
                       defaultValue={1}
                       min={1}
-                      max={10}
+                      max={8}
                       icon={IoCalendar}
                       units={(v) => (v === 1 ? "offer" : "offers")}
                     />
