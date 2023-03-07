@@ -21,7 +21,7 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 import theme from "../theme";
 import { FontFace } from "../components/font";
 import { Navbar } from "../components/navbar";
-import { DocumentHead, Footer } from "../components/document";
+import { DocumentHead } from "../components/document";
 
 function Dexloan({ Component, pageProps }: AppProps) {
   const wallets = useMemo(
@@ -65,7 +65,6 @@ function Dexloan({ Component, pageProps }: AppProps) {
                 />
                 <Navbar />
                 <Component {...pageProps} />
-                <Footer />
                 <Toaster />
                 <FontFace />
               </ChakraProvider>

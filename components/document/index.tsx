@@ -96,37 +96,3 @@ export const DocumentHead = ({
     </Head>
   );
 };
-
-export const Footer = () => (
-  <>
-    <Box width="100%" paddingBottom={20} />
-    <Box
-      as="footer"
-      position="absolute"
-      bottom={0}
-      left={0}
-      width="100%"
-      height={20}
-      borderTop="1px"
-      borderColor="gray.800"
-    >
-      <Image src="/waves.jpeg" layout="fill" objectFit="cover" alt="waves" />
-      <Box
-        position="absolute"
-        top={0}
-        bottom={0}
-        left={0}
-        right={0}
-        width="100%"
-        bg="onda.900"
-        opacity="0.94"
-        zIndex={1}
-      />
-      <Container position="relative" maxW="container.lg" zIndex={2}>
-        <Text fontSize="sx" fontWeight="normal" color="gray.600">
-          Onda
-        </Text>
-      </Container>
-    </Box>
-  </>
-);

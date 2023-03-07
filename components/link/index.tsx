@@ -1,4 +1,3 @@
-import * as anchor from "@project-serum/anchor";
 import { Box, Image, LinkBox, LinkOverlay, Text } from "@chakra-ui/react";
 
 interface SolscanLinks {
