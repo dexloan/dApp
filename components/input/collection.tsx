@@ -11,7 +11,12 @@ export const CollectionFilter = ({ onChange }: CollectionFilter) => {
   return (
     <CheckboxGroup onChange={(value) => onChange(value as string[])}>
       {query.data?.map((collection) => (
-        <Checkbox key={collection.address} value={collection.address} my="2">
+        <Checkbox
+          key={collection.address}
+          value={collection.address}
+          my="2"
+          width="100%"
+        >
           {collection.name}
         </Checkbox>
       ))}
