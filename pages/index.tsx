@@ -18,7 +18,6 @@ import {
   IoLogoTwitter,
 } from "react-icons/io5";
 import Image from "next/image";
-import Link from "next/link";
 
 const Home: NextPage = () => {
   return (
@@ -81,11 +80,7 @@ const Home: NextPage = () => {
           </Box>
         </Container>
       </Box>
-      <Container
-        maxW="container.lg"
-        borderBottom="1px"
-        borderColor="whiteAlpha.50"
-      >
+      <Container maxW="container.lg">
         <Box display="flex" py="40" gap="12">
           <Box flex={1}>
             <Box
@@ -146,18 +141,29 @@ const Home: NextPage = () => {
       </Container>
       <Box position="absolute" bottom="0" left="0" right="0" bgColor="onda.950">
         <Container maxW="container.xl">
-          <Box display="flex" py="12" gap="6" justifyContent="flex-end">
-            <Box position="relative" display="flex" alignItems="center">
-              <Icon as={IoLogoDiscord} boxSize="2em" mr="2" />
-              <LinkOverlay href="https://discord.gg/WJVYcHHGHr" isExternal>
-                Discord
-              </LinkOverlay>
+          <Box display="flex" py="12" justifyContent="space-between">
+            <Box>
+              <Image
+                src="/onda-logo.svg"
+                width={100}
+                height={25}
+                alt="onda logo"
+              />
             </Box>
-            <Box position="relative" display="flex" alignItems="center">
-              <Icon as={IoLogoTwitter} boxSize="2em" mr="2" />
-              <LinkOverlay href="https://twitter.com/OndaProtocol" isExternal>
-                Twitter
-              </LinkOverlay>
+
+            <Box display="flex" gap="6">
+              <Box position="relative" display="flex" alignItems="center">
+                <Icon as={IoLogoDiscord} boxSize="2em" mr="2" />
+                <LinkOverlay href="https://discord.gg/WJVYcHHGHr" isExternal>
+                  Discord
+                </LinkOverlay>
+              </Box>
+              <Box position="relative" display="flex" alignItems="center">
+                <Icon as={IoLogoTwitter} boxSize="2em" mr="2" />
+                <LinkOverlay href="https://twitter.com/OndaProtocol" isExternal>
+                  Twitter
+                </LinkOverlay>
+              </Box>
             </Box>
           </Box>
         </Container>
