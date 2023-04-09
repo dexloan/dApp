@@ -9,6 +9,7 @@ import * as utils from "../../../common/utils";
 import * as query from "../../../common/query";
 import { IDL } from "../../../common/idl/OndaListings";
 import { getProgram, getProvider } from "../../../common/provider";
+import { genIxIdentifier } from "../../../common/utils/idl";
 import prisma from "../../../common/lib/prisma";
 import { CallOptionBidData, LoanData } from "../../../common/types";
 
@@ -31,24 +32,17 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const events = req.body as any;
-  console.log("rpcEndpoint: ", connection.rpcEndpoint);
+
   for (const event of events) {
     const message = event.transaction.message;
 
     for (const ix of message.instructions) {
-      console.log("ixIds: ", ixIds);
-      console.log("ix:", ix);
-
       const decoded = base58.decode(ix.data);
-      console.log("decoded: ", decoded);
       const ixId = base58.encode(decoded.slice(0, 8));
-      console.log("ixId: ", ixId);
       const ixName = ixIds.find((i) => i.id === ixId)?.name;
       const ixAccounts = IDL.instructions.find(
         (i) => i.name === ixName
       )?.accounts;
-      console.log("ixName: ", ixName);
-      console.log("ixAccounts: ", ixAccounts);
 
       if (ixName && ixAccounts) {
         switch (ixName) {
@@ -330,13 +324,6 @@ export default async function handler(
   }
 
   res.status(200).end();
-}
-
-function genIxIdentifier(ixName: string) {
-  const namespace = "global";
-  const name = snakeCase(ixName);
-  const preimage = `${namespace}:${name}`;
-  return base58.encode(sha256.digest(preimage).slice(0, 8));
 }
 
 export async function upsertLoan(

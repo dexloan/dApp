@@ -7,12 +7,20 @@ import { SOCIAL_PROGRAM_ID } from "../../../common/constants";
 import { LeafSchema, EntryData } from "../../../common/types";
 import { IDL, OndaSocial } from "../../../common/idl/OndaSocial";
 import prisma from "../../../common/lib/prisma";
+import { genIxIdentifier } from "../../../common/utils/idl";
 import * as query from "../../../common/query";
 
 const connection = new web3.Connection(
   process.env.BACKEND_RPC_ENDPOINT as string,
   "processed"
 );
+
+const ixIds = IDL.instructions.map((ix) => {
+  return {
+    name: ix.name,
+    id: genIxIdentifier(ix.name),
+  };
+});
 
 const wallet = new Wallet(web3.Keypair.generate());
 const provider = new AnchorProvider(connection, wallet, {
@@ -28,46 +36,77 @@ export default async function handler(
   const events = req.body as any;
 
   for (const event of events) {
-    const transaction = event.transaction;
-    const innerInstructions = transaction.meta.innerInstructions[0];
-    const noopIx = innerInstructions.instructions[0];
-    const serializedEvent = noopIx.data;
-    const schemaEvent = base58.decode(serializedEvent);
-    const schemaEventBuffer = Buffer.from(schemaEvent.slice(8));
-    const schemaEventDecoded = program.coder.types.decode(
-      "LeafSchema",
-      schemaEventBuffer
-    ) as LeafSchema;
-    console.log("Decoded: ", schemaEventDecoded);
+    const message = event.transaction.message;
 
-    const outerIx = transaction.transaction.message.instructions[0];
-    const data = outerIx.data;
-    const entry = base58.decode(data);
-    const buffer = Buffer.from(entry.slice(8));
-    const entryDecoded = program.coder.types.decode(
-      "EntryData",
-      buffer
-    ) as EntryData;
-    console.log("Entry: ", entryDecoded);
+    for (const ix of message.instructions) {
+      const ixData = base58.decode(ix.data);
+      const ixId = base58.encode(ixData.slice(0, 8));
+      const ixName = ixIds.find((i) => i.id === ixId)?.name;
+      const ixAccounts = IDL.instructions.find(
+        (i) => i.name === ixName
+      )?.accounts;
 
-    const entryType = query.getState<EntryType>(schemaEventDecoded.entry_type);
+      if (ixName === undefined || ixAccounts === undefined) {
+        throw new Error(`Unknown instruction: ${ixId}`);
+      }
 
-    if (entryType === undefined) {
-      throw new Error(`Unknown entry type: ${schemaEventDecoded.entry_type}`);
+      switch (ixName) {
+        case "initForum": {
+          break;
+        }
+
+        case "addEntry": {
+          // Decode entry data
+          const buffer = Buffer.from(ixData.slice(8));
+          const entryDecoded = program.coder.types.decode(
+            "EntryData",
+            buffer
+          ) as EntryData;
+          // Decode schema event data
+          const innerIx = event.transaction.meta.innerInstructions[0];
+          const noopIx = innerIx.instructions[0];
+          const serializedSchemaEvent = noopIx.data;
+          const schemaEvent = base58.decode(serializedSchemaEvent);
+          const schemaEventBuffer = Buffer.from(schemaEvent.slice(8));
+          const schemaEventDecoded = program.coder.types.decode(
+            "LeafSchema",
+            schemaEventBuffer
+          ) as LeafSchema;
+          // Get forum address
+          const forumConfigIndex = ixAccounts.findIndex(
+            (account) => account.name === "forumConfig"
+          );
+          const forumAddress = message.accountKeys[forumConfigIndex];
+          // Parse entry type
+          const entryType = query.getState<EntryType>(
+            schemaEventDecoded.entry_type
+          );
+
+          if (entryType === undefined) {
+            throw new Error(
+              `Unknown entry type: ${schemaEventDecoded.entry_type}`
+            );
+          }
+
+          await prisma.entry.create({
+            data: {
+              id: schemaEventDecoded.id.toBase58(),
+              forum: forumAddress,
+              author: schemaEventDecoded.author.toBase58(),
+              type: entryType,
+              title: entryDecoded.title,
+              content:
+                entryDecoded.body || entryDecoded.src || entryDecoded.url,
+              createdAt: schemaEventDecoded.created_at.toNumber(),
+              nonce: schemaEventDecoded.nonce.toNumber(),
+              parent: entryDecoded.parent?.toBase58(),
+            },
+          });
+
+          break;
+        }
+      }
     }
-
-    await prisma.entry.create({
-      data: {
-        id: schemaEventDecoded.id.toBase58(),
-        author: schemaEventDecoded.author.toBase58(),
-        type: entryType,
-        title: entryDecoded.title,
-        content: entryDecoded.body || entryDecoded.src || entryDecoded.url,
-        createdAt: schemaEventDecoded.created_at.toNumber(),
-        nonce: schemaEventDecoded.nonce.toNumber(),
-        parent: entryDecoded.parent?.toBase58(),
-      },
-    });
   }
 
   res.status(200).end();

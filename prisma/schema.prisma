@@ -134,6 +134,7 @@ enum RentalState {
 
 model Entry {
   id String @id @unique
+  forum String
   type EntryType
   author String
   title String?
