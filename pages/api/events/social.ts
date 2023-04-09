@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { web3, AnchorProvider, Program, Wallet } from "@project-serum/anchor";
 import { EntryType } from "@prisma/client";
-import { snakeCase } from "snake-case";
-import { sha256 } from "js-sha256";
 import base58 from "bs58";
 
 import { SOCIAL_PROGRAM_ID } from "../../../common/constants";
