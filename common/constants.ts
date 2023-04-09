@@ -4,6 +4,10 @@ export const LISTINGS_PROGRAM_ID = new anchor.web3.PublicKey(
   "F2BTn5cmYkTzo52teXhG6jyLS3y2BujdE56yZaGyvxwC"
 );
 
+export const SOCIAL_PROGRAM_ID = new anchor.web3.PublicKey(
+  "62616yhPNbv1uxcGbs84pk9PmGbBaaEBXAZmLE6P1nGS" // TODO
+);
+
 export const SECONDS_PER_DAY = new anchor.BN(86_400);
 
 export const SerializedLoanState = {

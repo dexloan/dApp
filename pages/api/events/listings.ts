@@ -5,12 +5,12 @@ import { snakeCase } from "snake-case";
 import { sha256 } from "js-sha256";
 import base58 from "bs58";
 
-import * as utils from "../../common/utils";
-import * as query from "../../common/query";
-import { IDL } from "../../common/idl";
-import { getProgram, getProvider } from "../../common/provider";
-import prisma from "../../common/lib/prisma";
-import { CallOptionBidData, LoanData } from "../../common/types";
+import * as utils from "../../../common/utils";
+import * as query from "../../../common/query";
+import { IDL } from "../../../common/idl/OndaListings";
+import { getProgram, getProvider } from "../../../common/provider";
+import prisma from "../../../common/lib/prisma";
+import { CallOptionBidData, LoanData } from "../../../common/types";
 
 const ixIds = IDL.instructions.map((ix) => {
   return {

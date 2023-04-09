@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { OndaListings, IDL } from "./idl";
+import { OndaListings, IDL } from "./idl/OndaListings";
 import { LISTINGS_PROGRAM_ID } from "./constants";
 
 export function getProgram(

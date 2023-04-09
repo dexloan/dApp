@@ -4,7 +4,7 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { LoanData, LoanOfferData } from "../types";
-import { OndaListings } from "../idl";
+import { OndaListings } from "../idl/OndaListings";
 
 /**
  * KEYS

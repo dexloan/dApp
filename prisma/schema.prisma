@@ -130,3 +130,25 @@ enum RentalState {
   Rented
   Cancelled
 }
+
+
+model Entry {
+  id String @id @unique
+  type EntryType
+  author String
+  title String?
+  content String
+  createdAt BigInt
+  editedAt BigInt?
+  nonce BigInt
+  parent String?
+  Parent Entry? @relation("EntryToParent", fields: [parent], references: [id])
+  Children Entry[] @relation("EntryToParent")
+}
+
+enum EntryType {
+  TextPost
+  ImagePost
+  VideoPost
+  Comment
+}

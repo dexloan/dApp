@@ -10,8 +10,12 @@ import type {
   RentalState,
 } from "@prisma/client";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
-import { TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
-import { OndaListings, IDL } from "./idl";
+import {
+  TypeDef,
+  IdlTypes,
+} from "@project-serum/anchor/dist/cjs/program/namespace/types";
+import { OndaListings, IDL as LISTINGS_IDL } from "./idl/OndaListings";
+import { OndaSocial, IDL as SOCIAL_IDL } from "./idl/OndaSocial";
 
 export type SortDirection = "asc" | "desc";
 
@@ -89,19 +93,44 @@ export interface CollectionMap {
   [key: string]: CollectionItem;
 }
 
-export type CallOptionData = TypeDef<typeof IDL["accounts"][0], OndaListings>;
+export type CallOptionData = TypeDef<
+  typeof LISTINGS_IDL["accounts"][0],
+  OndaListings
+>;
 export type CallOptionBidData = TypeDef<
-  typeof IDL["accounts"][1],
+  typeof LISTINGS_IDL["accounts"][1],
   OndaListings
 >;
-export type CollectionData = TypeDef<typeof IDL["accounts"][2], OndaListings>;
-export type LoanData = TypeDef<typeof IDL["accounts"][3], OndaListings>;
-export type LoanOfferData = TypeDef<typeof IDL["accounts"][4], OndaListings>;
-export type RentalData = TypeDef<typeof IDL["accounts"][5], OndaListings>;
-export type TokenManagerData = TypeDef<typeof IDL["accounts"][6], OndaListings>;
+export type CollectionData = TypeDef<
+  typeof LISTINGS_IDL["accounts"][2],
+  OndaListings
+>;
+export type LoanData = TypeDef<
+  typeof LISTINGS_IDL["accounts"][3],
+  OndaListings
+>;
+export type LoanOfferData = TypeDef<
+  typeof LISTINGS_IDL["accounts"][4],
+  OndaListings
+>;
+export type RentalData = TypeDef<
+  typeof LISTINGS_IDL["accounts"][5],
+  OndaListings
+>;
+export type TokenManagerData = TypeDef<
+  typeof LISTINGS_IDL["accounts"][6],
+  OndaListings
+>;
 
-export type CollectionConfig = TypeDef<typeof IDL["types"][1], OndaListings>;
-export type TokenManagerAccountState = TypeDef<
-  typeof IDL["types"][2],
+export type CollectionConfig = TypeDef<
+  typeof LISTINGS_IDL["types"][1],
   OndaListings
 >;
+export type TokenManagerAccountState = TypeDef<
+  typeof LISTINGS_IDL["types"][2],
+  OndaListings
+>;
+
+export type OndaSocialTypes = IdlTypes<OndaSocial>;
+export type EntryData = OndaSocialTypes["EntryData"];
+export type LeafSchema = OndaSocialTypes["LeafSchema"];

@@ -3,7 +3,7 @@ import * as anchor from "@project-serum/anchor";
 import * as utils from "../utils";
 import { LISTINGS_PROGRAM_ID } from "../constants";
 import { CallOptionData, CallOptionBidData } from "../types";
-import { OndaListings } from "../idl";
+import { OndaListings } from "../idl/OndaListings";
 
 export async function findCallOptionAddress(
   mint: anchor.web3.PublicKey,
